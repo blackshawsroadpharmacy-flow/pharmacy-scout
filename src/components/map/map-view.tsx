@@ -53,15 +53,18 @@ function TileFallback() {
   const [failed, setFailed] = useState(false);
   return (
     <TileLayer
-      key={failed ? "osm" : "carto"}
-      attribution='&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; CARTO'
+      key={failed ? "carto" : "osm"}
+      attribution={
+        failed
+          ? '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; CARTO'
+          : '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }
       url={
         failed
-          ? "https://{s}.tile.openstreetmap.org/{z}/{y}/{x}.png"
-          : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{y}/{x}{r}.png"
+          ? "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{y}/{x}{r}.png"
+          : "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
       }
-      subdomains={["a", "b", "c", "d"]}
-      detectRetina
+      subdomains={failed ? ["a", "b", "c", "d"] : ["a", "b", "c"]}
       eventHandlers={{ tileerror: () => !failed && setFailed(true) }}
     />
   );
