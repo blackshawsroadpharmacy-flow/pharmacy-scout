@@ -14,7 +14,11 @@ dist-ssr
 .vinxi
 .tanstack/**
 .nitro
+supabase/.temp/
 *.local
+.env
+.env.*
+!.env.example
 
 # Wrangler / Cloudflare
 .wrangler/
@@ -25,8 +29,13 @@ dist-ssr
 !.vscode/extensions.json
 .idea
 .DS_Store
+._*
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# Local importer artifacts
+data/import-cache/
+data/import-output/

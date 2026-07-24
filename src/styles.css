@@ -179,6 +179,11 @@
 .pharmacy-pin.verified { background: #0f9d8a; }
 .pharmacy-pin.partial { background: #d97706; }
 .pharmacy-pin.saved { background: #7c3aed; }
+.pharmacy-pin.approximate { background: #ffffff; }
+.pharmacy-pin.approximate.discovery { border-color: #10183f; }
+.pharmacy-pin.approximate.verified { border-color: #0f9d8a; }
+.pharmacy-pin.approximate.partial { border-color: #d97706; }
+.pharmacy-pin.approximate.saved { border-color: #7c3aed; }
 .pharmacy-pin.selected { outline: 3px solid #2563eb; outline-offset: 2px; }
 
 .leaflet-container { font-family: var(--font-sans); }
