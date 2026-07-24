@@ -25,81 +25,83 @@ export interface PremisesRow {
   phone: string | null;
   website: string | null;
   notes: string | null;
-  pbs_approvals: Array<{
-    approval_number: string;
-    approval_status: string;
-  }>;
-}
-
-// PostGIS geography values come back as GeoJSON when selected via .select();
-// we normalise them into flat lat/lng fields for the client.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function pointToLatLng(value: any): { lat: number | null; lng: number | null } {
-  if (!value) return { lat: null, lng: null };
-  if (typeof value === "object" && value.type === "Point" && Array.isArray(value.coordinates)) {
-    return { lng: value.coordinates[0] ?? null, lat: value.coordinates[1] ?? null };
-  }
-  // WKB hex fallback: skip; the RPC below returns GeoJSON.
-  return { lat: null, lng: null };
+  pbs_approvals: Array<{ approval_number: string; approval_status: string }>;
 }
 
 export const listPremises = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    // Select the raw columns then convert; select() on geography returns hex,
-    // so we prefer a stored function. Use raw SQL via rpc for GeoJSON — but
-    // to avoid extra migrations we fetch and use ST_AsGeoJSON via a view-less
-    // approach: rely on PostgREST's automatic conversion by declaring the
-    // column type as text through casts is complex, so instead fetch with a
-    // direct .rpc using a helper we define inline via .select() and
-    // post-process the hex points on the server using a lightweight parser.
     const { data, error } = await context.supabase
-      .from("pharmacy_premises")
-      .select(
-        `id, name, address, suburb, postcode, locality_name,
-         location, public_door_location,
-         door_source, door_verified_at,
-         vpa_registration_status, vpa_registration_checked_at,
-         premises_source, source_confidence,
-         phone, website, notes,
-         source_records:source_id (source_name, source_url, fetched_at),
-         pbs_approvals (approval_number, approval_status)`,
-      )
+      .from("pharmacy_premises_geo")
+      .select("*")
       .order("suburb", { ascending: true });
     if (error) throw new Error(error.message);
-    return (data ?? []).map((row) => {
-      const loc = pointToLatLng(row.location);
-      const door = pointToLatLng(row.public_door_location);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const src = row.source_records as any;
+
+    const rows = data ?? [];
+    const ids = rows.map((r) => r.id as string);
+    const sourceIds = Array.from(
+      new Set(rows.map((r) => r.source_id as string | null).filter((v): v is string => !!v)),
+    );
+
+    const [{ data: approvals, error: apErr }, { data: sources, error: srcErr }] = await Promise.all([
+      ids.length
+        ? context.supabase
+            .from("pbs_approvals")
+            .select("premises_id, approval_number, approval_status")
+            .in("premises_id", ids)
+        : Promise.resolve({ data: [], error: null }),
+      sourceIds.length
+        ? context.supabase
+            .from("source_records")
+            .select("id, source_name, source_url, fetched_at")
+            .in("id", sourceIds)
+        : Promise.resolve({ data: [], error: null }),
+    ]);
+    if (apErr) throw new Error(apErr.message);
+    if (srcErr) throw new Error(srcErr.message);
+
+    const approvalsByPremises = new Map<string, PremisesRow["pbs_approvals"]>();
+    for (const a of approvals ?? []) {
+      const list = approvalsByPremises.get(a.premises_id as string) ?? [];
+      list.push({ approval_number: a.approval_number, approval_status: a.approval_status });
+      approvalsByPremises.set(a.premises_id as string, list);
+    }
+    const sourceById = new Map<string, { source_name: string; source_url: string | null; fetched_at: string | null }>();
+    for (const s of sources ?? []) {
+      sourceById.set(s.id as string, {
+        source_name: s.source_name,
+        source_url: s.source_url,
+        fetched_at: s.fetched_at,
+      });
+    }
+
+    return rows.map((r): PremisesRow => {
+      const src = r.source_id ? sourceById.get(r.source_id as string) : undefined;
       return {
-        id: row.id,
-        name: row.name,
-        address: row.address,
-        suburb: row.suburb,
-        postcode: row.postcode,
-        locality_name: row.locality_name,
-        lat: loc.lat,
-        lng: loc.lng,
-        door_lat: door.lat,
-        door_lng: door.lng,
-        door_source: row.door_source,
-        door_verified_at: row.door_verified_at,
-        vpa_registration_status: row.vpa_registration_status,
-        vpa_registration_checked_at: row.vpa_registration_checked_at,
-        premises_source: row.premises_source,
-        source_confidence: row.source_confidence,
+        id: r.id as string,
+        name: r.name as string,
+        address: r.address as string,
+        suburb: r.suburb as string | null,
+        postcode: r.postcode as string | null,
+        locality_name: r.locality_name as string | null,
+        lat: (r.lat as number | null) ?? null,
+        lng: (r.lng as number | null) ?? null,
+        door_lat: (r.door_lat as number | null) ?? null,
+        door_lng: (r.door_lng as number | null) ?? null,
+        door_source: r.door_source as string | null,
+        door_verified_at: r.door_verified_at as string | null,
+        vpa_registration_status: r.vpa_registration_status as string,
+        vpa_registration_checked_at: r.vpa_registration_checked_at as string | null,
+        premises_source: r.premises_source as string,
+        source_confidence: r.source_confidence as string | null,
         source_name: src?.source_name ?? null,
         source_url: src?.source_url ?? null,
         source_fetched_at: src?.fetched_at ?? null,
-        phone: row.phone,
-        website: row.website,
-        notes: row.notes,
-        pbs_approvals: (row.pbs_approvals ?? []).map((a) => ({
-          approval_number: a.approval_number,
-          approval_status: a.approval_status,
-        })),
-      } satisfies PremisesRow;
+        phone: r.phone as string | null,
+        website: r.website as string | null,
+        notes: r.notes as string | null,
+        pbs_approvals: approvalsByPremises.get(r.id as string) ?? [],
+      };
     });
   });
 
