@@ -15,7 +15,6 @@ export interface PublicPremises {
   premises_source: string;
   source_confidence: string | null;
   source_id: string | null;
-  geocode_method: string | null;
   door_lat: number | null;
   door_lng: number | null;
   phone: string | null;
@@ -34,7 +33,7 @@ export async function fetchAllPremises(): Promise<PublicPremises[]> {
   const { data, error } = await supabase
     .from("pharmacy_premises_geo")
     .select(
-      "id, name, address, suburb, postcode, locality_name, lat, lng, vpa_registration_status, premises_source, source_confidence, source_id, geocode_method, door_lat, door_lng, phone, website",
+      "id, name, address, suburb, postcode, locality_name, lat, lng, vpa_registration_status, premises_source, source_confidence, source_id, door_lat, door_lng, phone, website",
     )
     .not("lat", "is", null)
     .not("lng", "is", null);
