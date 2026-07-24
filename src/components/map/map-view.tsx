@@ -25,7 +25,7 @@ function pinIcon(kind: Kind, selected: boolean) {
   });
 }
 
-function clusterIcon(cluster: L.MarkerCluster) {
+function clusterIcon(cluster: { getChildCount: () => number }) {
   return L.divIcon({
     html: `<div><span>${cluster.getChildCount()}</span></div>`,
     className: "marker-cluster-navy",
