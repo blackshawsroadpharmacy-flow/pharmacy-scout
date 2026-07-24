@@ -135,9 +135,7 @@
   z-index: 1;
 }
 
-/* Marker cluster styles */
-@import "leaflet.markercluster/dist/MarkerCluster.css";
-@import "leaflet.markercluster/dist/MarkerCluster.Default.css";
+/* Marker cluster styles (imports moved to top) */
 
 .marker-cluster-navy {
   background: color-mix(in oklab, var(--navy) 25%, transparent);
