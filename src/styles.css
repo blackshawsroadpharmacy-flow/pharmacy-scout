@@ -132,3 +132,42 @@
 .leaflet-pane, .leaflet-top, .leaflet-bottom {
   z-index: 1;
 }
+
+/* Marker cluster styles */
+@import "leaflet.markercluster/dist/MarkerCluster.css";
+@import "leaflet.markercluster/dist/MarkerCluster.Default.css";
+
+.marker-cluster-navy {
+  background: color-mix(in oklab, var(--navy) 25%, transparent);
+  border-radius: 9999px;
+}
+.marker-cluster-navy div {
+  background: var(--navy);
+  color: var(--navy-foreground);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 12px;
+  border-radius: 9999px;
+  width: 32px !important;
+  height: 32px !important;
+  margin-left: 4px;
+  margin-top: 4px;
+  line-height: 32px;
+}
+.marker-cluster-navy span { line-height: 32px; }
+
+/* Custom pharmacy pin */
+.pharmacy-pin {
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.35);
+}
+.pharmacy-pin.discovery { background: #10183f; }
+.pharmacy-pin.verified { background: #0f9d8a; }
+.pharmacy-pin.partial { background: #d97706; }
+.pharmacy-pin.saved { background: #7c3aed; }
+.pharmacy-pin.selected { outline: 3px solid #2563eb; outline-offset: 2px; }
+
+.leaflet-container { font-family: var(--font-sans); }
