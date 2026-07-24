@@ -261,6 +261,13 @@ export type Database = {
             referencedRelation: "pharmacy_premises"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "pbs_approvals_premises_id_fkey"
+            columns: ["premises_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises_geo"
+            referencedColumns: ["id"]
+          },
         ]
       }
       pharmacy_businesses: {
@@ -319,6 +326,13 @@ export type Database = {
             columns: ["premises_id"]
             isOneToOne: false
             referencedRelation: "pharmacy_premises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_businesses_premises_id_fkey"
+            columns: ["premises_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises_geo"
             referencedColumns: ["id"]
           },
         ]
@@ -590,6 +604,104 @@ export type Database = {
           type?: string | null
         }
         Relationships: []
+      }
+      pharmacy_premises_geo: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          door_confidence: string | null
+          door_lat: number | null
+          door_lng: number | null
+          door_source: Database["public"]["Enums"]["door_source"] | null
+          door_verified_at: string | null
+          id: string | null
+          lat: number | null
+          lng: number | null
+          locality_name: string | null
+          name: string | null
+          notes: string | null
+          phone: string | null
+          postcode: string | null
+          premises_source:
+            | Database["public"]["Enums"]["premises_source_type"]
+            | null
+          source_confidence: string | null
+          source_id: string | null
+          suburb: string | null
+          updated_at: string | null
+          vpa_registration_checked_at: string | null
+          vpa_registration_status:
+            | Database["public"]["Enums"]["verification_status"]
+            | null
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          door_confidence?: string | null
+          door_lat?: never
+          door_lng?: never
+          door_source?: Database["public"]["Enums"]["door_source"] | null
+          door_verified_at?: string | null
+          id?: string | null
+          lat?: never
+          lng?: never
+          locality_name?: string | null
+          name?: string | null
+          notes?: string | null
+          phone?: string | null
+          postcode?: string | null
+          premises_source?:
+            | Database["public"]["Enums"]["premises_source_type"]
+            | null
+          source_confidence?: string | null
+          source_id?: string | null
+          suburb?: string | null
+          updated_at?: string | null
+          vpa_registration_checked_at?: string | null
+          vpa_registration_status?:
+            | Database["public"]["Enums"]["verification_status"]
+            | null
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          door_confidence?: string | null
+          door_lat?: never
+          door_lng?: never
+          door_source?: Database["public"]["Enums"]["door_source"] | null
+          door_verified_at?: string | null
+          id?: string | null
+          lat?: never
+          lng?: never
+          locality_name?: string | null
+          name?: string | null
+          notes?: string | null
+          phone?: string | null
+          postcode?: string | null
+          premises_source?:
+            | Database["public"]["Enums"]["premises_source_type"]
+            | null
+          source_confidence?: string | null
+          source_id?: string | null
+          suburb?: string | null
+          updated_at?: string | null
+          vpa_registration_checked_at?: string | null
+          vpa_registration_status?:
+            | Database["public"]["Enums"]["verification_status"]
+            | null
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_premises_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "source_records"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {
