@@ -1,23 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { X, MapPin, Bookmark, Navigation, Paperclip, Eye, Download, Trash2 } from "lucide-react";
-import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { fetchDossier, type PremisesDossier, type PublicPremises } from "@/lib/premises-public";
 import {
   deleteImAttachment,
-  getPharmacyProfile,
+  fetchPharmacyProfileBundle,
+  type PharmacyProfileBundle,
+  type PharmacyStatus,
   registerImAttachment,
   savePharmacyNotes,
   upsertPharmacyProfile,
-} from "@/lib/pharmacy-profiles.functions";
+} from "@/lib/pharmacy-profiles.public";
 import { VerificationBadge, EvidenceBadge } from "@/components/verification-badge";
 import { supabase } from "@/integrations/supabase/client";
-
-type PharmacyStatus = "active" | "underperforming" | "target" | "under_offer";
-
-type PrivateProfileResponse = Awaited<
-  ReturnType<ReturnType<typeof useServerFn<typeof getPharmacyProfile>>>
->;
 
 const STATUS_OPTIONS: Array<{ value: PharmacyStatus; label: string }> = [
   { value: "active", label: "Active" },
@@ -158,11 +153,7 @@ export function RightDossier({
               </div>
             </section>
 
-            <PrivateWorkspace
-              authed={authed}
-              premisesId={premisesId}
-              onRequireAuth={onRequireAuth}
-            />
+            <PublicWorkspace authed={authed} premisesId={premisesId} />
           </>
         )}
       </div>
@@ -195,22 +186,8 @@ export function RightDossier({
   );
 }
 
-function PrivateWorkspace({
-  authed,
-  premisesId,
-  onRequireAuth,
-}: {
-  authed: boolean;
-  premisesId: string;
-  onRequireAuth: (reason: string) => void;
-}) {
-  const getProfileFn = useServerFn(getPharmacyProfile);
-  const upsertProfileFn = useServerFn(upsertPharmacyProfile);
-  const saveNotesFn = useServerFn(savePharmacyNotes);
-  const registerAttachmentFn = useServerFn(registerImAttachment);
-  const deleteAttachmentFn = useServerFn(deleteImAttachment);
-
-  const [profileData, setProfileData] = useState<PrivateProfileResponse | null>(null);
+function PublicWorkspace({ authed, premisesId }: { authed: boolean; premisesId: string }) {
+  const [profileData, setProfileData] = useState<PharmacyProfileBundle | null>(null);
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -226,11 +203,7 @@ function PrivateWorkspace({
   const [notesState, setNotesState] = useState<"idle" | "saving" | "saved">("idle");
 
   async function loadProfile() {
-    if (!authed) {
-      setProfileData(null);
-      return;
-    }
-    const next = await getProfileFn({ data: { premises_id: premisesId } });
+    const next = await fetchPharmacyProfileBundle(premisesId);
     setProfileData(next);
     const profile = next.profile;
     setStatus((profile.status as PharmacyStatus) ?? "active");
@@ -259,38 +232,16 @@ function PrivateWorkspace({
     return stamp ? `Last saved ${new Date(stamp).toLocaleString()}` : "No saved notes yet";
   }, [profileData]);
 
-  if (!authed) {
-    return (
-      <section className="mt-5 rounded-lg border border-dashed border-border bg-muted/30 p-3">
-        <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Private workspace
-        </div>
-        <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-          Sign in to track status, asking price, revenue, script volume, owner or licensee notes,
-          and upload broker information memorandums.
-        </p>
-        <button
-          onClick={() => onRequireAuth("Sign in to edit private pharmacy notes and attachments.")}
-          className="mt-3 inline-flex rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-90"
-        >
-          Sign in to edit
-        </button>
-      </section>
-    );
-  }
-
   async function saveCommercialFields() {
     setBusy(true);
     try {
-      await upsertProfileFn({
-        data: {
-          premises_id: premisesId,
-          status,
-          asking_price: toNullableNumber(askingPrice),
-          revenue: toNullableNumber(revenue),
-          script_volume: toNullableInteger(scriptVolume),
-          owner_licensee: ownerLicensee.trim() || null,
-        },
+      await upsertPharmacyProfile({
+        premises_id: premisesId,
+        status,
+        asking_price: toNullableNumber(askingPrice),
+        revenue: toNullableNumber(revenue),
+        script_volume: toNullableInteger(scriptVolume),
+        owner_licensee: ownerLicensee.trim() || null,
       });
       toast.success("Private fields saved");
       await loadProfile();
@@ -307,7 +258,7 @@ function PrivateWorkspace({
     if (notesTimer.current) window.clearTimeout(notesTimer.current);
     notesTimer.current = window.setTimeout(async () => {
       try {
-        await saveNotesFn({ data: { premises_id: premisesId, notes: nextNotes } });
+        await savePharmacyNotes({ premises_id: premisesId, notes: nextNotes });
         setNotesState("saved");
         await loadProfile();
       } catch (error) {
@@ -318,25 +269,23 @@ function PrivateWorkspace({
   }
 
   async function handleUpload(files: FileList | null) {
-    if (!files?.length || !profileData?.organisationId) return;
+    if (!files?.length) return;
     setUploading(true);
     try {
       for (const file of Array.from(files)) {
         const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
-        const storagePath = `${profileData.organisationId}/${premisesId}/${Date.now()}-${safeName}`;
+        const storagePath = `${premisesId}/${Date.now()}-${safeName}`;
         const upload = await supabase.storage
           .from("information-memorandums")
           .upload(storagePath, file, { upsert: false });
         if (upload.error) throw upload.error;
 
-        await registerAttachmentFn({
-          data: {
-            premises_id: premisesId,
-            storage_path: storagePath,
-            file_name: file.name,
-            mime_type: file.type || null,
-            size_bytes: file.size,
-          },
+        await registerImAttachment({
+          premises_id: premisesId,
+          storage_path: storagePath,
+          file_name: file.name,
+          mime_type: file.type || null,
+          size_bytes: file.size,
         });
       }
       toast.success("Attachment uploaded");
@@ -375,7 +324,7 @@ function PrivateWorkspace({
         .from("information-memorandums")
         .remove([storagePath]);
       if (storageError) throw storageError;
-      await deleteAttachmentFn({ data: { attachment_id: id } });
+      await deleteImAttachment(id);
       toast.success("Attachment removed");
       await loadProfile();
       if (previewUrl && profileData?.attachments.some((item) => item.id === id)) {
@@ -392,7 +341,7 @@ function PrivateWorkspace({
       <div className="flex items-center justify-between gap-3">
         <div>
           <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Private workspace
+            {authed ? "Private workspace" : "Public MVP workspace"}
           </div>
           <div className="mt-1 text-[11px] text-muted-foreground">{notesUpdatedLabel}</div>
         </div>
@@ -400,6 +349,12 @@ function PrivateWorkspace({
           {notesState === "saving" ? "Saving notes…" : notesState === "saved" ? "Notes saved" : ""}
         </div>
       </div>
+
+      {!authed && (
+        <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+          Public MVP mode is open for anonymous editing right now. TODO: lock down before real data.
+        </p>
+      )}
 
       <div className="mt-3 grid grid-cols-2 gap-2">
         <label className="text-xs">
@@ -484,7 +439,7 @@ function PrivateWorkspace({
           <div>
             <div className="text-xs font-semibold text-foreground">Information memorandums</div>
             <div className="text-[11px] text-muted-foreground">
-              Upload PDFs or Word docs against this pharmacy.
+              Upload PDFs, DOCX files, or spreadsheets against this pharmacy.
             </div>
           </div>
           <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-primary px-2.5 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-90">
@@ -493,7 +448,7 @@ function PrivateWorkspace({
             <input
               type="file"
               multiple
-              accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              accept=".pdf,.docx,.xlsx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
               className="hidden"
               onChange={(e) => handleUpload(e.target.files)}
             />
