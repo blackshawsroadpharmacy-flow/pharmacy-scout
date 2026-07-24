@@ -3,7 +3,7 @@
 ## Stack
 
 - Frontend: TanStack Start, React 19, TypeScript, Tailwind CSS v4, shadcn/ui
-- Data/auth: Supabase (`ulsbnhufczwzrqzolqql`)
+- Data/auth: Supabase (`gvrwrqcftlaavxarmgfk` live project; `ulsbnhufczwzrqzolqql` retired/obsolete deployment target)
 - Mapping: Leaflet, React Leaflet, `react-leaflet-cluster`
 - Routing/data fetching: TanStack Router, TanStack Query
 - Build/runtime: Vite + Nitro/Cloudflare module target
@@ -46,7 +46,7 @@
 ## Current live state
 
 - Public site shell is implemented and matches the repo build.
-- The remote Supabase project currently exposes about 65 geocoded public discovery rows, not the target 900+ statewide dataset.
+- The intended live Supabase project now contains the statewide import, but the public Lovable deployment is still pointed at the retired `ulsbnhufczwzrqzolqql` project until production environment values are republished.
 - Marker clustering is already implemented.
 - Acquisition, greenfield, and relocation are mostly UI scaffolds.
 - Nearby commercial signals are placeholders only.
@@ -54,10 +54,10 @@
 
 ## Verified local findings on takeover
 
-- `npm run build` passes after removing macOS AppleDouble `._*` sidecar files from the clone.
-- The repo was polluted by `._*` files, including inside `.git`, which caused Git and Nitro build errors.
-- The handover CSV `community_pharmacies_victoria.csv` was not present in the workspace during takeover.
-- Supabase CLI is installed, but this session has no Supabase access token/service-role access, so remote migrations/import jobs cannot be applied directly from this environment.
+- `npm run build` and `npm run preview` both work once AppleDouble `._*` sidecars are cleaned and validated.
+- The repo and generated preview state were polluted by `._*` files, which caused Git and Nitro build errors; build/dev now include explicit sidecar checks.
+- The local handover CSV and handbook are intentionally kept out of Git while source/reuse and reference handling are resolved.
+- Supabase CLI is now linked to the intended `gvrwrqcftlaavxarmgfk` project; database migrations and the 922-row import have been applied there successfully.
 
 ## Immediate implementation priorities
 

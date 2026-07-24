@@ -36,7 +36,9 @@ export interface PharmacyProfileBundle {
   attachments: PharmacyAttachment[];
 }
 
-async function ensurePharmacyProfile(premisesId: string) {
+async function ensurePharmacyProfile(
+  premisesId: string,
+): Promise<PharmacyProfileRecord & { id: string }> {
   const { data: existing, error: existingError } = await supabase
     .from("pharmacy_profiles")
     .select(
@@ -45,7 +47,7 @@ async function ensurePharmacyProfile(premisesId: string) {
     .eq("premises_id", premisesId)
     .maybeSingle();
   if (existingError) throw new Error(existingError.message);
-  if (existing?.id) return existing as PharmacyProfileRecord;
+  if (existing?.id) return existing as PharmacyProfileRecord & { id: string };
 
   const { data: created, error: createError } = await supabase
     .from("pharmacy_profiles")
@@ -55,7 +57,8 @@ async function ensurePharmacyProfile(premisesId: string) {
     )
     .single();
   if (createError) throw new Error(createError.message);
-  return created as PharmacyProfileRecord;
+  if (!created?.id) throw new Error("Supabase returned a pharmacy profile without an id.");
+  return created as PharmacyProfileRecord & { id: string };
 }
 
 export async function fetchPharmacyProfileBundle(
