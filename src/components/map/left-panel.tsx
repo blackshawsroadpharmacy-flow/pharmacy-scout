@@ -110,6 +110,10 @@ function ExploreBody({
   onSelect: (id: string) => void;
 }) {
   const total = premises.length;
+  const approximateCount = filtered.filter(
+    (p) => p.source_confidence === "approximate" || p.geocode_method === "suburb_centroid",
+  ).length;
+  const streetLevelCount = filtered.length - approximateCount;
   return (
     <>
       <div className="rounded-md border border-border bg-muted/40 p-2.5 text-xs">
@@ -120,6 +124,20 @@ function ExploreBody({
         <div className="flex justify-between">
           <span className="text-muted-foreground">Total loaded</span>
           <span className="tabular-nums">{total}</span>
+        </div>
+        <div className="mt-2 grid grid-cols-2 gap-2 border-t border-border pt-2">
+          <div className="rounded border border-border bg-card px-2 py-1">
+            <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
+              Street level
+            </div>
+            <div className="mt-0.5 font-semibold tabular-nums">{streetLevelCount}</div>
+          </div>
+          <div className="rounded border border-border bg-card px-2 py-1">
+            <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
+              Approximate
+            </div>
+            <div className="mt-0.5 font-semibold tabular-nums">{approximateCount}</div>
+          </div>
         </div>
       </div>
 
@@ -147,6 +165,12 @@ function ExploreBody({
       </fieldset>
 
       <div className="mt-3">
+        <div className="mb-2 flex items-center gap-2 text-[11px] text-muted-foreground">
+          <span className="inline-block h-3 w-3 rounded-full bg-navy" />
+          <span>Exact geocode</span>
+          <span className="inline-block h-3 w-3 rounded-full border-2 border-navy bg-card" />
+          <span>Approximate suburb fallback</span>
+        </div>
         <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
           Results
         </div>

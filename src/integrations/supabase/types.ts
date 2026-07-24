@@ -345,6 +345,7 @@ export type Database = {
           door_source: Database["public"]["Enums"]["door_source"] | null
           door_verified_at: string | null
           door_verified_by: string | null
+          geocode_method: string | null
           id: string
           locality_name: string | null
           location: unknown
@@ -370,6 +371,7 @@ export type Database = {
           door_source?: Database["public"]["Enums"]["door_source"] | null
           door_verified_at?: string | null
           door_verified_by?: string | null
+          geocode_method?: string | null
           id?: string
           locality_name?: string | null
           location?: unknown
@@ -395,6 +397,7 @@ export type Database = {
           door_source?: Database["public"]["Enums"]["door_source"] | null
           door_verified_at?: string | null
           door_verified_by?: string | null
+          geocode_method?: string | null
           id?: string
           locality_name?: string | null
           location?: unknown
@@ -614,6 +617,7 @@ export type Database = {
           door_lng: number | null
           door_source: Database["public"]["Enums"]["door_source"] | null
           door_verified_at: string | null
+          geocode_method: string | null
           id: string | null
           lat: number | null
           lng: number | null
@@ -643,6 +647,7 @@ export type Database = {
           door_lng?: never
           door_source?: Database["public"]["Enums"]["door_source"] | null
           door_verified_at?: string | null
+          geocode_method?: string | null
           id?: string | null
           lat?: never
           lng?: never
@@ -672,6 +677,7 @@ export type Database = {
           door_lng?: never
           door_source?: Database["public"]["Enums"]["door_source"] | null
           door_verified_at?: string | null
+          geocode_method?: string | null
           id?: string | null
           lat?: never
           lng?: never

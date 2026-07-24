@@ -23,14 +23,12 @@ export const Route = createFileRoute("/")({
       { title: "Victorian Pharmacy Mapper" },
       {
         name: "description",
-        content:
-          "Victorian Pharmacy Mapper",
+        content: "Victorian Pharmacy Mapper",
       },
       { property: "og:title", content: "Victorian Pharmacy Mapper" },
       {
         property: "og:description",
-        content:
-          "Victorian Pharmacy Mapper",
+        content: "Victorian Pharmacy Mapper",
       },
       { property: "og:type", content: "website" },
     ],
@@ -59,7 +57,7 @@ function MapHome() {
   const [authOpen, setAuthOpen] = useState(false);
   const [authReason, setAuthReason] = useState("");
 
-  const all = premisesQ.data ?? [];
+  const all = useMemo(() => premisesQ.data ?? [], [premisesQ.data]);
 
   const filtered = useMemo(() => {
     return all.filter((p) => {
@@ -171,7 +169,8 @@ function MapHome() {
 
       <footer className="pointer-events-none absolute inset-x-0 bottom-0 z-[1000] flex justify-center px-2 pb-1">
         <div className="pointer-events-auto rounded-md bg-card/90 px-3 py-1 text-[10px] text-muted-foreground shadow-sm backdrop-blur-sm">
-          Preliminary decision-support only — not legal, regulatory or financial advice.{" "}
+          Indicative eligibility for due-diligence purposes only. Not legal or financial advice.
+          Verify against the current Pharmacy Location Rules and the ACPA before acting.{" "}
           <Link to="/about" className="underline hover:text-foreground">
             About
           </Link>

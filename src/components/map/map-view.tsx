@@ -15,14 +15,8 @@ const VIC_ZOOM = 7;
 
 type Kind = "discovery" | "verified" | "partial" | "saved";
 
-function pinIcon(kind: Kind, selected: boolean) {
-  const classes = ["pharmacy-pin", kind, selected ? "selected" : ""].filter(Boolean).join(" ");
-  return L.divIcon({
-    className: "",
-    html: `<span class="${classes}"></span>`,
-    iconSize: [14, 14],
-    iconAnchor: [7, 7],
-  });
+function isApproximate(p: PublicPremises) {
+  return p.source_confidence === "approximate" || p.geocode_method === "suburb_centroid";
 }
 
 function clusterIcon(cluster: { getChildCount: () => number }) {
@@ -96,10 +90,24 @@ export function MapView({
       premises.map((p) => {
         const kind = kindFor(p, savedIds);
         const selected = p.id === selectedId;
-        const key = `${kind}-${selected ? 1 : 0}`;
+        const approximate = isApproximate(p);
+        const key = `${kind}-${selected ? 1 : 0}-${approximate ? 1 : 0}`;
         let icon = iconCache.current.get(key);
         if (!icon) {
-          icon = pinIcon(kind, selected);
+          const classes = [
+            "pharmacy-pin",
+            kind,
+            approximate ? "approximate" : "",
+            selected ? "selected" : "",
+          ]
+            .filter(Boolean)
+            .join(" ");
+          icon = L.divIcon({
+            className: "",
+            html: `<span class="${classes}"></span>`,
+            iconSize: [14, 14],
+            iconAnchor: [7, 7],
+          });
           iconCache.current.set(key, icon);
         }
         return { p, icon };

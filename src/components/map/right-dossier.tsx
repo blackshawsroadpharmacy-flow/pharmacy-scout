@@ -104,6 +104,38 @@ export function RightDossier({
 
             <section className="mt-4">
               <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Overview
+              </h3>
+              <div className="mt-2 space-y-1.5 text-xs text-muted-foreground">
+                {dossier.phone && (
+                  <div>
+                    Phone <span className="text-foreground">{dossier.phone}</span>
+                  </div>
+                )}
+                {dossier.website && (
+                  <div>
+                    Website{" "}
+                    <a
+                      href={dossier.website}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-foreground underline underline-offset-2"
+                    >
+                      {dossier.website.replace(/^https?:\/\//, "")}
+                    </a>
+                  </div>
+                )}
+                <div>
+                  Coordinates{" "}
+                  <span className="text-foreground">
+                    {dossier.lat.toFixed(5)}, {dossier.lng.toFixed(5)}
+                  </span>
+                </div>
+              </div>
+            </section>
+
+            <section className="mt-4">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Source
               </h3>
               <div className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
@@ -111,6 +143,20 @@ export function RightDossier({
                   <span className="text-foreground">{dossier.source_name ?? "Manual entry"}</span>
                   {dossier.source_confidence && ` · confidence: ${dossier.source_confidence}`}
                 </div>
+                {dossier.geocode_method && (
+                  <div>
+                    Geocode method{" "}
+                    <span className="text-foreground">
+                      {formatGeocodeMethod(dossier.geocode_method)}
+                    </span>
+                  </div>
+                )}
+                {(dossier.source_confidence === "approximate" ||
+                  dossier.geocode_method === "suburb_centroid") && (
+                  <div className="text-amber">
+                    Approximate map point only. Street-front location still needs confirmation.
+                  </div>
+                )}
                 {dossier.source_fetched_at && (
                   <div>Fetched {new Date(dossier.source_fetched_at).toLocaleDateString()}</div>
                 )}
@@ -544,6 +590,10 @@ function labelForStatus(s: string) {
       : s === "conflict"
         ? "Conflict"
         : "Unverified";
+}
+
+function formatGeocodeMethod(value: string) {
+  return value.replaceAll("_", " ");
 }
 
 function toNullableNumber(value: string) {
