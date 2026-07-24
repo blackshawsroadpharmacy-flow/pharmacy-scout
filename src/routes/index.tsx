@@ -1,113 +1,196 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Map, Briefcase, ShieldCheck, ArrowRight } from "lucide-react";
-import { DisclaimerFooter } from "@/components/disclaimer-footer";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ClientOnly } from "@tanstack/react-router";
+import { lazy, Suspense, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { fetchAllPremises, type PublicPremises } from "@/lib/premises-public";
+import { TopBar, type Mode } from "@/components/map/top-bar";
+import { LeftPanel, DEFAULT_FILTERS, type Filters } from "@/components/map/left-panel";
+import { LayerMenu, DEFAULT_LAYERS, type LayerState } from "@/components/map/layer-menu";
+import { RightDossier } from "@/components/map/right-dossier";
+import { AuthSheet } from "@/components/map/auth-sheet";
+import { useSession } from "@/hooks/use-session";
+
+const MapView = lazy(() =>
+  import("@/components/map/map-view").then((m) => ({ default: m.MapView })),
+);
+
+const METRO_BOUNDS = { minLat: -38.5, maxLat: -37.4, minLng: 144.5, maxLng: 145.6 };
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Chemist Care Pharmacy Opportunity Scout" },
+      { title: "Victorian Pharmacy Map — Chemist Care Scout" },
       {
         name: "description",
         content:
-          "Decision support for Victorian pharmacist owners and prospective buyers: acquisition pipeline, verified discovery data and evidence for professional due diligence.",
+          "Full-screen map of Victorian pharmacy discovery records with verification badges, source provenance and acquisition tools. Browse anonymously.",
       },
-      { property: "og:title", content: "Chemist Care Pharmacy Opportunity Scout" },
+      { property: "og:title", content: "Victorian Pharmacy Map — Chemist Care Scout" },
       {
         property: "og:description",
         content:
-          "Manage pharmacy acquisitions, screen possible sites, and assemble evidence for professional due diligence in Victoria.",
+          "Explore pharmacy discovery records across Victoria — verified sources, gaps and possible acquisition or greenfield opportunities.",
       },
+      { property: "og:type", content: "website" },
     ],
   }),
-  component: Landing,
+  component: MapHome,
 });
 
-function Landing() {
+function MapHome() {
+  const navigate = useNavigate();
+  const { user } = useSession();
+  const authed = !!user;
+
+  const premisesQ = useQuery({
+    queryKey: ["premises-public"],
+    queryFn: fetchAllPremises,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const [mode, setMode] = useState<Mode>("explore");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [leftOpen, setLeftOpen] = useState(true);
+  const [layersOpen, setLayersOpen] = useState(false);
+  const [layers, setLayers] = useState<LayerState>(DEFAULT_LAYERS);
+  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+  const [flyTo, setFlyTo] = useState<{ lat: number; lng: number; zoom?: number } | null>(null);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [authReason, setAuthReason] = useState("");
+
+  const all = premisesQ.data ?? [];
+
+  const filtered = useMemo(() => {
+    return all.filter((p) => {
+      if (!layers.pharmacies) return false;
+      if (filters.verified && p.vpa_registration_status !== "verified") return false;
+      if (filters.metroOnly) {
+        if (
+          p.lat < METRO_BOUNDS.minLat ||
+          p.lat > METRO_BOUNDS.maxLat ||
+          p.lng < METRO_BOUNDS.minLng ||
+          p.lng > METRO_BOUNDS.maxLng
+        )
+          return false;
+      }
+      if (filters.pbsKnown) return false; // no PBS approvals seeded yet
+      if (filters.missingData && p.vpa_registration_status !== "unverified") return false;
+      return true;
+    });
+  }, [all, filters, layers.pharmacies]);
+
+  function requireAuth(reason: string) {
+    setAuthReason(reason);
+    setAuthOpen(true);
+  }
+
+  async function handleAccount() {
+    if (authed) {
+      await supabase.auth.signOut();
+    } else {
+      requireAuth("Sign in to access saved opportunities and private notes.");
+    }
+  }
+
+  function handleSearch(q: string) {
+    const needle = q.toLowerCase();
+    const hit = all.find(
+      (p) =>
+        p.name.toLowerCase().includes(needle) ||
+        p.address.toLowerCase().includes(needle) ||
+        (p.suburb ?? "").toLowerCase().includes(needle) ||
+        (p.postcode ?? "").includes(needle),
+    );
+    if (hit) {
+      setFlyTo({ lat: hit.lat, lng: hit.lng, zoom: 15 });
+      setSelectedId(hit.id);
+    }
+  }
+
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="border-b border-border bg-card">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div>
-            <div className="text-sm font-semibold text-foreground">Chemist Care</div>
-            <div className="text-xs text-muted-foreground">Pharmacy Opportunity Scout</div>
-          </div>
-          <Link
-            to="/auth"
-            className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
-          >
-            Sign in
+    <div className="relative h-[100dvh] w-full overflow-hidden bg-muted">
+      <ClientOnly fallback={<MapSkeleton />}>
+        <Suspense fallback={<MapSkeleton />}>
+          <MapView
+            premises={filtered}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
+            savedIds={new Set()}
+            flyTo={flyTo}
+          />
+        </Suspense>
+      </ClientOnly>
+
+      <TopBar
+        mode={mode}
+        onMode={setMode}
+        onSearch={handleSearch}
+        onToggleLayers={() => setLayersOpen((v) => !v)}
+        onSaved={() =>
+          authed
+            ? navigate({ to: "/app/acquisitions" })
+            : requireAuth("Sign in to view your saved opportunities.")
+        }
+        onAccount={handleAccount}
+        authed={authed}
+        resultCount={all.length}
+      />
+
+      <LeftPanel
+        open={leftOpen}
+        onToggle={() => setLeftOpen((v) => !v)}
+        mode={mode}
+        filters={filters}
+        onFilters={setFilters}
+        premises={all}
+        filtered={filtered}
+        onSelect={(id) => {
+          setSelectedId(id);
+          const hit = all.find((p) => p.id === id);
+          if (hit) setFlyTo({ lat: hit.lat, lng: hit.lng, zoom: 15 });
+        }}
+      />
+
+      <LayerMenu
+        open={layersOpen}
+        onClose={() => setLayersOpen(false)}
+        layers={layers}
+        onLayers={setLayers}
+      />
+
+      <RightDossier
+        premisesId={selectedId}
+        allPremises={all}
+        onClose={() => setSelectedId(null)}
+        onRequireAuth={requireAuth}
+        authed={authed}
+      />
+
+      <AuthSheet open={authOpen} onClose={() => setAuthOpen(false)} reason={authReason} />
+
+      <footer className="pointer-events-none absolute inset-x-0 bottom-0 z-[1000] flex justify-center px-2 pb-1">
+        <div className="pointer-events-auto rounded-md bg-card/90 px-3 py-1 text-[10px] text-muted-foreground shadow-sm backdrop-blur-sm">
+          Preliminary decision-support only — not legal, regulatory or financial advice.{" "}
+          <Link to="/about" className="underline hover:text-foreground">
+            About
           </Link>
         </div>
-      </header>
+      </footer>
 
-      <main className="flex-1">
-        <section className="mx-auto max-w-6xl px-6 py-16 md:py-24">
-          <div className="max-w-3xl">
-            <p className="text-sm font-medium text-teal">Phase 1 preview</p>
-            <h1 className="mt-3 text-4xl font-semibold tracking-tight md:text-5xl">
-              A calmer way to evaluate pharmacy opportunities in Victoria.
-            </h1>
-            <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
-              Track acquisitions, review verified discovery data, and keep every source and door
-              point traceable. Regulatory screening for the Pharmacy Location Rules and Victorian
-              Pharmacy Authority requirements arrives in later phases.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                to="/auth"
-                className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
-              >
-                Get started <ArrowRight className="h-4 w-4" />
-              </Link>
-              <a
-                href="#how"
-                className="inline-flex items-center gap-2 rounded-md border border-input px-5 py-2.5 text-sm font-medium text-foreground hover:bg-accent"
-              >
-                What Phase 1 does
-              </a>
-            </div>
-          </div>
-        </section>
-
-        <section id="how" className="border-t border-border bg-card">
-          <div className="mx-auto grid max-w-6xl gap-6 px-6 py-14 md:grid-cols-3">
-            <Feature icon={Map} title="Opportunity Map">
-              Explore verified pharmacy discovery points across Camberwell, Hawthorn, Kew, Balwyn
-              and Glen Iris. Every point shows its source, fetched date, and whether the VPA
-              register or PBS approval has been matched.
-            </Feature>
-            <Feature icon={Briefcase} title="Acquisition Scout">
-              Build a private pipeline of acquisition opportunities. Move deals through
-              watchlist, contacting, information memorandum, due diligence, offer and outcomes.
-              Financial analysis appears only when you enter private data.
-            </Feature>
-            <Feature icon={ShieldCheck} title="Data & Sources">
-              Every dataset shows its regulatory purpose, licence status, coverage and last
-              refresh. VPA and PBS records only appear once an admin imports a snapshot.
-            </Feature>
-          </div>
-        </section>
-      </main>
-
-      <DisclaimerFooter />
+      {premisesQ.isLoading && (
+        <div className="pointer-events-none absolute left-1/2 top-20 z-[1050] -translate-x-1/2 rounded-md bg-card px-3 py-1.5 text-xs text-muted-foreground shadow">
+          Loading pharmacy records…
+        </div>
+      )}
     </div>
   );
 }
 
-function Feature({
-  icon: Icon,
-  title,
-  children,
-}: {
-  icon: typeof Map;
-  title: string;
-  children: React.ReactNode;
-}) {
+function MapSkeleton() {
   return (
-    <div className="rounded-xl border border-border bg-background/40 p-6">
-      <Icon className="h-6 w-6 text-teal" />
-      <h2 className="mt-4 text-lg font-semibold text-foreground">{title}</h2>
-      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{children}</p>
+    <div className="absolute inset-0 grid place-items-center bg-muted text-xs text-muted-foreground">
+      Loading map…
     </div>
   );
 }
