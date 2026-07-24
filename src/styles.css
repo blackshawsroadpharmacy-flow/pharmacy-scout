@@ -135,6 +135,17 @@
   z-index: 1;
 }
 
+/* Tailwind preflight resets img { max-width: 100%; height: auto } which
+   shrinks Leaflet tile images. Restore intrinsic sizing. */
+.leaflet-container img.leaflet-tile,
+.leaflet-container img.leaflet-marker-icon,
+.leaflet-container img.leaflet-marker-shadow,
+.leaflet-container img.leaflet-image-layer,
+.leaflet-container .leaflet-tile-pane img {
+  max-width: none !important;
+  height: auto;
+}
+
 /* Marker cluster styles (imports moved to top) */
 
 .marker-cluster-navy {
