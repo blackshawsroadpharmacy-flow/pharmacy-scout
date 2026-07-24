@@ -1,3 +1,5 @@
+import crypto from "node:crypto";
+
 export const PHARMACY_SOURCE = "community_pharmacies_victoria_csv";
 
 export function parseCsv(text) {
@@ -171,6 +173,17 @@ export function normalizeMatchText(value) {
 
 export function collapseWhitespace(value) {
   return value.replace(/\s+/g, " ").trim();
+}
+
+export function deterministicUuid(input) {
+  const hex = crypto.createHash("sha256").update(input).digest("hex").slice(0, 32);
+  return [
+    hex.slice(0, 8),
+    hex.slice(8, 12),
+    `5${hex.slice(13, 16)}`,
+    `${((Number.parseInt(hex.slice(16, 17), 16) & 0x3) | 0x8).toString(16)}${hex.slice(17, 20)}`,
+    hex.slice(20, 32),
+  ].join("-");
 }
 
 export function buildCoverageReport(rows) {

@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   buildCoverageReport,
+  deterministicUuid,
   normalizePhone,
   normalizeRow,
   normalizeWebsite,
@@ -97,4 +98,15 @@ test("buildCoverageReport counts exact, approximate, and failed outcomes", () =>
   assert.equal(report.phone_repairs, 1);
   assert.equal(report.website_repairs, 1);
   assert.equal(report.warning_rows, 3);
+});
+
+test("deterministicUuid is stable and input-sensitive", () => {
+  assert.equal(
+    deterministicUuid("ALPHA PHARMACY|SHP 2 1 MAIN ST|3000"),
+    deterministicUuid("ALPHA PHARMACY|SHP 2 1 MAIN ST|3000"),
+  );
+  assert.notEqual(
+    deterministicUuid("ALPHA PHARMACY|SHP 2 1 MAIN ST|3000"),
+    deterministicUuid("ALPHA PHARMACY|SHP 3 1 MAIN ST|3000"),
+  );
 });

@@ -1,7 +1,9 @@
 ALTER TABLE public.pharmacy_premises
 ADD COLUMN IF NOT EXISTS geocode_method TEXT;
 
-CREATE OR REPLACE VIEW public.pharmacy_premises_geo
+DROP VIEW IF EXISTS public.pharmacy_premises_geo;
+
+CREATE VIEW public.pharmacy_premises_geo
 WITH (security_invoker = true) AS
 SELECT
   p.id,
