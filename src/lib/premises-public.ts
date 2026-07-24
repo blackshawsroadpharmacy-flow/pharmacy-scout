@@ -15,6 +15,7 @@ export interface PublicPremises {
   premises_source: string;
   source_confidence: string | null;
   source_id: string | null;
+  geocode_method?: string | null;
   door_lat: number | null;
   door_lng: number | null;
   phone: string | null;
