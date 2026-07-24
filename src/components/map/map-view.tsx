@@ -58,8 +58,10 @@ function TileFallback() {
       url={
         failed
           ? "https://{s}.tile.openstreetmap.org/{z}/{y}/{x}.png"
-          : "https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{y}/{x}{r}.png"
+          : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{y}/{x}{r}.png"
       }
+      subdomains={["a", "b", "c", "d"]}
+      detectRetina
       eventHandlers={{ tileerror: () => !failed && setFailed(true) }}
     />
   );
