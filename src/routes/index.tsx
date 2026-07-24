@@ -20,17 +20,17 @@ const METRO_BOUNDS = { minLat: -38.5, maxLat: -37.4, minLng: 144.5, maxLng: 145.
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Victorian Pharmacy Map — Chemist Care Scout" },
+      { title: "Victorian Pharmacy Mapper" },
       {
         name: "description",
         content:
-          "Full-screen map of Victorian pharmacy discovery records with verification badges, source provenance and acquisition tools. Browse anonymously.",
+          "Victorian Pharmacy Mapper",
       },
-      { property: "og:title", content: "Victorian Pharmacy Map — Chemist Care Scout" },
+      { property: "og:title", content: "Victorian Pharmacy Mapper" },
       {
         property: "og:description",
         content:
-          "Explore pharmacy discovery records across Victoria — verified sources, gaps and possible acquisition or greenfield opportunities.",
+          "Victorian Pharmacy Mapper",
       },
       { property: "og:type", content: "website" },
     ],

@@ -80,24 +80,27 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Chemist Care Pharmacy Opportunity Scout" },
+      { title: "Victorian Pharmacy Mapper" },
       {
         name: "description",
         content:
-          "Decision support for Victorian pharmacist owners: acquisition pipeline, verified pharmacy discovery, and evidence for professional due diligence.",
+          "Victorian Pharmacy Mapper",
       },
-      { property: "og:title", content: "Chemist Care Pharmacy Opportunity Scout" },
+      { property: "og:title", content: "Victorian Pharmacy Mapper" },
       {
         property: "og:description",
         content:
-          "Manage pharmacy acquisition opportunities and assemble evidence for professional due diligence in Victoria.",
+          "Victorian Pharmacy Mapper",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Victorian Pharmacy Mapper" },
+      { name: "twitter:description", content: "Victorian Pharmacy Mapper" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/XixyHjEfWVVN7GXjGCOwme461iv2/social-images/social-1784871997089-Community_Pharmacy_of_the_Year_.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/XixyHjEfWVVN7GXjGCOwme461iv2/social-images/social-1784871997089-Community_Pharmacy_of_the_Year_.webp" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
