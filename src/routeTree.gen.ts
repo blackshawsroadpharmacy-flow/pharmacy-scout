@@ -17,6 +17,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppAcquisitionsRouteImport } from './routes/app.acquisitions'
 import { Route as AppDataSourcesRouteImport } from './routes/app.data-sources'
+import { Route as PharmacyIdRouteImport } from './routes/pharmacy.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -58,6 +59,11 @@ const AppDataSourcesRoute = AppDataSourcesRouteImport.update({
   path: '/data-sources',
   getParentRoute: () => AppRoute,
 } as any)
+const PharmacyIdRoute = PharmacyIdRouteImport.update({
+  id: '/pharmacy/$id',
+  path: '/pharmacy/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -67,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/app/acquisitions': typeof AppAcquisitionsRoute
   '/app/data-sources': typeof AppDataSourcesRoute
+  '/pharmacy/$id': typeof PharmacyIdRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
@@ -76,6 +83,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/app/acquisitions': typeof AppAcquisitionsRoute
   '/app/data-sources': typeof AppDataSourcesRoute
+  '/pharmacy/$id': typeof PharmacyIdRoute
   '/app': typeof AppIndexRoute
 }
 export interface FileRoutesById {
@@ -87,6 +95,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/app/acquisitions': typeof AppAcquisitionsRoute
   '/app/data-sources': typeof AppDataSourcesRoute
+  '/pharmacy/$id': typeof PharmacyIdRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
@@ -99,6 +108,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/app/acquisitions'
     | '/app/data-sources'
+    | '/pharmacy/$id'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -108,6 +118,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/app/acquisitions'
     | '/app/data-sources'
+    | '/pharmacy/$id'
     | '/app'
   id:
     | '__root__'
@@ -118,6 +129,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/app/acquisitions'
     | '/app/data-sources'
+    | '/pharmacy/$id'
     | '/app/'
   fileRoutesById: FileRoutesById
 }
@@ -127,6 +139,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  PharmacyIdRoute: typeof PharmacyIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -187,6 +200,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDataSourcesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/pharmacy/$id': {
+      id: '/pharmacy/$id'
+      path: '/pharmacy/$id'
+      fullPath: '/pharmacy/$id'
+      preLoaderRoute: typeof PharmacyIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -210,6 +230,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  PharmacyIdRoute: PharmacyIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

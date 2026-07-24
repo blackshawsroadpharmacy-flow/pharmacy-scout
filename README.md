@@ -21,6 +21,29 @@ npm i
 npm run dev
 ```
 
+## Production Preview
+
+Use the documented build and preview flow rather than raw `vite preview`:
+
+```sh
+npm run build
+npm run preview
+```
+
+The build step also removes stray macOS `._*` sidecar files that can otherwise break the
+Nitro/Wrangler preview runtime on this repo.
+
+## Source Download
+
+When the raw Victorian pharmacy CSV should be reproduced locally instead of committed, use:
+
+```sh
+npm run import:download
+```
+
+That pulls the current Better Health / Carto CSV snapshot used by the supplied
+`community_pharmacies_victoria.csv` file and writes it to `data/source/community_pharmacies_victoria.csv`.
+
 ## Built with
 
 - TanStack Start

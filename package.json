@@ -5,11 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build",
+    "clean:sidecars": "find . -path './.git' -prune -o -name '._*' -type f -delete -o -name '.__*' -type f -delete",
+    "build": "vite build && npm run clean:sidecars",
     "build:dev": "vite build --mode development",
-    "preview": "vite preview",
+    "preview": "npm run build && npx nitro preview",
+    "import:download": "node scripts/download-vic-pharmacies-source.mjs",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
