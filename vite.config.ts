@@ -8,8 +8,13 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
   tanstackStart: {
-    // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
-    // nitro/vite builds from this
     server: { entry: "server" },
+  },
+  vite: {
+    define: {
+      "import.meta.env.VITE_SUPABASE_URL": JSON.stringify("https://gvrwrqcftlaavxarmgfk.supabase.co"),
+      "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify("sb_publishable_sEkRklmCHAXmEhtiYc00ZA_LqicfUrg"),
+      "import.meta.env.VITE_SUPABASE_PROJECT_ID": JSON.stringify("gvrwrqcftlaavxarmgfk"),
+    },
   },
 });
