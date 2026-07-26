@@ -1,4 +1,8 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase as typedSupabase } from "@/integrations/supabase/client";
+// External Supabase project types don't include profile tables; cast to any at runtime.
+const supabase = typedSupabase as unknown as {
+  from: (table: string) => any;
+};
 
 export type PharmacyStatus = "active" | "underperforming" | "target" | "under_offer";
 

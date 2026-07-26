@@ -7,14 +7,28 @@ import { TopBar, type Mode } from "@/components/map/top-bar";
 import { LeftPanel, DEFAULT_FILTERS, type Filters } from "@/components/map/left-panel";
 import { LayerMenu, DEFAULT_LAYERS, type LayerState } from "@/components/map/layer-menu";
 import { RightDossier } from "@/components/map/right-dossier";
+import { ExternalDossier } from "@/components/map/external-dossier";
 import { AuthSheet } from "@/components/map/auth-sheet";
 import { useSession } from "@/hooks/use-session";
+import {
+  fetchCandidateExternalSummary,
+  fetchExternalViewport,
+  type ExternalCategory,
+  type ExternalMapPoint,
+  type ViewportBounds,
+} from "@/lib/external-locations";
 
 const MapView = lazy(() =>
   import("@/components/map/map-view").then((m) => ({ default: m.MapView })),
 );
 
 const METRO_BOUNDS = { minLat: -38.5, maxLat: -37.4, minLng: 144.5, maxLng: 145.6 };
+const VIC_QUERY_BOUNDS: ViewportBounds = {
+  west: 140.9,
+  south: -39.2,
+  east: 150,
+  north: -33.9,
+};
 
 type MapScreenProps = {
   selectedPremisesId?: string | null;
@@ -33,6 +47,10 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
 
   const [mode, setMode] = useState<Mode>("explore");
   const [selectedId, setSelectedId] = useState<string | null>(selectedPremisesId);
+  const [selectedExternal, setSelectedExternal] = useState<{
+    category: ExternalCategory;
+    id: string;
+  } | null>(null);
   const [leftOpen, setLeftOpen] = useState(true);
   const [layersOpen, setLayersOpen] = useState(false);
   const [layers, setLayers] = useState<LayerState>(DEFAULT_LAYERS);
@@ -40,6 +58,36 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
   const [flyTo, setFlyTo] = useState<{ lat: number; lng: number; zoom?: number } | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [authReason, setAuthReason] = useState("");
+  const [viewport, setViewport] = useState<ViewportBounds>(VIC_QUERY_BOUNDS);
+  const [candidatePoint, setCandidatePoint] = useState<{ lat: number; lng: number } | null>(null);
+
+  const viewportKey = useMemo(
+    () => [
+      Number(viewport.west.toFixed(3)),
+      Number(viewport.south.toFixed(3)),
+      Number(viewport.east.toFixed(3)),
+      Number(viewport.north.toFixed(3)),
+    ],
+    [viewport],
+  );
+  const supermarketQ = useQuery({
+    queryKey: ["external-viewport", "supermarkets", ...viewportKey],
+    queryFn: ({ signal }) => fetchExternalViewport("supermarkets", viewport, signal),
+    enabled: layers.supermarkets,
+    staleTime: 5 * 60 * 1000,
+  });
+  const medicalCentresQ = useQuery({
+    queryKey: ["external-viewport", "medical_centres", ...viewportKey],
+    queryFn: ({ signal }) => fetchExternalViewport("medical_centres", viewport, signal),
+    enabled: layers.medicalCentres,
+    staleTime: 5 * 60 * 1000,
+  });
+  const candidateSummaryQ = useQuery({
+    queryKey: ["candidate-external-summary", candidatePoint?.lat, candidatePoint?.lng],
+    queryFn: () => fetchCandidateExternalSummary(candidatePoint!.lat, candidatePoint!.lng),
+    enabled: mode === "greenfield" && candidatePoint != null,
+    staleTime: 5 * 60 * 1000,
+  });
 
   const all = useMemo(() => premisesQ.data ?? [], [premisesQ.data]);
 
@@ -66,6 +114,13 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
       return true;
     });
   }, [all, filters, layers.pharmacies]);
+  const externalPoints = useMemo(
+    () => [
+      ...(layers.supermarkets ? (supermarketQ.data ?? []) : []),
+      ...(layers.medicalCentres ? (medicalCentresQ.data ?? []) : []),
+    ],
+    [layers.supermarkets, layers.medicalCentres, supermarketQ.data, medicalCentresQ.data],
+  );
 
   function requireAuth(reason: string) {
     setAuthReason(reason);
@@ -81,6 +136,7 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
   }
 
   function openPremises(id: string, lat?: number, lng?: number) {
+    setSelectedExternal(null);
     setSelectedId(id);
     if (lat != null && lng != null) {
       setFlyTo({ lat, lng, zoom: 15 });
@@ -96,6 +152,12 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
     navigate({ to: "/" });
   }
 
+  function openExternal(point: ExternalMapPoint) {
+    setSelectedId(null);
+    setSelectedExternal({ category: point.category, id: point.id });
+    setFlyTo({ lat: point.lat, lng: point.lng, zoom: 15 });
+  }
+
   function handleSearch(q: string) {
     const needle = q.toLowerCase();
     const hit = all.find(
@@ -107,7 +169,24 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
     );
     if (hit) {
       openPremises(hit.id, hit.lat, hit.lng);
+      return;
     }
+    const externalHit = externalPoints.find(
+      (point) =>
+        point.name.toLowerCase().includes(needle) ||
+        (point.address ?? "").toLowerCase().includes(needle),
+    );
+    if (externalHit) openExternal(externalHit);
+  }
+
+  function updateViewport(next: ViewportBounds) {
+    const clipped = {
+      west: Math.max(VIC_QUERY_BOUNDS.west, next.west),
+      south: Math.max(VIC_QUERY_BOUNDS.south, next.south),
+      east: Math.min(VIC_QUERY_BOUNDS.east, next.east),
+      north: Math.min(VIC_QUERY_BOUNDS.north, next.north),
+    };
+    if (clipped.west < clipped.east && clipped.south < clipped.north) setViewport(clipped);
   }
 
   return (
@@ -123,6 +202,20 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
             }}
             savedIds={new Set()}
             flyTo={flyTo}
+            externalPoints={externalPoints}
+            selectedExternal={selectedExternal}
+            onSelectExternal={openExternal}
+            onViewportChange={updateViewport}
+            onMapClick={
+              mode === "greenfield"
+                ? (lat, lng) => {
+                    setCandidatePoint({ lat, lng });
+                    setSelectedExternal(null);
+                    setSelectedId(null);
+                  }
+                : undefined
+            }
+            candidatePoint={mode === "greenfield" ? candidatePoint : null}
           />
         </Suspense>
       </ClientOnly>
@@ -170,6 +263,13 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
         onRequireAuth={requireAuth}
         authed={authed}
       />
+      {selectedExternal && (
+        <ExternalDossier
+          category={selectedExternal.category}
+          id={selectedExternal.id}
+          onClose={() => setSelectedExternal(null)}
+        />
+      )}
 
       <AuthSheet open={authOpen} onClose={() => setAuthOpen(false)} reason={authReason} />
 
@@ -187,6 +287,47 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
         <div className="pointer-events-none absolute left-1/2 top-20 z-[1050] -translate-x-1/2 rounded-md bg-card px-3 py-1.5 text-xs text-muted-foreground shadow">
           Loading pharmacy records…
         </div>
+      )}
+      {(supermarketQ.isFetching || medicalCentresQ.isFetching) && (
+        <div className="pointer-events-none absolute left-1/2 top-28 z-[1050] -translate-x-1/2 rounded-md bg-card px-3 py-1.5 text-xs text-muted-foreground shadow">
+          Loading external location layers…
+        </div>
+      )}
+      {(supermarketQ.isError || medicalCentresQ.isError) && (
+        <div className="pointer-events-none absolute left-1/2 top-28 z-[1050] -translate-x-1/2 rounded-md border border-destructive/40 bg-card px-3 py-1.5 text-xs text-destructive shadow">
+          External layer unavailable for this viewport.
+        </div>
+      )}
+      {mode === "greenfield" && candidatePoint && (
+        <aside className="pointer-events-auto absolute bottom-4 left-1/2 z-[1050] w-[min(520px,calc(100vw-24px))] -translate-x-1/2 rounded-xl border border-border bg-card p-3 text-xs shadow-lg">
+          <div className="font-semibold">Preliminary candidate-site signals</div>
+          {candidateSummaryQ.isLoading && (
+            <p className="mt-1 text-muted-foreground">Calculating nearby discovery records…</p>
+          )}
+          {candidateSummaryQ.data && (
+            <>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <div className="rounded border border-border p-2">
+                  <div className="text-muted-foreground">Supermarkets within 500 m</div>
+                  <div className="text-lg font-semibold">
+                    {candidateSummaryQ.data.supermarkets_within_500m}
+                  </div>
+                </div>
+                <div className="rounded border border-border p-2">
+                  <div className="text-muted-foreground">Medical centres within 500 m</div>
+                  <div className="text-lg font-semibold">
+                    {candidateSummaryQ.data.medical_centres_within_500m}
+                  </div>
+                </div>
+              </div>
+              <p className="mt-2 font-medium">{candidateSummaryQ.data.assessment}</p>
+              <p className="mt-1 text-muted-foreground">
+                Discovery data only. Professional measurement and sourced regulatory evidence remain
+                required.
+              </p>
+            </>
+          )}
+        </aside>
       )}
     </div>
   );

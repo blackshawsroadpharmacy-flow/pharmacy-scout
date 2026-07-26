@@ -6,6 +6,8 @@ export interface LayerState {
   verifiedVpa: boolean;
   saved: boolean;
   candidates: boolean;
+  supermarkets: boolean;
+  medicalCentres: boolean;
 }
 
 export const DEFAULT_LAYERS: LayerState = {
@@ -14,6 +16,8 @@ export const DEFAULT_LAYERS: LayerState = {
   verifiedVpa: true,
   saved: true,
   candidates: true,
+  supermarkets: false,
+  medicalCentres: false,
 };
 
 const ACTIVE: Array<{ key: keyof LayerState; label: string }> = [
@@ -22,11 +26,11 @@ const ACTIVE: Array<{ key: keyof LayerState; label: string }> = [
   { key: "verifiedVpa", label: "Verified VPA premises" },
   { key: "saved", label: "Saved acquisition targets" },
   { key: "candidates", label: "Candidate greenfield sites" },
+  { key: "supermarkets", label: "Supermarkets" },
+  { key: "medicalCentres", label: "Medical centres" },
 ];
 
 const PLACEHOLDERS = [
-  "Supermarkets",
-  "Medical centres",
   "Hospitals",
   "Shopping centres",
   "Population density",

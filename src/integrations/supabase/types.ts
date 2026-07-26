@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       candidate_sites: {
@@ -72,6 +97,411 @@ export type Database = {
             columns: ["organisation_id"]
             isOneToOne: false
             referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      external_entity_conflicts: {
+        Row: {
+          category: string
+          created_at: string
+          entity_id: string
+          field_name: string
+          id: string
+          import_run_id: string | null
+          incoming_source_id: string | null
+          incoming_value: Json | null
+          incumbent_source_id: string | null
+          incumbent_value: Json | null
+          resolved_at: string | null
+          status: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          entity_id: string
+          field_name: string
+          id?: string
+          import_run_id?: string | null
+          incoming_source_id?: string | null
+          incoming_value?: Json | null
+          incumbent_source_id?: string | null
+          incumbent_value?: Json | null
+          resolved_at?: string | null
+          status?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          entity_id?: string
+          field_name?: string
+          id?: string
+          import_run_id?: string | null
+          incoming_source_id?: string | null
+          incoming_value?: Json | null
+          incumbent_source_id?: string | null
+          incumbent_value?: Json | null
+          resolved_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_entity_conflicts_import_run_id_fkey"
+            columns: ["import_run_id"]
+            isOneToOne: false
+            referencedRelation: "external_import_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "external_entity_conflicts_incoming_source_id_fkey"
+            columns: ["incoming_source_id"]
+            isOneToOne: false
+            referencedRelation: "external_source_registry"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "external_entity_conflicts_incumbent_source_id_fkey"
+            columns: ["incumbent_source_id"]
+            isOneToOne: false
+            referencedRelation: "external_source_registry"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      external_import_runs: {
+        Row: {
+          approximate_geocode_count: number
+          category: string
+          conflict_count: number
+          created_at: string
+          dataset_version: string | null
+          duplicate_candidate_count: number
+          error_summary: string | null
+          exact_geocode_count: number
+          fetched_count: number
+          finished_at: string | null
+          id: string
+          imported_count: number
+          metrics: Json
+          rejected_count: number
+          source_id: string
+          stale_count: number
+          started_at: string
+          status: string
+        }
+        Insert: {
+          approximate_geocode_count?: number
+          category: string
+          conflict_count?: number
+          created_at?: string
+          dataset_version?: string | null
+          duplicate_candidate_count?: number
+          error_summary?: string | null
+          exact_geocode_count?: number
+          fetched_count?: number
+          finished_at?: string | null
+          id?: string
+          imported_count?: number
+          metrics?: Json
+          rejected_count?: number
+          source_id: string
+          stale_count?: number
+          started_at?: string
+          status: string
+        }
+        Update: {
+          approximate_geocode_count?: number
+          category?: string
+          conflict_count?: number
+          created_at?: string
+          dataset_version?: string | null
+          duplicate_candidate_count?: number
+          error_summary?: string | null
+          exact_geocode_count?: number
+          fetched_count?: number
+          finished_at?: string | null
+          id?: string
+          imported_count?: number
+          metrics?: Json
+          rejected_count?: number
+          source_id?: string
+          stale_count?: number
+          started_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_import_runs_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "external_source_registry"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      external_raw_records: {
+        Row: {
+          category: string
+          created_at: string
+          dataset_version: string | null
+          disposition: string
+          fetched_at: string
+          id: string
+          import_run_id: string
+          observed_at: string | null
+          raw_payload: Json
+          record_hash: string
+          rejection_reason: string | null
+          source_id: string
+          source_record_id: string
+          source_url: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          dataset_version?: string | null
+          disposition: string
+          fetched_at: string
+          id?: string
+          import_run_id: string
+          observed_at?: string | null
+          raw_payload: Json
+          record_hash: string
+          rejection_reason?: string | null
+          source_id: string
+          source_record_id: string
+          source_url?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          dataset_version?: string | null
+          disposition?: string
+          fetched_at?: string
+          id?: string
+          import_run_id?: string
+          observed_at?: string | null
+          raw_payload?: Json
+          record_hash?: string
+          rejection_reason?: string | null
+          source_id?: string
+          source_record_id?: string
+          source_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_raw_records_import_run_id_fkey"
+            columns: ["import_run_id"]
+            isOneToOne: false
+            referencedRelation: "external_import_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "external_raw_records_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "external_source_registry"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      external_source_coverage: {
+        Row: {
+          category: string
+          coverage_geometry: unknown
+          coverage_name: string
+          coverage_status: string
+          fetched_at: string
+          id: string
+          notes: string | null
+          observed_at: string | null
+          source_id: string
+        }
+        Insert: {
+          category: string
+          coverage_geometry?: unknown
+          coverage_name: string
+          coverage_status: string
+          fetched_at: string
+          id?: string
+          notes?: string | null
+          observed_at?: string | null
+          source_id: string
+        }
+        Update: {
+          category?: string
+          coverage_geometry?: unknown
+          coverage_name?: string
+          coverage_status?: string
+          fetched_at?: string
+          id?: string
+          notes?: string | null
+          observed_at?: string | null
+          source_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_source_coverage_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "external_source_registry"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      external_source_registry: {
+        Row: {
+          attribution_text: string | null
+          created_at: string
+          dataset_url: string
+          geographic_coverage: string | null
+          id: string
+          licence_name: string | null
+          licence_url: string | null
+          name: string
+          priority: number
+          source_key: string
+          terms_status: string
+          updated_at: string
+        }
+        Insert: {
+          attribution_text?: string | null
+          created_at?: string
+          dataset_url: string
+          geographic_coverage?: string | null
+          id?: string
+          licence_name?: string | null
+          licence_url?: string | null
+          name: string
+          priority?: number
+          source_key: string
+          terms_status: string
+          updated_at?: string
+        }
+        Update: {
+          attribution_text?: string | null
+          created_at?: string
+          dataset_url?: string
+          geographic_coverage?: string | null
+          id?: string
+          licence_name?: string | null
+          licence_url?: string | null
+          name?: string
+          priority?: number
+          source_key?: string
+          terms_status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      medical_centres: {
+        Row: {
+          address: string | null
+          boundary: unknown
+          coordinate_confidence: number
+          coordinate_method: string
+          created_at: string
+          fetched_at: string
+          geographic_coverage: string | null
+          id: string
+          import_run_id: string
+          known_practitioners: Json | null
+          licence_status: string
+          location: unknown
+          name: string
+          normalised_address: string | null
+          normalised_name: string
+          observed_at: string | null
+          opening_hours: string | null
+          practitioner_evidence_source: string | null
+          raw_record_id: string | null
+          services: Json | null
+          source_dataset_version: string | null
+          source_id: string
+          source_record_id: string
+          source_url: string | null
+          trading_name: string | null
+          updated_at: string
+          verification_status: Database["public"]["Enums"]["external_verification_status"]
+        }
+        Insert: {
+          address?: string | null
+          boundary?: unknown
+          coordinate_confidence: number
+          coordinate_method: string
+          created_at?: string
+          fetched_at: string
+          geographic_coverage?: string | null
+          id?: string
+          import_run_id: string
+          known_practitioners?: Json | null
+          licence_status: string
+          location: unknown
+          name: string
+          normalised_address?: string | null
+          normalised_name: string
+          observed_at?: string | null
+          opening_hours?: string | null
+          practitioner_evidence_source?: string | null
+          raw_record_id?: string | null
+          services?: Json | null
+          source_dataset_version?: string | null
+          source_id: string
+          source_record_id: string
+          source_url?: string | null
+          trading_name?: string | null
+          updated_at?: string
+          verification_status?: Database["public"]["Enums"]["external_verification_status"]
+        }
+        Update: {
+          address?: string | null
+          boundary?: unknown
+          coordinate_confidence?: number
+          coordinate_method?: string
+          created_at?: string
+          fetched_at?: string
+          geographic_coverage?: string | null
+          id?: string
+          import_run_id?: string
+          known_practitioners?: Json | null
+          licence_status?: string
+          location?: unknown
+          name?: string
+          normalised_address?: string | null
+          normalised_name?: string
+          observed_at?: string | null
+          opening_hours?: string | null
+          practitioner_evidence_source?: string | null
+          raw_record_id?: string | null
+          services?: Json | null
+          source_dataset_version?: string | null
+          source_id?: string
+          source_record_id?: string
+          source_url?: string | null
+          trading_name?: string | null
+          updated_at?: string
+          verification_status?: Database["public"]["Enums"]["external_verification_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_centres_import_run_id_fkey"
+            columns: ["import_run_id"]
+            isOneToOne: false
+            referencedRelation: "external_import_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medical_centres_raw_record_id_fkey"
+            columns: ["raw_record_id"]
+            isOneToOne: false
+            referencedRelation: "external_raw_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medical_centres_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "external_source_registry"
             referencedColumns: ["id"]
           },
         ]
@@ -1074,6 +1504,121 @@ export type Database = {
         }
         Relationships: []
       }
+      supermarkets: {
+        Row: {
+          address: string | null
+          boundary: unknown
+          brand: string | null
+          coordinate_confidence: number
+          coordinate_method: string
+          created_at: string
+          fetched_at: string
+          floor_area_source: string | null
+          floor_area_sqm: number | null
+          geographic_coverage: string | null
+          id: string
+          import_run_id: string
+          licence_status: string
+          location: unknown
+          name: string
+          normalised_address: string | null
+          normalised_name: string
+          observed_at: string | null
+          opening_hours: string | null
+          public_entrance: unknown
+          raw_record_id: string | null
+          source_dataset_version: string | null
+          source_id: string
+          source_record_id: string
+          source_url: string | null
+          trading_name: string | null
+          updated_at: string
+          verification_status: Database["public"]["Enums"]["external_verification_status"]
+        }
+        Insert: {
+          address?: string | null
+          boundary?: unknown
+          brand?: string | null
+          coordinate_confidence: number
+          coordinate_method: string
+          created_at?: string
+          fetched_at: string
+          floor_area_source?: string | null
+          floor_area_sqm?: number | null
+          geographic_coverage?: string | null
+          id?: string
+          import_run_id: string
+          licence_status: string
+          location: unknown
+          name: string
+          normalised_address?: string | null
+          normalised_name: string
+          observed_at?: string | null
+          opening_hours?: string | null
+          public_entrance?: unknown
+          raw_record_id?: string | null
+          source_dataset_version?: string | null
+          source_id: string
+          source_record_id: string
+          source_url?: string | null
+          trading_name?: string | null
+          updated_at?: string
+          verification_status?: Database["public"]["Enums"]["external_verification_status"]
+        }
+        Update: {
+          address?: string | null
+          boundary?: unknown
+          brand?: string | null
+          coordinate_confidence?: number
+          coordinate_method?: string
+          created_at?: string
+          fetched_at?: string
+          floor_area_source?: string | null
+          floor_area_sqm?: number | null
+          geographic_coverage?: string | null
+          id?: string
+          import_run_id?: string
+          licence_status?: string
+          location?: unknown
+          name?: string
+          normalised_address?: string | null
+          normalised_name?: string
+          observed_at?: string | null
+          opening_hours?: string | null
+          public_entrance?: unknown
+          raw_record_id?: string | null
+          source_dataset_version?: string | null
+          source_id?: string
+          source_record_id?: string
+          source_url?: string | null
+          trading_name?: string | null
+          updated_at?: string
+          verification_status?: Database["public"]["Enums"]["external_verification_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supermarkets_import_run_id_fkey"
+            columns: ["import_run_id"]
+            isOneToOne: false
+            referencedRelation: "external_import_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supermarkets_raw_record_id_fkey"
+            columns: ["raw_record_id"]
+            isOneToOne: false
+            referencedRelation: "external_raw_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supermarkets_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "external_source_registry"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -1366,6 +1911,10 @@ export type Database = {
             }
             Returns: string
           }
+      candidate_external_summary: {
+        Args: { p_lat: number; p_lng: number }
+        Returns: Json
+      }
       disablelongtransactions: { Args: never; Returns: string }
       dropgeometrycolumn:
         | {
@@ -1399,6 +1948,33 @@ export type Database = {
         | { Args: { table_name: string }; Returns: string }
       enablelongtransactions: { Args: never; Returns: string }
       equals: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      external_entity_dossier: {
+        Args: { p_category: string; p_id: string }
+        Returns: Json
+      }
+      external_points_in_viewport: {
+        Args: {
+          p_category: string
+          p_east: number
+          p_limit?: number
+          p_north: number
+          p_south: number
+          p_west: number
+        }
+        Returns: {
+          address: string
+          category: string
+          coordinate_confidence: number
+          fetched_at: string
+          id: string
+          lat: number
+          lng: number
+          name: string
+          source_name: string
+          source_url: string
+          verification_status: string
+        }[]
+      }
       geometry: { Args: { "": string }; Returns: unknown }
       geometry_above: {
         Args: { geom1: unknown; geom2: unknown }
@@ -1504,6 +2080,18 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      import_external_location_batch: {
+        Args: {
+          p_category: string
+          p_duplicate_candidates?: Json
+          p_fetched_at: string
+          p_metrics?: Json
+          p_records: Json
+          p_rejected?: Json
+          p_source_key: string
+        }
+        Returns: Json
       }
       is_org_member: { Args: { _org: string }; Returns: boolean }
       longtransactionsenabled: { Args: never; Returns: boolean }
@@ -2147,6 +2735,13 @@ export type Database = {
     Enums: {
       app_role: "admin" | "member"
       door_source: "geocoded" | "osm" | "user_verified" | "imported"
+      external_verification_status:
+        | "confirmed"
+        | "probable"
+        | "unverified"
+        | "conflicting"
+        | "stale"
+        | "no_source_coverage"
       opportunity_type: "acquisition" | "greenfield" | "relocation"
       pharmacy_tracker_status:
         | "active"
@@ -2186,456 +2781,6 @@ export type Database = {
         reason: string | null
         location: unknown
       }
-    }
-  }
-  storage: {
-    Tables: {
-      buckets: {
-        Row: {
-          allowed_mime_types: string[] | null
-          avif_autodetection: boolean | null
-          created_at: string | null
-          file_size_limit: number | null
-          id: string
-          name: string
-          owner: string | null
-          owner_id: string | null
-          public: boolean | null
-          type: Database["storage"]["Enums"]["buckettype"]
-          updated_at: string | null
-        }
-        Insert: {
-          allowed_mime_types?: string[] | null
-          avif_autodetection?: boolean | null
-          created_at?: string | null
-          file_size_limit?: number | null
-          id: string
-          name: string
-          owner?: string | null
-          owner_id?: string | null
-          public?: boolean | null
-          type?: Database["storage"]["Enums"]["buckettype"]
-          updated_at?: string | null
-        }
-        Update: {
-          allowed_mime_types?: string[] | null
-          avif_autodetection?: boolean | null
-          created_at?: string | null
-          file_size_limit?: number | null
-          id?: string
-          name?: string
-          owner?: string | null
-          owner_id?: string | null
-          public?: boolean | null
-          type?: Database["storage"]["Enums"]["buckettype"]
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      buckets_analytics: {
-        Row: {
-          created_at: string
-          deleted_at: string | null
-          format: string
-          id: string
-          name: string
-          type: Database["storage"]["Enums"]["buckettype"]
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          deleted_at?: string | null
-          format?: string
-          id?: string
-          name: string
-          type?: Database["storage"]["Enums"]["buckettype"]
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          deleted_at?: string | null
-          format?: string
-          id?: string
-          name?: string
-          type?: Database["storage"]["Enums"]["buckettype"]
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      buckets_vectors: {
-        Row: {
-          created_at: string
-          id: string
-          type: Database["storage"]["Enums"]["buckettype"]
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id: string
-          type?: Database["storage"]["Enums"]["buckettype"]
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          type?: Database["storage"]["Enums"]["buckettype"]
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      migrations: {
-        Row: {
-          executed_at: string | null
-          hash: string
-          id: number
-          name: string
-        }
-        Insert: {
-          executed_at?: string | null
-          hash: string
-          id: number
-          name: string
-        }
-        Update: {
-          executed_at?: string | null
-          hash?: string
-          id?: number
-          name?: string
-        }
-        Relationships: []
-      }
-      objects: {
-        Row: {
-          bucket_id: string | null
-          created_at: string | null
-          id: string
-          last_accessed_at: string | null
-          metadata: Json | null
-          name: string | null
-          owner: string | null
-          owner_id: string | null
-          path_tokens: string[] | null
-          updated_at: string | null
-          user_metadata: Json | null
-          version: string | null
-        }
-        Insert: {
-          bucket_id?: string | null
-          created_at?: string | null
-          id?: string
-          last_accessed_at?: string | null
-          metadata?: Json | null
-          name?: string | null
-          owner?: string | null
-          owner_id?: string | null
-          path_tokens?: string[] | null
-          updated_at?: string | null
-          user_metadata?: Json | null
-          version?: string | null
-        }
-        Update: {
-          bucket_id?: string | null
-          created_at?: string | null
-          id?: string
-          last_accessed_at?: string | null
-          metadata?: Json | null
-          name?: string | null
-          owner?: string | null
-          owner_id?: string | null
-          path_tokens?: string[] | null
-          updated_at?: string | null
-          user_metadata?: Json | null
-          version?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "objects_bucketId_fkey"
-            columns: ["bucket_id"]
-            isOneToOne: false
-            referencedRelation: "buckets"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      s3_multipart_uploads: {
-        Row: {
-          bucket_id: string
-          created_at: string
-          id: string
-          in_progress_size: number
-          key: string
-          metadata: Json | null
-          owner_id: string | null
-          upload_signature: string
-          user_metadata: Json | null
-          version: string
-        }
-        Insert: {
-          bucket_id: string
-          created_at?: string
-          id: string
-          in_progress_size?: number
-          key: string
-          metadata?: Json | null
-          owner_id?: string | null
-          upload_signature: string
-          user_metadata?: Json | null
-          version: string
-        }
-        Update: {
-          bucket_id?: string
-          created_at?: string
-          id?: string
-          in_progress_size?: number
-          key?: string
-          metadata?: Json | null
-          owner_id?: string | null
-          upload_signature?: string
-          user_metadata?: Json | null
-          version?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "s3_multipart_uploads_bucket_id_fkey"
-            columns: ["bucket_id"]
-            isOneToOne: false
-            referencedRelation: "buckets"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      s3_multipart_uploads_parts: {
-        Row: {
-          bucket_id: string
-          created_at: string
-          etag: string
-          id: string
-          key: string
-          owner_id: string | null
-          part_number: number
-          size: number
-          upload_id: string
-          version: string
-        }
-        Insert: {
-          bucket_id: string
-          created_at?: string
-          etag: string
-          id?: string
-          key: string
-          owner_id?: string | null
-          part_number: number
-          size?: number
-          upload_id: string
-          version: string
-        }
-        Update: {
-          bucket_id?: string
-          created_at?: string
-          etag?: string
-          id?: string
-          key?: string
-          owner_id?: string | null
-          part_number?: number
-          size?: number
-          upload_id?: string
-          version?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "s3_multipart_uploads_parts_bucket_id_fkey"
-            columns: ["bucket_id"]
-            isOneToOne: false
-            referencedRelation: "buckets"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "s3_multipart_uploads_parts_upload_id_fkey"
-            columns: ["upload_id"]
-            isOneToOne: false
-            referencedRelation: "s3_multipart_uploads"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vector_indexes: {
-        Row: {
-          bucket_id: string
-          created_at: string
-          data_type: string
-          dimension: number
-          distance_metric: string
-          id: string
-          metadata_configuration: Json | null
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          bucket_id: string
-          created_at?: string
-          data_type: string
-          dimension: number
-          distance_metric: string
-          id?: string
-          metadata_configuration?: Json | null
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          bucket_id?: string
-          created_at?: string
-          data_type?: string
-          dimension?: number
-          distance_metric?: string
-          id?: string
-          metadata_configuration?: Json | null
-          name?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "vector_indexes_bucket_id_fkey"
-            columns: ["bucket_id"]
-            isOneToOne: false
-            referencedRelation: "buckets_vectors"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      allow_any_operation: {
-        Args: { expected_operations: string[] }
-        Returns: boolean
-      }
-      allow_only_operation: {
-        Args: { expected_operation: string }
-        Returns: boolean
-      }
-      can_insert_object: {
-        Args: { bucketid: string; metadata: Json; name: string; owner: string }
-        Returns: undefined
-      }
-      extension: { Args: { name: string }; Returns: string }
-      filename: { Args: { name: string }; Returns: string }
-      foldername: { Args: { name: string }; Returns: string[] }
-      get_common_prefix: {
-        Args: { p_delimiter: string; p_key: string; p_prefix: string }
-        Returns: string
-      }
-      get_size_by_bucket: {
-        Args: never
-        Returns: {
-          bucket_id: string
-          size: number
-        }[]
-      }
-      list_multipart_uploads_with_delimiter: {
-        Args: {
-          bucket_id: string
-          delimiter_param: string
-          max_keys?: number
-          next_key_token?: string
-          next_upload_token?: string
-          prefix_param: string
-        }
-        Returns: {
-          created_at: string
-          id: string
-          key: string
-        }[]
-      }
-      list_objects_with_delimiter: {
-        Args: {
-          _bucket_id: string
-          delimiter_param: string
-          max_keys?: number
-          next_token?: string
-          prefix_param: string
-          sort_order?: string
-          start_after?: string
-        }
-        Returns: {
-          created_at: string
-          id: string
-          last_accessed_at: string
-          metadata: Json
-          name: string
-          updated_at: string
-        }[]
-      }
-      operation: { Args: never; Returns: string }
-      search: {
-        Args: {
-          bucketname: string
-          levels?: number
-          limits?: number
-          offsets?: number
-          prefix: string
-          search?: string
-          sortcolumn?: string
-          sortorder?: string
-        }
-        Returns: {
-          created_at: string
-          id: string
-          last_accessed_at: string
-          metadata: Json
-          name: string
-          updated_at: string
-        }[]
-      }
-      search_by_timestamp: {
-        Args: {
-          p_bucket_id: string
-          p_level: number
-          p_limit: number
-          p_prefix: string
-          p_sort_column: string
-          p_sort_column_after: string
-          p_sort_order: string
-          p_start_after: string
-        }
-        Returns: {
-          created_at: string
-          id: string
-          key: string
-          last_accessed_at: string
-          metadata: Json
-          name: string
-          updated_at: string
-        }[]
-      }
-      search_v2: {
-        Args: {
-          bucket_name: string
-          levels?: number
-          limits?: number
-          prefix: string
-          sort_column?: string
-          sort_column_after?: string
-          sort_order?: string
-          start_after?: string
-        }
-        Returns: {
-          created_at: string
-          id: string
-          key: string
-          last_accessed_at: string
-          metadata: Json
-          name: string
-          updated_at: string
-        }[]
-      }
-    }
-    Enums: {
-      buckettype: "STANDARD" | "ANALYTICS" | "VECTOR"
-    }
-    CompositeTypes: {
-      [_ in never]: never
     }
   }
 }
@@ -2758,10 +2903,21 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       app_role: ["admin", "member"],
       door_source: ["geocoded", "osm", "user_verified", "imported"],
+      external_verification_status: [
+        "confirmed",
+        "probable",
+        "unverified",
+        "conflicting",
+        "stale",
+        "no_source_coverage",
+      ],
       opportunity_type: ["acquisition", "greenfield", "relocation"],
       pharmacy_tracker_status: [
         "active",
@@ -2794,11 +2950,6 @@ export const Constants = {
         "source_coverage_incomplete",
       ],
       verification_status: ["unverified", "matched", "verified", "conflict"],
-    },
-  },
-  storage: {
-    Enums: {
-      buckettype: ["STANDARD", "ANALYTICS", "VECTOR"],
     },
   },
 } as const
