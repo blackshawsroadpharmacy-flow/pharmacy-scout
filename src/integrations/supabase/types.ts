@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       candidate_sites: {
@@ -97,411 +72,6 @@ export type Database = {
             columns: ["organisation_id"]
             isOneToOne: false
             referencedRelation: "organisations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      external_entity_conflicts: {
-        Row: {
-          category: string
-          created_at: string
-          entity_id: string
-          field_name: string
-          id: string
-          import_run_id: string | null
-          incoming_source_id: string | null
-          incoming_value: Json | null
-          incumbent_source_id: string | null
-          incumbent_value: Json | null
-          resolved_at: string | null
-          status: string
-        }
-        Insert: {
-          category: string
-          created_at?: string
-          entity_id: string
-          field_name: string
-          id?: string
-          import_run_id?: string | null
-          incoming_source_id?: string | null
-          incoming_value?: Json | null
-          incumbent_source_id?: string | null
-          incumbent_value?: Json | null
-          resolved_at?: string | null
-          status?: string
-        }
-        Update: {
-          category?: string
-          created_at?: string
-          entity_id?: string
-          field_name?: string
-          id?: string
-          import_run_id?: string | null
-          incoming_source_id?: string | null
-          incoming_value?: Json | null
-          incumbent_source_id?: string | null
-          incumbent_value?: Json | null
-          resolved_at?: string | null
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "external_entity_conflicts_import_run_id_fkey"
-            columns: ["import_run_id"]
-            isOneToOne: false
-            referencedRelation: "external_import_runs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "external_entity_conflicts_incoming_source_id_fkey"
-            columns: ["incoming_source_id"]
-            isOneToOne: false
-            referencedRelation: "external_source_registry"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "external_entity_conflicts_incumbent_source_id_fkey"
-            columns: ["incumbent_source_id"]
-            isOneToOne: false
-            referencedRelation: "external_source_registry"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      external_import_runs: {
-        Row: {
-          approximate_geocode_count: number
-          category: string
-          conflict_count: number
-          created_at: string
-          dataset_version: string | null
-          duplicate_candidate_count: number
-          error_summary: string | null
-          exact_geocode_count: number
-          fetched_count: number
-          finished_at: string | null
-          id: string
-          imported_count: number
-          metrics: Json
-          rejected_count: number
-          source_id: string
-          stale_count: number
-          started_at: string
-          status: string
-        }
-        Insert: {
-          approximate_geocode_count?: number
-          category: string
-          conflict_count?: number
-          created_at?: string
-          dataset_version?: string | null
-          duplicate_candidate_count?: number
-          error_summary?: string | null
-          exact_geocode_count?: number
-          fetched_count?: number
-          finished_at?: string | null
-          id?: string
-          imported_count?: number
-          metrics?: Json
-          rejected_count?: number
-          source_id: string
-          stale_count?: number
-          started_at?: string
-          status: string
-        }
-        Update: {
-          approximate_geocode_count?: number
-          category?: string
-          conflict_count?: number
-          created_at?: string
-          dataset_version?: string | null
-          duplicate_candidate_count?: number
-          error_summary?: string | null
-          exact_geocode_count?: number
-          fetched_count?: number
-          finished_at?: string | null
-          id?: string
-          imported_count?: number
-          metrics?: Json
-          rejected_count?: number
-          source_id?: string
-          stale_count?: number
-          started_at?: string
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "external_import_runs_source_id_fkey"
-            columns: ["source_id"]
-            isOneToOne: false
-            referencedRelation: "external_source_registry"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      external_raw_records: {
-        Row: {
-          category: string
-          created_at: string
-          dataset_version: string | null
-          disposition: string
-          fetched_at: string
-          id: string
-          import_run_id: string
-          observed_at: string | null
-          raw_payload: Json
-          record_hash: string
-          rejection_reason: string | null
-          source_id: string
-          source_record_id: string
-          source_url: string | null
-        }
-        Insert: {
-          category: string
-          created_at?: string
-          dataset_version?: string | null
-          disposition: string
-          fetched_at: string
-          id?: string
-          import_run_id: string
-          observed_at?: string | null
-          raw_payload: Json
-          record_hash: string
-          rejection_reason?: string | null
-          source_id: string
-          source_record_id: string
-          source_url?: string | null
-        }
-        Update: {
-          category?: string
-          created_at?: string
-          dataset_version?: string | null
-          disposition?: string
-          fetched_at?: string
-          id?: string
-          import_run_id?: string
-          observed_at?: string | null
-          raw_payload?: Json
-          record_hash?: string
-          rejection_reason?: string | null
-          source_id?: string
-          source_record_id?: string
-          source_url?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "external_raw_records_import_run_id_fkey"
-            columns: ["import_run_id"]
-            isOneToOne: false
-            referencedRelation: "external_import_runs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "external_raw_records_source_id_fkey"
-            columns: ["source_id"]
-            isOneToOne: false
-            referencedRelation: "external_source_registry"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      external_source_coverage: {
-        Row: {
-          category: string
-          coverage_geometry: unknown
-          coverage_name: string
-          coverage_status: string
-          fetched_at: string
-          id: string
-          notes: string | null
-          observed_at: string | null
-          source_id: string
-        }
-        Insert: {
-          category: string
-          coverage_geometry?: unknown
-          coverage_name: string
-          coverage_status: string
-          fetched_at: string
-          id?: string
-          notes?: string | null
-          observed_at?: string | null
-          source_id: string
-        }
-        Update: {
-          category?: string
-          coverage_geometry?: unknown
-          coverage_name?: string
-          coverage_status?: string
-          fetched_at?: string
-          id?: string
-          notes?: string | null
-          observed_at?: string | null
-          source_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "external_source_coverage_source_id_fkey"
-            columns: ["source_id"]
-            isOneToOne: false
-            referencedRelation: "external_source_registry"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      external_source_registry: {
-        Row: {
-          attribution_text: string | null
-          created_at: string
-          dataset_url: string
-          geographic_coverage: string | null
-          id: string
-          licence_name: string | null
-          licence_url: string | null
-          name: string
-          priority: number
-          source_key: string
-          terms_status: string
-          updated_at: string
-        }
-        Insert: {
-          attribution_text?: string | null
-          created_at?: string
-          dataset_url: string
-          geographic_coverage?: string | null
-          id?: string
-          licence_name?: string | null
-          licence_url?: string | null
-          name: string
-          priority?: number
-          source_key: string
-          terms_status: string
-          updated_at?: string
-        }
-        Update: {
-          attribution_text?: string | null
-          created_at?: string
-          dataset_url?: string
-          geographic_coverage?: string | null
-          id?: string
-          licence_name?: string | null
-          licence_url?: string | null
-          name?: string
-          priority?: number
-          source_key?: string
-          terms_status?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      medical_centres: {
-        Row: {
-          address: string | null
-          boundary: unknown
-          coordinate_confidence: number
-          coordinate_method: string
-          created_at: string
-          fetched_at: string
-          geographic_coverage: string | null
-          id: string
-          import_run_id: string
-          known_practitioners: Json | null
-          licence_status: string
-          location: unknown
-          name: string
-          normalised_address: string | null
-          normalised_name: string
-          observed_at: string | null
-          opening_hours: string | null
-          practitioner_evidence_source: string | null
-          raw_record_id: string | null
-          services: Json | null
-          source_dataset_version: string | null
-          source_id: string
-          source_record_id: string
-          source_url: string | null
-          trading_name: string | null
-          updated_at: string
-          verification_status: Database["public"]["Enums"]["external_verification_status"]
-        }
-        Insert: {
-          address?: string | null
-          boundary?: unknown
-          coordinate_confidence: number
-          coordinate_method: string
-          created_at?: string
-          fetched_at: string
-          geographic_coverage?: string | null
-          id?: string
-          import_run_id: string
-          known_practitioners?: Json | null
-          licence_status: string
-          location: unknown
-          name: string
-          normalised_address?: string | null
-          normalised_name: string
-          observed_at?: string | null
-          opening_hours?: string | null
-          practitioner_evidence_source?: string | null
-          raw_record_id?: string | null
-          services?: Json | null
-          source_dataset_version?: string | null
-          source_id: string
-          source_record_id: string
-          source_url?: string | null
-          trading_name?: string | null
-          updated_at?: string
-          verification_status?: Database["public"]["Enums"]["external_verification_status"]
-        }
-        Update: {
-          address?: string | null
-          boundary?: unknown
-          coordinate_confidence?: number
-          coordinate_method?: string
-          created_at?: string
-          fetched_at?: string
-          geographic_coverage?: string | null
-          id?: string
-          import_run_id?: string
-          known_practitioners?: Json | null
-          licence_status?: string
-          location?: unknown
-          name?: string
-          normalised_address?: string | null
-          normalised_name?: string
-          observed_at?: string | null
-          opening_hours?: string | null
-          practitioner_evidence_source?: string | null
-          raw_record_id?: string | null
-          services?: Json | null
-          source_dataset_version?: string | null
-          source_id?: string
-          source_record_id?: string
-          source_url?: string | null
-          trading_name?: string | null
-          updated_at?: string
-          verification_status?: Database["public"]["Enums"]["external_verification_status"]
-        }
-        Relationships: [
-          {
-            foreignKeyName: "medical_centres_import_run_id_fkey"
-            columns: ["import_run_id"]
-            isOneToOne: false
-            referencedRelation: "external_import_runs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "medical_centres_raw_record_id_fkey"
-            columns: ["raw_record_id"]
-            isOneToOne: false
-            referencedRelation: "external_raw_records"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "medical_centres_source_id_fkey"
-            columns: ["source_id"]
-            isOneToOne: false
-            referencedRelation: "external_source_registry"
             referencedColumns: ["id"]
           },
         ]
@@ -767,179 +337,6 @@ export type Database = {
           },
         ]
       }
-      pharmacy_im_attachments: {
-        Row: {
-          created_at: string
-          file_name: string
-          id: string
-          mime_type: string | null
-          pharmacy_profile_id: string
-          premises_id: string
-          size_bytes: number | null
-          storage_path: string
-          uploaded_by: string | null
-        }
-        Insert: {
-          created_at?: string
-          file_name: string
-          id?: string
-          mime_type?: string | null
-          pharmacy_profile_id: string
-          premises_id: string
-          size_bytes?: number | null
-          storage_path: string
-          uploaded_by?: string | null
-        }
-        Update: {
-          created_at?: string
-          file_name?: string
-          id?: string
-          mime_type?: string | null
-          pharmacy_profile_id?: string
-          premises_id?: string
-          size_bytes?: number | null
-          storage_path?: string
-          uploaded_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "pharmacy_im_attachments_pharmacy_profile_id_fkey"
-            columns: ["pharmacy_profile_id"]
-            isOneToOne: false
-            referencedRelation: "pharmacy_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pharmacy_im_attachments_premises_id_fkey"
-            columns: ["premises_id"]
-            isOneToOne: false
-            referencedRelation: "pharmacy_premises"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pharmacy_im_attachments_premises_id_fkey"
-            columns: ["premises_id"]
-            isOneToOne: false
-            referencedRelation: "pharmacy_premises_geo"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      pharmacy_import_rows: {
-        Row: {
-          disposition: string
-          geocode_confidence: string | null
-          geocode_method: string | null
-          geocode_provider: string | null
-          id: string
-          imported_at: string
-          matching_key: string
-          normalized_payload: Json
-          premises_id: string | null
-          raw_payload: Json
-          source_name: string
-          source_row_number: number
-          updated_at: string
-          warnings: Json
-        }
-        Insert: {
-          disposition: string
-          geocode_confidence?: string | null
-          geocode_method?: string | null
-          geocode_provider?: string | null
-          id?: string
-          imported_at?: string
-          matching_key: string
-          normalized_payload: Json
-          premises_id?: string | null
-          raw_payload: Json
-          source_name: string
-          source_row_number: number
-          updated_at?: string
-          warnings?: Json
-        }
-        Update: {
-          disposition?: string
-          geocode_confidence?: string | null
-          geocode_method?: string | null
-          geocode_provider?: string | null
-          id?: string
-          imported_at?: string
-          matching_key?: string
-          normalized_payload?: Json
-          premises_id?: string | null
-          raw_payload?: Json
-          source_name?: string
-          source_row_number?: number
-          updated_at?: string
-          warnings?: Json
-        }
-        Relationships: [
-          {
-            foreignKeyName: "pharmacy_import_rows_premises_id_fkey"
-            columns: ["premises_id"]
-            isOneToOne: false
-            referencedRelation: "pharmacy_premises"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pharmacy_import_rows_premises_id_fkey"
-            columns: ["premises_id"]
-            isOneToOne: false
-            referencedRelation: "pharmacy_premises_geo"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      pharmacy_note_entries: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          id: string
-          note_text: string
-          pharmacy_profile_id: string
-          premises_id: string
-        }
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          note_text: string
-          pharmacy_profile_id: string
-          premises_id: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          note_text?: string
-          pharmacy_profile_id?: string
-          premises_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "pharmacy_note_entries_pharmacy_profile_id_fkey"
-            columns: ["pharmacy_profile_id"]
-            isOneToOne: false
-            referencedRelation: "pharmacy_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pharmacy_note_entries_premises_id_fkey"
-            columns: ["premises_id"]
-            isOneToOne: false
-            referencedRelation: "pharmacy_premises"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pharmacy_note_entries_premises_id_fkey"
-            columns: ["premises_id"]
-            isOneToOne: false
-            referencedRelation: "pharmacy_premises_geo"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       pharmacy_premises: {
         Row: {
           address: string
@@ -948,7 +345,6 @@ export type Database = {
           door_source: Database["public"]["Enums"]["door_source"] | null
           door_verified_at: string | null
           door_verified_by: string | null
-          geocode_method: string | null
           id: string
           locality_name: string | null
           location: unknown
@@ -974,7 +370,6 @@ export type Database = {
           door_source?: Database["public"]["Enums"]["door_source"] | null
           door_verified_at?: string | null
           door_verified_by?: string | null
-          geocode_method?: string | null
           id?: string
           locality_name?: string | null
           location?: unknown
@@ -1000,7 +395,6 @@ export type Database = {
           door_source?: Database["public"]["Enums"]["door_source"] | null
           door_verified_at?: string | null
           door_verified_by?: string | null
-          geocode_method?: string | null
           id?: string
           locality_name?: string | null
           location?: unknown
@@ -1036,69 +430,6 @@ export type Database = {
           },
         ]
       }
-      pharmacy_profiles: {
-        Row: {
-          asking_price: number | null
-          created_at: string
-          created_by: string | null
-          id: string
-          notes: string
-          notes_updated_at: string | null
-          notes_updated_by: string | null
-          owner_licensee: string | null
-          premises_id: string
-          revenue: number | null
-          script_volume: number | null
-          status: Database["public"]["Enums"]["pharmacy_tracker_status"]
-          updated_at: string
-        }
-        Insert: {
-          asking_price?: number | null
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          notes?: string
-          notes_updated_at?: string | null
-          notes_updated_by?: string | null
-          owner_licensee?: string | null
-          premises_id: string
-          revenue?: number | null
-          script_volume?: number | null
-          status?: Database["public"]["Enums"]["pharmacy_tracker_status"]
-          updated_at?: string
-        }
-        Update: {
-          asking_price?: number | null
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          notes?: string
-          notes_updated_at?: string | null
-          notes_updated_by?: string | null
-          owner_licensee?: string | null
-          premises_id?: string
-          revenue?: number | null
-          script_volume?: number | null
-          status?: Database["public"]["Enums"]["pharmacy_tracker_status"]
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "pharmacy_profiles_premises_id_fkey"
-            columns: ["premises_id"]
-            isOneToOne: true
-            referencedRelation: "pharmacy_premises"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pharmacy_profiles_premises_id_fkey"
-            columns: ["premises_id"]
-            isOneToOne: true
-            referencedRelation: "pharmacy_premises_geo"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       profiles: {
         Row: {
           created_at: string
@@ -1127,298 +458,6 @@ export type Database = {
             columns: ["current_organisation_id"]
             isOneToOne: false
             referencedRelation: "organisations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      relocation_scenarios: {
-        Row: {
-          actor_id: string | null
-          created_at: string
-          destination_address: string | null
-          destination_door_point: unknown
-          destination_location: unknown
-          id: string
-          inputs: Json
-          origin_pharmacy_id: string | null
-          updated_at: string
-        }
-        Insert: {
-          actor_id?: string | null
-          created_at?: string
-          destination_address?: string | null
-          destination_door_point?: unknown
-          destination_location?: unknown
-          id?: string
-          inputs?: Json
-          origin_pharmacy_id?: string | null
-          updated_at?: string
-        }
-        Update: {
-          actor_id?: string | null
-          created_at?: string
-          destination_address?: string | null
-          destination_door_point?: unknown
-          destination_location?: unknown
-          id?: string
-          inputs?: Json
-          origin_pharmacy_id?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "relocation_scenarios_origin_pharmacy_id_fkey"
-            columns: ["origin_pharmacy_id"]
-            isOneToOne: false
-            referencedRelation: "pharmacy_premises"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "relocation_scenarios_origin_pharmacy_id_fkey"
-            columns: ["origin_pharmacy_id"]
-            isOneToOne: false
-            referencedRelation: "pharmacy_premises_geo"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      requirement_evaluations: {
-        Row: {
-          assumptions: Json
-          calculated_value: number | null
-          created_at: string
-          detail: Json
-          id: string
-          requirement_id: string
-          rule_evaluation_id: string
-          sources: Json
-          status: Database["public"]["Enums"]["rule_result_status"]
-          threshold: number | null
-        }
-        Insert: {
-          assumptions?: Json
-          calculated_value?: number | null
-          created_at?: string
-          detail?: Json
-          id?: string
-          requirement_id: string
-          rule_evaluation_id: string
-          sources?: Json
-          status: Database["public"]["Enums"]["rule_result_status"]
-          threshold?: number | null
-        }
-        Update: {
-          assumptions?: Json
-          calculated_value?: number | null
-          created_at?: string
-          detail?: Json
-          id?: string
-          requirement_id?: string
-          rule_evaluation_id?: string
-          sources?: Json
-          status?: Database["public"]["Enums"]["rule_result_status"]
-          threshold?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "requirement_evaluations_requirement_id_fkey"
-            columns: ["requirement_id"]
-            isOneToOne: false
-            referencedRelation: "rule_requirements"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "requirement_evaluations_rule_evaluation_id_fkey"
-            columns: ["rule_evaluation_id"]
-            isOneToOne: false
-            referencedRelation: "rule_evaluations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      rule_evaluations: {
-        Row: {
-          created_at: string
-          dataset_snapshot: Json
-          evaluated_at: string
-          id: string
-          rule_id: string
-          scenario_id: string
-          status: Database["public"]["Enums"]["rule_result_status"]
-          summary: Json
-        }
-        Insert: {
-          created_at?: string
-          dataset_snapshot?: Json
-          evaluated_at?: string
-          id?: string
-          rule_id: string
-          scenario_id: string
-          status: Database["public"]["Enums"]["rule_result_status"]
-          summary?: Json
-        }
-        Update: {
-          created_at?: string
-          dataset_snapshot?: Json
-          evaluated_at?: string
-          id?: string
-          rule_id?: string
-          scenario_id?: string
-          status?: Database["public"]["Enums"]["rule_result_status"]
-          summary?: Json
-        }
-        Relationships: [
-          {
-            foreignKeyName: "rule_evaluations_rule_id_fkey"
-            columns: ["rule_id"]
-            isOneToOne: false
-            referencedRelation: "rules"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rule_evaluations_scenario_id_fkey"
-            columns: ["scenario_id"]
-            isOneToOne: false
-            referencedRelation: "relocation_scenarios"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      rule_requirements: {
-        Row: {
-          comparison_inclusive: boolean | null
-          created_at: string
-          data_requirements: Json
-          description: string
-          evidence_requirements: Json
-          id: string
-          measurement_type: string | null
-          operator: string | null
-          reference_citation: string | null
-          requirement_code: string
-          rule_id: string
-          threshold: number | null
-          units: string | null
-          updated_at: string
-        }
-        Insert: {
-          comparison_inclusive?: boolean | null
-          created_at?: string
-          data_requirements?: Json
-          description: string
-          evidence_requirements?: Json
-          id?: string
-          measurement_type?: string | null
-          operator?: string | null
-          reference_citation?: string | null
-          requirement_code: string
-          rule_id: string
-          threshold?: number | null
-          units?: string | null
-          updated_at?: string
-        }
-        Update: {
-          comparison_inclusive?: boolean | null
-          created_at?: string
-          data_requirements?: Json
-          description?: string
-          evidence_requirements?: Json
-          id?: string
-          measurement_type?: string | null
-          operator?: string | null
-          reference_citation?: string | null
-          requirement_code?: string
-          rule_id?: string
-          threshold?: number | null
-          units?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "rule_requirements_rule_id_fkey"
-            columns: ["rule_id"]
-            isOneToOne: false
-            referencedRelation: "rules"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      rule_versions: {
-        Row: {
-          active: boolean
-          checksum: string | null
-          created_at: string
-          effective_from: string | null
-          effective_to: string | null
-          handbook_version: string | null
-          id: string
-          legislative_source: string
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          active?: boolean
-          checksum?: string | null
-          created_at?: string
-          effective_from?: string | null
-          effective_to?: string | null
-          handbook_version?: string | null
-          id?: string
-          legislative_source: string
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          active?: boolean
-          checksum?: string | null
-          created_at?: string
-          effective_from?: string | null
-          effective_to?: string | null
-          handbook_version?: string | null
-          id?: string
-          legislative_source?: string
-          name?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      rules: {
-        Row: {
-          created_at: string
-          id: string
-          item_number: string
-          reference_citation: string | null
-          rule_version_id: string
-          title: string
-          updated_at: string
-          workflow_type: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          item_number: string
-          reference_citation?: string | null
-          rule_version_id: string
-          title: string
-          updated_at?: string
-          workflow_type: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          item_number?: string
-          reference_citation?: string | null
-          rule_version_id?: string
-          title?: string
-          updated_at?: string
-          workflow_type?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "rules_rule_version_id_fkey"
-            columns: ["rule_version_id"]
-            isOneToOne: false
-            referencedRelation: "rule_versions"
             referencedColumns: ["id"]
           },
         ]
@@ -1504,121 +543,6 @@ export type Database = {
         }
         Relationships: []
       }
-      supermarkets: {
-        Row: {
-          address: string | null
-          boundary: unknown
-          brand: string | null
-          coordinate_confidence: number
-          coordinate_method: string
-          created_at: string
-          fetched_at: string
-          floor_area_source: string | null
-          floor_area_sqm: number | null
-          geographic_coverage: string | null
-          id: string
-          import_run_id: string
-          licence_status: string
-          location: unknown
-          name: string
-          normalised_address: string | null
-          normalised_name: string
-          observed_at: string | null
-          opening_hours: string | null
-          public_entrance: unknown
-          raw_record_id: string | null
-          source_dataset_version: string | null
-          source_id: string
-          source_record_id: string
-          source_url: string | null
-          trading_name: string | null
-          updated_at: string
-          verification_status: Database["public"]["Enums"]["external_verification_status"]
-        }
-        Insert: {
-          address?: string | null
-          boundary?: unknown
-          brand?: string | null
-          coordinate_confidence: number
-          coordinate_method: string
-          created_at?: string
-          fetched_at: string
-          floor_area_source?: string | null
-          floor_area_sqm?: number | null
-          geographic_coverage?: string | null
-          id?: string
-          import_run_id: string
-          licence_status: string
-          location: unknown
-          name: string
-          normalised_address?: string | null
-          normalised_name: string
-          observed_at?: string | null
-          opening_hours?: string | null
-          public_entrance?: unknown
-          raw_record_id?: string | null
-          source_dataset_version?: string | null
-          source_id: string
-          source_record_id: string
-          source_url?: string | null
-          trading_name?: string | null
-          updated_at?: string
-          verification_status?: Database["public"]["Enums"]["external_verification_status"]
-        }
-        Update: {
-          address?: string | null
-          boundary?: unknown
-          brand?: string | null
-          coordinate_confidence?: number
-          coordinate_method?: string
-          created_at?: string
-          fetched_at?: string
-          floor_area_source?: string | null
-          floor_area_sqm?: number | null
-          geographic_coverage?: string | null
-          id?: string
-          import_run_id?: string
-          licence_status?: string
-          location?: unknown
-          name?: string
-          normalised_address?: string | null
-          normalised_name?: string
-          observed_at?: string | null
-          opening_hours?: string | null
-          public_entrance?: unknown
-          raw_record_id?: string | null
-          source_dataset_version?: string | null
-          source_id?: string
-          source_record_id?: string
-          source_url?: string | null
-          trading_name?: string | null
-          updated_at?: string
-          verification_status?: Database["public"]["Enums"]["external_verification_status"]
-        }
-        Relationships: [
-          {
-            foreignKeyName: "supermarkets_import_run_id_fkey"
-            columns: ["import_run_id"]
-            isOneToOne: false
-            referencedRelation: "external_import_runs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "supermarkets_raw_record_id_fkey"
-            columns: ["raw_record_id"]
-            isOneToOne: false
-            referencedRelation: "external_raw_records"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "supermarkets_source_id_fkey"
-            columns: ["source_id"]
-            isOneToOne: false
-            referencedRelation: "external_source_registry"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       user_roles: {
         Row: {
           id: string
@@ -1690,7 +614,6 @@ export type Database = {
           door_lng: number | null
           door_source: Database["public"]["Enums"]["door_source"] | null
           door_verified_at: string | null
-          geocode_method: string | null
           id: string | null
           lat: number | null
           lng: number | null
@@ -1720,7 +643,6 @@ export type Database = {
           door_lng?: never
           door_source?: Database["public"]["Enums"]["door_source"] | null
           door_verified_at?: string | null
-          geocode_method?: string | null
           id?: string | null
           lat?: never
           lng?: never
@@ -1750,7 +672,6 @@ export type Database = {
           door_lng?: never
           door_source?: Database["public"]["Enums"]["door_source"] | null
           door_verified_at?: string | null
-          geocode_method?: string | null
           id?: string | null
           lat?: never
           lng?: never
@@ -1911,10 +832,6 @@ export type Database = {
             }
             Returns: string
           }
-      candidate_external_summary: {
-        Args: { p_lat: number; p_lng: number }
-        Returns: Json
-      }
       disablelongtransactions: { Args: never; Returns: string }
       dropgeometrycolumn:
         | {
@@ -1948,33 +865,6 @@ export type Database = {
         | { Args: { table_name: string }; Returns: string }
       enablelongtransactions: { Args: never; Returns: string }
       equals: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
-      external_entity_dossier: {
-        Args: { p_category: string; p_id: string }
-        Returns: Json
-      }
-      external_points_in_viewport: {
-        Args: {
-          p_category: string
-          p_east: number
-          p_limit?: number
-          p_north: number
-          p_south: number
-          p_west: number
-        }
-        Returns: {
-          address: string
-          category: string
-          coordinate_confidence: number
-          fetched_at: string
-          id: string
-          lat: number
-          lng: number
-          name: string
-          source_name: string
-          source_url: string
-          verification_status: string
-        }[]
-      }
       geometry: { Args: { "": string }; Returns: unknown }
       geometry_above: {
         Args: { geom1: unknown; geom2: unknown }
@@ -2080,18 +970,6 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
-      }
-      import_external_location_batch: {
-        Args: {
-          p_category: string
-          p_duplicate_candidates?: Json
-          p_fetched_at: string
-          p_metrics?: Json
-          p_records: Json
-          p_rejected?: Json
-          p_source_key: string
-        }
-        Returns: Json
       }
       is_org_member: { Args: { _org: string }; Returns: boolean }
       longtransactionsenabled: { Args: never; Returns: boolean }
@@ -2735,19 +1613,7 @@ export type Database = {
     Enums: {
       app_role: "admin" | "member"
       door_source: "geocoded" | "osm" | "user_verified" | "imported"
-      external_verification_status:
-        | "confirmed"
-        | "probable"
-        | "unverified"
-        | "conflicting"
-        | "stale"
-        | "no_source_coverage"
       opportunity_type: "acquisition" | "greenfield" | "relocation"
-      pharmacy_tracker_status:
-        | "active"
-        | "underperforming"
-        | "target"
-        | "under_offer"
       pipeline_stage:
         | "watchlist"
         | "contacting"
@@ -2762,13 +1628,6 @@ export type Database = {
         | "vpa_register"
         | "pbs_register"
         | "manual"
-      rule_result_status:
-        | "appears_to_satisfy"
-        | "does_not_appear_to_satisfy"
-        | "insufficient_evidence"
-        | "professional_measurement_required"
-        | "not_applicable"
-        | "source_coverage_incomplete"
       verification_status: "unverified" | "matched" | "verified" | "conflict"
     }
     CompositeTypes: {
@@ -2903,28 +1762,11 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       app_role: ["admin", "member"],
       door_source: ["geocoded", "osm", "user_verified", "imported"],
-      external_verification_status: [
-        "confirmed",
-        "probable",
-        "unverified",
-        "conflicting",
-        "stale",
-        "no_source_coverage",
-      ],
       opportunity_type: ["acquisition", "greenfield", "relocation"],
-      pharmacy_tracker_status: [
-        "active",
-        "underperforming",
-        "target",
-        "under_offer",
-      ],
       pipeline_stage: [
         "watchlist",
         "contacting",
@@ -2940,14 +1782,6 @@ export const Constants = {
         "vpa_register",
         "pbs_register",
         "manual",
-      ],
-      rule_result_status: [
-        "appears_to_satisfy",
-        "does_not_appear_to_satisfy",
-        "insufficient_evidence",
-        "professional_measurement_required",
-        "not_applicable",
-        "source_coverage_incomplete",
       ],
       verification_status: ["unverified", "matched", "verified", "conflict"],
     },
