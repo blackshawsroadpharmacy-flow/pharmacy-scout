@@ -8,6 +8,8 @@ export interface LayerState {
   candidates: boolean;
   supermarkets: boolean;
   medicalCentres: boolean;
+  populationDensity: boolean;
+  populationGrowth: boolean;
 }
 
 export const DEFAULT_LAYERS: LayerState = {
@@ -18,6 +20,8 @@ export const DEFAULT_LAYERS: LayerState = {
   candidates: true,
   supermarkets: false,
   medicalCentres: false,
+  populationDensity: false,
+  populationGrowth: false,
 };
 
 const ACTIVE: Array<{ key: keyof LayerState; label: string }> = [
@@ -28,14 +32,14 @@ const ACTIVE: Array<{ key: keyof LayerState; label: string }> = [
   { key: "candidates", label: "Candidate greenfield sites" },
   { key: "supermarkets", label: "Supermarkets" },
   { key: "medicalCentres", label: "Medical centres" },
+  { key: "populationDensity", label: "Population density (ABS 2024)" },
+  { key: "populationGrowth", label: "Population growth (ABS 2023–24)" },
 ];
 
 const PLACEHOLDERS = [
   "Hospitals",
   "Shopping centres",
-  "Population density",
   "Residents aged 65+",
-  "Population growth",
   "Parking",
   "Planning & development activity",
 ];
