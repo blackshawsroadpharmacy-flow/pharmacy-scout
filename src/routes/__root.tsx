@@ -96,8 +96,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Victorian Pharmacy Mapper" },
       { name: "twitter:description", content: "Victorian Pharmacy Mapper" },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/XixyHjEfWVVN7GXjGCOwme461iv2/social-images/social-1784871997089-Community_Pharmacy_of_the_Year_.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/XixyHjEfWVVN7GXjGCOwme461iv2/social-images/social-1784871997089-Community_Pharmacy_of_the_Year_.webp" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/XixyHjEfWVVN7GXjGCOwme461iv2/social-images/social-1785076339785-ChatGPT_Image_Jul_26,_2026,_12_17_46_AM.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/XixyHjEfWVVN7GXjGCOwme461iv2/social-images/social-1785076339785-ChatGPT_Image_Jul_26,_2026,_12_17_46_AM.webp" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
