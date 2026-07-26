@@ -12,8 +12,12 @@ export default defineConfig({
   },
   vite: {
     define: {
-      "import.meta.env.VITE_SUPABASE_URL": JSON.stringify("https://gvrwrqcftlaavxarmgfk.supabase.co"),
-      "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify("sb_publishable_sEkRklmCHAXmEhtiYc00ZA_LqicfUrg"),
+      "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(
+        "https://gvrwrqcftlaavxarmgfk.supabase.co",
+      ),
+      "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(
+        "sb_publishable_sEkRklmCHAXmEhtiYc00ZA_LqicfUrg",
+      ),
       "import.meta.env.VITE_SUPABASE_PROJECT_ID": JSON.stringify("gvrwrqcftlaavxarmgfk"),
     },
   },

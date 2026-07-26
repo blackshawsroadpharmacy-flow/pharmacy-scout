@@ -36,7 +36,10 @@ export const Route = createFileRoute("/app/acquisitions")({
       },
       { name: "robots", content: "noindex" },
       { property: "og:title", content: "Acquisition Scout — Chemist Care" },
-      { property: "og:description", content: "Private acquisition pipeline for Victorian pharmacies." },
+      {
+        property: "og:description",
+        content: "Private acquisition pipeline for Victorian pharmacies.",
+      },
     ],
   }),
   component: AcquisitionsPage,
@@ -60,7 +63,19 @@ function AcquisitionsPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [openNotesFor, setOpenNotesFor] = useState<string | null>(null);
 
-  const grouped = new Map<string, Array<{ opp: { id: string; title: string; pipeline_stage: string; business_id: string | null }; biz?: { id: string; trading_name: string; asking_price: number | null; broker_or_source: string | null; private_notes: string | null } }>>();
+  const grouped = new Map<
+    string,
+    Array<{
+      opp: { id: string; title: string; pipeline_stage: string; business_id: string | null };
+      biz?: {
+        id: string;
+        trading_name: string;
+        asking_price: number | null;
+        broker_or_source: string | null;
+        private_notes: string | null;
+      };
+    }>
+  >();
   for (const stage of PIPELINE_STAGES) grouped.set(stage, []);
   for (const opp of q.data?.opportunities ?? []) {
     const biz = q.data?.businesses.find((b) => b.id === opp.business_id) ?? undefined;
@@ -128,7 +143,8 @@ function AcquisitionsPage() {
         <div className="mt-6 rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
           <span className="font-medium text-foreground">Note.</span> Market opportunity signals
           arrive in Phase 2. Operational upside and valuation multiples require your private
-          business data — until entered, they show as “{COMMERCIAL_LANGUAGE.commercial_data_required}”.
+          business data — until entered, they show as “
+          {COMMERCIAL_LANGUAGE.commercial_data_required}”.
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-7">
@@ -269,7 +285,12 @@ function AddBusinessDialog({
           className="mt-4 flex flex-col gap-3 text-sm"
         >
           <Field label="Trading name (required)">
-            <input value={name} onChange={(e) => setName(e.target.value)} required className="input" />
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              className="input"
+            />
           </Field>
           <Field label="Broker or source">
             <input value={broker} onChange={(e) => setBroker(e.target.value)} className="input" />
@@ -284,7 +305,11 @@ function AddBusinessDialog({
             />
           </Field>
           <Field label="Listing URL">
-            <input value={listingUrl} onChange={(e) => setListingUrl(e.target.value)} className="input" />
+            <input
+              value={listingUrl}
+              onChange={(e) => setListingUrl(e.target.value)}
+              className="input"
+            />
           </Field>
           <Field label="Private notes">
             <textarea

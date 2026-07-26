@@ -116,7 +116,8 @@
     border-color: var(--color-border);
   }
 
-  html, body {
+  html,
+  body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
@@ -124,14 +125,19 @@
     text-rendering: optimizeLegibility;
   }
 
-  h1, h2, h3, h4 {
+  h1,
+  h2,
+  h3,
+  h4 {
     letter-spacing: -0.015em;
     color: var(--color-foreground);
   }
 }
 
 /* Leaflet z-index safety so shadcn popovers/dialogs stay above the map */
-.leaflet-pane, .leaflet-top, .leaflet-bottom {
+.leaflet-pane,
+.leaflet-top,
+.leaflet-bottom {
   z-index: 1;
 }
 
@@ -165,7 +171,9 @@
   margin-top: 4px;
   line-height: 32px;
 }
-.marker-cluster-navy span { line-height: 32px; }
+.marker-cluster-navy span {
+  line-height: 32px;
+}
 
 .external-pin {
   display: grid;
@@ -181,8 +189,12 @@
   box-shadow: 0 1px 5px rgb(15 23 42 / 35%);
 }
 
-.external-pin.supermarket { background: #b45309; }
-.external-pin.medical-centre { background: #0f766e; }
+.external-pin.supermarket {
+  background: #b45309;
+}
+.external-pin.medical-centre {
+  background: #0f766e;
+}
 .external-pin.selected {
   outline: 3px solid rgb(15 23 42 / 45%);
   transform: scale(1.2);
@@ -194,17 +206,40 @@
   height: 14px;
   border-radius: 9999px;
   border: 2px solid #ffffff;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.35);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
 }
-.pharmacy-pin.discovery { background: #10183f; }
-.pharmacy-pin.verified { background: #0f9d8a; }
-.pharmacy-pin.partial { background: #d97706; }
-.pharmacy-pin.saved { background: #7c3aed; }
-.pharmacy-pin.approximate { background: #ffffff; }
-.pharmacy-pin.approximate.discovery { border-color: #10183f; }
-.pharmacy-pin.approximate.verified { border-color: #0f9d8a; }
-.pharmacy-pin.approximate.partial { border-color: #d97706; }
-.pharmacy-pin.approximate.saved { border-color: #7c3aed; }
-.pharmacy-pin.selected { outline: 3px solid #2563eb; outline-offset: 2px; }
+.pharmacy-pin.discovery {
+  background: #10183f;
+}
+.pharmacy-pin.verified {
+  background: #0f9d8a;
+}
+.pharmacy-pin.partial {
+  background: #d97706;
+}
+.pharmacy-pin.saved {
+  background: #7c3aed;
+}
+.pharmacy-pin.approximate {
+  background: #ffffff;
+}
+.pharmacy-pin.approximate.discovery {
+  border-color: #10183f;
+}
+.pharmacy-pin.approximate.verified {
+  border-color: #0f9d8a;
+}
+.pharmacy-pin.approximate.partial {
+  border-color: #d97706;
+}
+.pharmacy-pin.approximate.saved {
+  border-color: #7c3aed;
+}
+.pharmacy-pin.selected {
+  outline: 3px solid #2563eb;
+  outline-offset: 2px;
+}
 
-.leaflet-container { font-family: var(--font-sans); }
+.leaflet-container {
+  font-family: var(--font-sans);
+}
