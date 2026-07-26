@@ -204,6 +204,7 @@ export function MapView({
             key={p.id}
             position={[p.lat, p.lng]}
             icon={icon}
+            title={p.name}
             eventHandlers={{ click: () => onSelect(p.id) }}
           />
         ))}
