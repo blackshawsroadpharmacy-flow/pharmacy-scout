@@ -167,6 +167,27 @@
 }
 .marker-cluster-navy span { line-height: 32px; }
 
+.external-pin {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border: 2px solid white;
+  border-radius: 999px;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 1px 5px rgb(15 23 42 / 35%);
+}
+
+.external-pin.supermarket { background: #b45309; }
+.external-pin.medical-centre { background: #0f766e; }
+.external-pin.selected {
+  outline: 3px solid rgb(15 23 42 / 45%);
+  transform: scale(1.2);
+}
+
 /* Custom pharmacy pin */
 .pharmacy-pin {
   width: 14px;
