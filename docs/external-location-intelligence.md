@@ -87,8 +87,16 @@ measurement unless a separate entrance point is genuinely sourced.
 - Import timestamps describe retrieval time; `observed_at` remains null when the upstream record
   does not publish an observation date.
 
-These are dry-run counts, not production import counts. They must not be described as live until the
-linked production migration and service-role import have succeeded.
+Production deployment on 2026-07-26:
+
+- Migration `20260726110000_add_external_location_intelligence.sql` applied to the linked
+  `chemistacquisitions` Supabase project.
+- Supermarkets: 1,434 live canonical rows from 1,447 fetched records; 13 quarantined; 410
+  duplicate candidates; 980 source points; 454 polygon-centre coordinates; 0 field conflicts.
+- Medical centres: 1,294 live canonical rows from 1,438 fetched records; 144 quarantined; 37
+  duplicate candidates; 763 source points; 531 polygon-centre coordinates; 0 field conflicts.
+- Anonymous viewport RPC access was verified.
+- Anonymous access to `external_raw_records` was denied as intended.
 
 ## Deployment and rollback
 

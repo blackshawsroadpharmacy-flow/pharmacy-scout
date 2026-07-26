@@ -38,14 +38,51 @@ if (!url || !serviceKey) {
 const supabase = createClient(url, serviceKey, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
+const { data: source, error: sourceError } = await supabase
+  .from("external_source_registry")
+  .select("id")
+  .eq("source_key", SOURCE_KEY)
+  .single();
+if (sourceError || !source) {
+  throw new Error(sourceError?.message ?? "External source registry row not found");
+}
 const { data, error } = await supabase.rpc("import_external_location_batch", {
   p_source_key: SOURCE_KEY,
   p_category: category,
   p_fetched_at: fetchedAt,
   p_records: prepared.accepted,
-  p_rejected: prepared.rejected,
+  // Rejected records are written below. Keeping them outside the canonical upsert
+  // makes a malformed rejected payload incapable of rolling back accepted records.
+  p_rejected: [],
   p_duplicate_candidates: prepared.duplicateCandidates,
   p_metrics: summary,
 });
 if (error) throw new Error(error.message);
+if (prepared.rejected.length) {
+  const rejectedRows = prepared.rejected.map((record) => ({
+    source_id: source.id,
+    import_run_id: data.import_run_id,
+    category,
+    source_record_id: record.source_record_id ?? `rejected:${record.record_hash}`,
+    source_url: record.source_url,
+    fetched_at: fetchedAt,
+    observed_at: record.observed_at,
+    raw_payload: record.raw_payload,
+    record_hash: record.record_hash,
+    disposition: record.rejection_reasons.includes("out_of_state") ? "out_of_state" : "rejected",
+    rejection_reason: JSON.stringify(record.rejection_reasons),
+  }));
+  const { error: rejectedError } = await supabase
+    .from("external_raw_records")
+    .upsert(rejectedRows, {
+      onConflict: "source_id,category,source_record_id,record_hash",
+      ignoreDuplicates: true,
+    });
+  if (rejectedError) throw new Error(rejectedError.message);
+  const { error: metricsError } = await supabase
+    .from("external_import_runs")
+    .update({ rejected_count: prepared.rejected.length })
+    .eq("id", data.import_run_id);
+  if (metricsError) throw new Error(metricsError.message);
+}
 console.log(JSON.stringify({ ...summary, database: data }, null, 2));
