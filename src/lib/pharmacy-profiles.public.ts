@@ -1,6 +1,9 @@
 import { supabase as typedSupabase } from "@/integrations/supabase/client";
 // External Supabase project types don't include profile tables; cast to any at runtime.
 const supabase = typedSupabase as unknown as {
+  // These legacy public-demo tables are absent from the generated project types.
+  // Keep the escape hatch local until the schema is regenerated in WP5.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   from: (table: string) => any;
 };
 
