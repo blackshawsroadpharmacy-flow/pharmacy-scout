@@ -153,9 +153,9 @@ export function MapView({
             .join(" ");
           icon = L.divIcon({
             className: "",
-            html: `<span class="${classes}"></span>`,
-            iconSize: [14, 14],
-            iconAnchor: [7, 7],
+            html: `<div class="${classes}"></div>`,
+            iconSize: [30, 30],
+            iconAnchor: [15, 15],
           });
           iconCache.current.set(key, icon);
         }
@@ -204,6 +204,7 @@ export function MapView({
             key={p.id}
             position={[p.lat, p.lng]}
             icon={icon}
+            title={p.name}
             eventHandlers={{ click: () => onSelect(p.id) }}
           />
         ))}
