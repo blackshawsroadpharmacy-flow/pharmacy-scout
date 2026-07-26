@@ -11,6 +11,33 @@ export default defineConfig({
     server: { entry: "server" },
   },
   vite: {
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (!id.includes("node_modules")) return undefined;
+            if (
+              id.includes("/leaflet/") ||
+              id.includes("/react-leaflet/") ||
+              id.includes("/react-leaflet-cluster/")
+            ) {
+              return "vendor-map";
+            }
+            if (id.includes("/@supabase/")) return "vendor-supabase";
+            if (id.includes("/@tanstack/")) return "vendor-tanstack";
+            if (id.includes("/@radix-ui/")) return "vendor-radix";
+            if (
+              id.includes("/react/") ||
+              id.includes("/react-dom/") ||
+              id.includes("/scheduler/")
+            ) {
+              return "vendor-react";
+            }
+            return "vendor";
+          },
+        },
+      },
+    },
     define: {
       "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(
         "https://gvrwrqcftlaavxarmgfk.supabase.co",
