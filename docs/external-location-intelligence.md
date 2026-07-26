@@ -73,6 +73,12 @@ measurement unless a separate entrance point is genuinely sourced.
 
 ## Coverage and limitations
 
+- Latest supermarket dry run (2026-07-26): 1,447 fetched; 1,434 accepted; 13
+  quarantined; 410 deterministic duplicate candidates; 980 source points; 454 source polygon
+  centres.
+- Latest medical-centre dry run (2026-07-26): 1,438 fetched; 1,294 accepted; 144
+  quarantined; 37 deterministic duplicate candidates; 763 source points; 531 source polygon
+  centres.
 - Coverage is statewide Victoria but reflects the completeness and freshness of OSM contributions.
 - Absence from OSM means “not discovered by this source”, not proof that a facility does not exist.
 - Floor area, practitioner counts and legal threshold evidence remain unknown unless separately
@@ -80,6 +86,9 @@ measurement unless a separate entrance point is genuinely sourced.
 - Polygon centres are approximate facility display points and are not professional measurements.
 - Import timestamps describe retrieval time; `observed_at` remains null when the upstream record
   does not publish an observation date.
+
+These are dry-run counts, not production import counts. They must not be described as live until the
+linked production migration and service-role import have succeeded.
 
 ## Deployment and rollback
 
