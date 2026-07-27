@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { X, MapPin, Bookmark, Navigation, Paperclip, Eye, Download, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { fetchDossier, type PremisesDossier, type PublicPremises } from "@/lib/premises-public";
+import { fetchDossier } from "@/lib/premises-public";
 import {
   deleteImAttachment,
   fetchPharmacyProfileBundle,
@@ -23,30 +24,22 @@ const STATUS_OPTIONS: Array<{ value: PharmacyStatus; label: string }> = [
 
 export function RightDossier({
   premisesId,
-  allPremises,
   onClose,
   onRequireAuth,
   authed,
 }: {
   premisesId: string | null;
-  allPremises: PublicPremises[];
   onClose: () => void;
   onRequireAuth: (reason: string) => void;
   authed: boolean;
 }) {
-  const [dossier, setDossier] = useState<PremisesDossier | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (!premisesId) {
-      setDossier(null);
-      return;
-    }
-    setLoading(true);
-    fetchDossier(premisesId, allPremises)
-      .then(setDossier)
-      .finally(() => setLoading(false));
-  }, [premisesId, allPremises]);
+  const dossierQuery = useQuery({
+    queryKey: ["pharmacy-dossier", premisesId],
+    queryFn: ({ signal }) => fetchDossier(premisesId!, signal),
+    enabled: premisesId != null,
+    staleTime: 10 * 60 * 1000,
+  });
+  const dossier = dossierQuery.data;
 
   if (!premisesId) return null;
 
@@ -74,8 +67,11 @@ export function RightDossier({
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 text-sm">
-        {loading && !dossier && (
+        {dossierQuery.isLoading && !dossier && (
           <div className="text-xs text-muted-foreground">Loading dossier…</div>
+        )}
+        {dossierQuery.isError && (
+          <div className="text-xs text-destructive">Dossier could not be loaded.</div>
         )}
         {dossier && (
           <>
@@ -161,25 +157,6 @@ export function RightDossier({
                   <div>Fetched {new Date(dossier.source_fetched_at).toLocaleDateString()}</div>
                 )}
               </div>
-            </section>
-
-            <section className="mt-4">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Nearest pharmacy discovery records
-              </h3>
-              <ul className="mt-2 space-y-1.5">
-                {dossier.nearest.map((n) => (
-                  <li key={n.id} className="flex items-center justify-between gap-2 text-xs">
-                    <span className="truncate">
-                      <span className="text-foreground">{n.name}</span>
-                      {n.suburb && <span className="text-muted-foreground"> · {n.suburb}</span>}
-                    </span>
-                    <span className="tabular-nums text-muted-foreground">
-                      {(n.distance_m / 1000).toFixed(2)} km
-                    </span>
-                  </li>
-                ))}
-              </ul>
             </section>
 
             <section className="mt-4">

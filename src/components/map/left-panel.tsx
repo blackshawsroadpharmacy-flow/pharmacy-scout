@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import type { PublicPremises } from "@/lib/premises-public";
+import type { PremisesMapPoint, ViewportMetrics } from "@/lib/premises-public";
 import type { Mode } from "./top-bar";
 
 export interface Filters {
@@ -20,6 +20,12 @@ export function LeftPanel({
   onFilters,
   premises,
   filtered,
+  loading,
+  fetching,
+  error,
+  coverageNote,
+  totalCount,
+  metrics,
   onSelect,
 }: {
   open: boolean;
@@ -27,8 +33,14 @@ export function LeftPanel({
   mode: Mode;
   filters: Filters;
   onFilters: (f: Filters) => void;
-  premises: PublicPremises[];
-  filtered: PublicPremises[];
+  premises: PremisesMapPoint[];
+  filtered: PremisesMapPoint[];
+  loading: boolean;
+  fetching: boolean;
+  error: string | null;
+  coverageNote: string | null;
+  totalCount: number;
+  metrics: ViewportMetrics | null;
   onSelect: (id: string) => void;
 }) {
   return (
@@ -64,6 +76,12 @@ export function LeftPanel({
               onFilters={onFilters}
               premises={premises}
               filtered={filtered}
+              loading={loading}
+              fetching={fetching}
+              error={error}
+              coverageNote={coverageNote}
+              totalCount={totalCount}
+              metrics={metrics}
               onSelect={onSelect}
             />
           )}
@@ -97,15 +115,27 @@ function ExploreBody({
   onFilters,
   premises,
   filtered,
+  loading,
+  fetching,
+  error,
+  coverageNote,
+  totalCount,
+  metrics,
   onSelect,
 }: {
   filters: Filters;
   onFilters: (f: Filters) => void;
-  premises: PublicPremises[];
-  filtered: PublicPremises[];
+  premises: PremisesMapPoint[];
+  filtered: PremisesMapPoint[];
+  loading: boolean;
+  fetching: boolean;
+  error: string | null;
+  coverageNote: string | null;
+  totalCount: number;
+  metrics: ViewportMetrics | null;
   onSelect: (id: string) => void;
 }) {
-  const total = premises.length;
+  const total = totalCount;
   const approximateRows = filtered.filter(
     (p) => p.source_confidence === "approximate" || p.geocode_method === "suburb_centroid",
   );
@@ -119,7 +149,7 @@ function ExploreBody({
           <span className="font-semibold tabular-nums">{filtered.length}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Total loaded</span>
+          <span className="text-muted-foreground">Matches in view</span>
           <span className="tabular-nums">{total}</span>
         </div>
         <div className="mt-2 grid grid-cols-2 gap-2 border-t border-border pt-2">
@@ -161,6 +191,16 @@ function ExploreBody({
         <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
           Results
         </div>
+        {loading && <p className="mt-2 text-xs text-muted-foreground">Loading the visible area…</p>}
+        {fetching && !loading && (
+          <p className="mt-2 text-xs text-muted-foreground">Updating after map movement…</p>
+        )}
+        {error && <p className="mt-2 text-xs text-destructive">{error}</p>}
+        {!loading && !error && filtered.length === 0 && (
+          <div className="mt-2 rounded-md border border-dashed border-border p-3 text-xs text-muted-foreground">
+            No pharmacy discovery records match the visible area and filters.
+          </div>
+        )}
         <ul className="mt-1 divide-y divide-border overflow-hidden rounded-md border border-border">
           {filtered.slice(0, 40).map((p) => (
             <li key={p.id}>
@@ -182,6 +222,15 @@ function ExploreBody({
             </li>
           )}
         </ul>
+      </div>
+
+      <div className="mt-3 rounded-md border border-border bg-muted/30 p-2 text-[10px] leading-relaxed text-muted-foreground">
+        <div>{coverageNote ?? "Waiting for visible map bounds…"}</div>
+        {metrics && (
+          <div className="mt-1 tabular-nums">
+            {metrics.payloadBytes.toLocaleString()} bytes · {metrics.durationMs.toFixed(0)} ms
+          </div>
+        )}
       </div>
 
       {approximateRows.length > 0 && (

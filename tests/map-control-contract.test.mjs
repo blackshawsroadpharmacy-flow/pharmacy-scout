@@ -33,10 +33,18 @@ test("every visible layer toggle declares a data source and changes rendered dat
 });
 
 test("controls with no regulatory or private-layer coverage stay hidden", async () => {
-  const [layerMenu, leftPanel, mapScreen] = await Promise.all([
+  const [layerMenu, leftPanel, mapScreen, viewportSql, premisesClient] = await Promise.all([
     readFile(layerMenuPath, "utf8"),
     readFile(leftPanelPath, "utf8"),
     readFile(mapScreenPath, "utf8"),
+    readFile(
+      new URL(
+        "../supabase/migrations/20260727103000_viewport_scoped_map_results.sql",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+    readFile(new URL("../src/lib/premises-public.ts", import.meta.url), "utf8"),
   ]);
   const visibleControls = `${layerMenu}\n${leftPanel}`;
 
@@ -65,9 +73,10 @@ test("controls with no regulatory or private-layer coverage stay hidden", async 
     "the missing-data filter must name the coverage it evaluates",
   );
   assert.ok(
-    mapScreen.includes("p.phone") &&
-      mapScreen.includes("p.website") &&
-      mapScreen.includes('p.geocode_method !== "suburb_centroid"'),
+    viewportSql.includes("p.phone IS NULL") &&
+      viewportSql.includes("p.website IS NULL") &&
+      viewportSql.includes("p.geocode_method = 'suburb_centroid'") &&
+      premisesClient.includes("p_missing_data: filters.missingData"),
     "the missing-data filter must be bound to contact and geocode coverage",
   );
 });

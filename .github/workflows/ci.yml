@@ -55,6 +55,9 @@ jobs:
           version: latest
       - run: supabase start
       - run: supabase db reset
-      - run: supabase test db supabase/tests/pbs_approvals_rls.test.sql
+      - run: >-
+          supabase test db
+          supabase/tests/pbs_approvals_rls.test.sql
+          supabase/tests/viewport_queries.test.sql
       - run: npm run check:supabase-schema
       - run: supabase db lint --local --level error

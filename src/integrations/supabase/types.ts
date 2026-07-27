@@ -1975,6 +1975,30 @@ export type Database = {
           verification_status: string
         }[]
       }
+      external_points_in_viewport_v2: {
+        Args: {
+          p_category: string
+          p_east: number
+          p_limit?: number
+          p_north: number
+          p_south: number
+          p_west: number
+        }
+        Returns: {
+          address: string
+          category: string
+          coordinate_confidence: number
+          fetched_at: string
+          id: string
+          lat: number
+          lng: number
+          name: string
+          source_name: string
+          source_url: string
+          total_count: number
+          verification_status: string
+        }[]
+      }
       geometry: { Args: { "": string }; Returns: unknown }
       geometry_above: {
         Args: { geom1: unknown; geom2: unknown }
@@ -2095,6 +2119,32 @@ export type Database = {
       }
       is_org_member: { Args: { _org: string }; Returns: boolean }
       longtransactionsenabled: { Args: never; Returns: boolean }
+      pharmacy_points_in_viewport: {
+        Args: {
+          p_east: number
+          p_limit?: number
+          p_metro_only?: boolean
+          p_missing_data?: boolean
+          p_north: number
+          p_south: number
+          p_west: number
+        }
+        Returns: {
+          address: string
+          geocode_method: string
+          id: string
+          lat: number
+          lng: number
+          locality_name: string
+          name: string
+          postcode: string
+          premises_source: Database["public"]["Enums"]["premises_source_type"]
+          source_confidence: string
+          suburb: string
+          total_count: number
+          vpa_registration_status: Database["public"]["Enums"]["verification_status"]
+        }[]
+      }
       populate_geometry_columns:
         | { Args: { tbl_oid: unknown; use_typmod?: boolean }; Returns: number }
         | { Args: { use_typmod?: boolean }; Returns: string }

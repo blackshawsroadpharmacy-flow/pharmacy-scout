@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { CircleMarker, MapContainer, Marker, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
-import type { PublicPremises } from "@/lib/premises-public";
+import type { PremisesMapPoint } from "@/lib/premises-public";
 import type { ExternalCategory, ExternalMapPoint, ViewportBounds } from "@/lib/external-locations";
 
 // Ensure default marker icons resolve under bundlers (used only as fallback).
@@ -16,7 +16,7 @@ const VIC_ZOOM = 7;
 
 type Kind = "discovery" | "verified" | "partial" | "saved";
 
-function isApproximate(p: PublicPremises) {
+function isApproximate(p: PremisesMapPoint) {
   return p.source_confidence === "approximate" || p.geocode_method === "suburb_centroid";
 }
 
@@ -28,7 +28,7 @@ function clusterIcon(cluster: { getChildCount: () => number }) {
   });
 }
 
-function kindFor(p: PublicPremises, savedIds: Set<string>): Kind {
+function kindFor(p: PremisesMapPoint, savedIds: Set<string>): Kind {
   if (savedIds.has(p.id)) return "saved";
   if (p.vpa_registration_status === "verified") return "verified";
   if (p.vpa_registration_status === "matched" || p.vpa_registration_status === "conflict")
@@ -121,7 +121,7 @@ export function MapView({
   onViewportChange,
   candidatePoint = null,
 }: {
-  premises: PublicPremises[];
+  premises: PremisesMapPoint[];
   selectedId: string | null;
   onSelect: (id: string) => void;
   savedIds: Set<string>;
