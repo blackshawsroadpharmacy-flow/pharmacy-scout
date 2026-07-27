@@ -200,16 +200,26 @@
   transform: scale(1.2);
 }
 
-/* Custom pharmacy pin */
+/* Custom pharmacy pin — red circular badge with white P */
 .pharmacy-pin {
-  width: 14px;
-  height: 14px;
-  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #ef1b24;
+  color: #ffffff;
   border: 2px solid #ffffff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+  font-family: var(--font-sans);
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1;
+  box-sizing: border-box;
 }
-.pharmacy-pin.discovery {
-  background: #10183f;
+.pharmacy-pin::before {
+  content: "P";
 }
 .pharmacy-pin.verified {
   background: #0f9d8a;
@@ -221,23 +231,31 @@
   background: #7c3aed;
 }
 .pharmacy-pin.approximate {
-  background: #ffffff;
-}
-.pharmacy-pin.approximate.discovery {
-  border-color: #10183f;
-}
-.pharmacy-pin.approximate.verified {
-  border-color: #0f9d8a;
-}
-.pharmacy-pin.approximate.partial {
-  border-color: #d97706;
-}
-.pharmacy-pin.approximate.saved {
-  border-color: #7c3aed;
+  opacity: 0.9;
+  border-style: dashed;
 }
 .pharmacy-pin.selected {
-  outline: 3px solid #2563eb;
-  outline-offset: 2px;
+  width: 36px;
+  height: 36px;
+  font-size: 20px;
+  border-width: 3px;
+  box-shadow:
+    0 0 0 3px rgba(37, 99, 235, 0.55),
+    0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+@media (max-width: 640px) {
+  .pharmacy-pin {
+    width: 26px;
+    height: 26px;
+    font-size: 15px;
+  }
+
+  .pharmacy-pin.selected {
+    width: 32px;
+    height: 32px;
+    font-size: 17px;
+  }
 }
 
 .leaflet-container {
