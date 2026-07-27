@@ -4,12 +4,16 @@ export interface LayerState {
   pharmacies: boolean;
   supermarkets: boolean;
   medicalCentres: boolean;
+  populationDensity: boolean;
+  populationGrowth: boolean;
 }
 
 export const DEFAULT_LAYERS: LayerState = {
   pharmacies: true,
   supermarkets: false,
   medicalCentres: false,
+  populationDensity: false,
+  populationGrowth: false,
 };
 
 export const ACTIVE_LAYERS: Array<{
@@ -28,14 +32,22 @@ export const ACTIVE_LAYERS: Array<{
     label: "Medical centres",
     dataSource: "external_locations:medical_centres",
   },
+  {
+    key: "populationDensity",
+    label: "Population density (ABS 2024)",
+    dataSource: "ABS SA2 Regional Population 2024",
+  },
+  {
+    key: "populationGrowth",
+    label: "Population growth (ABS 2023–24)",
+    dataSource: "ABS SA2 Regional Population 2024",
+  },
 ];
 
 const PLACEHOLDERS = [
   "Hospitals",
   "Shopping centres",
-  "Population density",
   "Residents aged 65+",
-  "Population growth",
   "Parking",
   "Planning & development activity",
 ];

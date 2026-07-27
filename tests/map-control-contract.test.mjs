@@ -20,7 +20,7 @@ test("every visible layer toggle declares a data source and changes rendered dat
 
   assert.deepEqual(
     entries.map((entry) => entry.key),
-    ["pharmacies", "supermarkets", "medicalCentres"],
+    ["pharmacies", "supermarkets", "medicalCentres", "populationDensity", "populationGrowth"],
   );
   for (const entry of entries) {
     assert.ok(entry.source, `${entry.label} must declare a data source`);

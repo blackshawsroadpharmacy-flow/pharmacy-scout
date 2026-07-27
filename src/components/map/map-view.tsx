@@ -1,9 +1,24 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CircleMarker, MapContainer, Marker, TileLayer, useMap, useMapEvents } from "react-leaflet";
+import {
+  CircleMarker,
+  GeoJSON,
+  MapContainer,
+  Marker,
+  TileLayer,
+  useMap,
+  useMapEvents,
+} from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
 import type { PremisesMapPoint } from "@/lib/premises-public";
 import type { ExternalCategory, ExternalMapPoint, ViewportBounds } from "@/lib/external-locations";
+import {
+  populationColour,
+  populationValue,
+  type PopulationFeatureCollection,
+  type PopulationMetric,
+  type PopulationProperties,
+} from "@/lib/population-intelligence";
 
 // Ensure default marker icons resolve under bundlers (used only as fallback).
 import iconRetina from "leaflet/dist/images/marker-icon-2x.png";
@@ -120,6 +135,8 @@ export function MapView({
   onSelectExternal,
   onViewportChange,
   candidatePoint = null,
+  population = null,
+  populationMetric = null,
 }: {
   premises: PremisesMapPoint[];
   selectedId: string | null;
@@ -132,6 +149,8 @@ export function MapView({
   onSelectExternal?: (point: ExternalMapPoint) => void;
   onViewportChange?: (bounds: ViewportBounds) => void;
   candidatePoint?: { lat: number; lng: number } | null;
+  population?: PopulationFeatureCollection | null;
+  populationMetric?: PopulationMetric | null;
 }) {
   const iconCache = useRef(new Map<string, L.DivIcon>());
   const markers = useMemo(
@@ -176,6 +195,43 @@ export function MapView({
       zoomControl={false}
     >
       <TileFallback />
+      {population && populationMetric && (
+        <GeoJSON
+          key={populationMetric}
+          data={population as GeoJSON.FeatureCollection}
+          style={(feature) => {
+            const properties = feature?.properties as PopulationProperties;
+            return {
+              color: "#ffffff",
+              weight: 0.65,
+              fillColor: populationColour(
+                populationMetric,
+                populationValue(properties, populationMetric),
+              ),
+              fillOpacity: 0.55,
+            };
+          }}
+          onEachFeature={(feature, layer) => {
+            const properties = feature.properties as PopulationProperties;
+            const value = populationValue(properties, populationMetric);
+            const content = document.createElement("div");
+            const title = document.createElement("strong");
+            title.textContent = properties.sa2_name_2021;
+            const detail = document.createElement("div");
+            detail.textContent =
+              value == null
+                ? "No source coverage for this metric"
+                : populationMetric === "density"
+                  ? `${Number(value).toLocaleString()} people/km² · ${properties.pop_yr2 == null ? "population unavailable" : `${Number(properties.pop_yr2).toLocaleString()} residents`}`
+                  : `${Number(value).toFixed(1)}% growth · ${properties.chg_yr_to_yr_no == null ? "population change unavailable" : `${Number(properties.chg_yr_to_yr_no).toLocaleString()} residents`}`;
+            const source = document.createElement("div");
+            source.textContent = "ABS Estimated Resident Population 2024 · SA2";
+            source.style.opacity = "0.65";
+            content.append(title, detail, source);
+            layer.bindTooltip(content, { sticky: true });
+          }}
+        />
+      )}
       <FlyTo target={flyTo} />
       {onMapClick && <ClickHandler onClick={onMapClick} />}
       {onViewportChange && <ViewportReporter onChange={onViewportChange} />}

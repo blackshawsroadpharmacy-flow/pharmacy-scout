@@ -17,6 +17,7 @@ import {
   type ExternalMapPoint,
   type ViewportBounds,
 } from "@/lib/external-locations";
+import { fetchVictorianPopulation, type PopulationMetric } from "@/lib/population-intelligence";
 import {
   isCurrentViewportResult,
   normalizeViewportBounds,
@@ -85,6 +86,17 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
     queryFn: () => fetchCandidateExternalSummary(candidatePoint!.lat, candidatePoint!.lng),
     enabled: mode === "greenfield" && candidatePoint != null,
     staleTime: 5 * 60 * 1000,
+  });
+  const populationMetric: PopulationMetric | null = layers.populationGrowth
+    ? "growth"
+    : layers.populationDensity
+      ? "density"
+      : null;
+  const populationQ = useQuery({
+    queryKey: ["abs-population", "sa2", "2024"],
+    queryFn: ({ signal }) => fetchVictorianPopulation(signal),
+    enabled: populationMetric != null,
+    staleTime: 24 * 60 * 60 * 1000,
   });
 
   const all = useMemo(() => pharmacyResult?.items ?? [], [pharmacyResult]);
@@ -200,6 +212,8 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
                 : undefined
             }
             candidatePoint={mode === "greenfield" ? candidatePoint : null}
+            population={populationQ.data ?? null}
+            populationMetric={populationMetric}
           />
         </Suspense>
       </ClientOnly>
@@ -243,7 +257,11 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
         open={layersOpen}
         onClose={() => setLayersOpen(false)}
         layers={layers}
-        onLayers={setLayers}
+        onLayers={(next) => {
+          if (next.populationDensity && !layers.populationDensity) next.populationGrowth = false;
+          if (next.populationGrowth && !layers.populationGrowth) next.populationDensity = false;
+          setLayers(next);
+        }}
       />
 
       <RightDossier
@@ -286,6 +304,9 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
         <div className="pointer-events-none absolute left-1/2 top-28 z-[1050] -translate-x-1/2 rounded-md border border-destructive/40 bg-card px-3 py-1.5 text-xs text-destructive shadow">
           External layer unavailable for this viewport.
         </div>
+      )}
+      {populationMetric && (
+        <PopulationLegend metric={populationMetric} loading={populationQ.isFetching} />
       )}
       {layers.supermarkets && supermarketQ.isSuccess && supermarketQ.data.items.length === 0 && (
         <ViewportNotice topClass="top-28">
@@ -349,5 +370,53 @@ function MapSkeleton() {
     <div className="absolute inset-0 grid place-items-center bg-muted text-xs text-muted-foreground">
       Loading map…
     </div>
+  );
+}
+
+function PopulationLegend({ metric, loading }: { metric: PopulationMetric; loading: boolean }) {
+  const rows =
+    metric === "density"
+      ? [
+          ["< 10", "#eff6ff"],
+          ["10–99", "#bfdbfe"],
+          ["100–499", "#60a5fa"],
+          ["500–1,999", "#2563eb"],
+          ["2,000–4,999", "#1d4ed8"],
+          ["5,000+", "#172554"],
+        ]
+      : [
+          ["< -1%", "#991b1b"],
+          ["-1–0%", "#ef4444"],
+          ["0–1%", "#fde68a"],
+          ["1–2%", "#86efac"],
+          ["2–4%", "#22c55e"],
+          ["4%+", "#166534"],
+        ];
+  return (
+    <aside className="pointer-events-auto absolute bottom-8 right-3 z-[950] w-52 rounded-lg border border-border bg-card/95 p-3 text-[10px] shadow backdrop-blur">
+      <div className="font-semibold text-foreground">
+        {metric === "density" ? "Population density" : "Population growth"}
+      </div>
+      <div className="text-muted-foreground">
+        {metric === "density" ? "people per km², 2024" : "change, 2023–24"}
+        {loading ? " · loading…" : ""}
+      </div>
+      <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1">
+        {rows.map(([label, colour]) => (
+          <div key={label} className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-sm" style={{ background: colour }} />
+            <span>{label}</span>
+          </div>
+        ))}
+      </div>
+      <a
+        href="https://www.abs.gov.au/statistics/people/population/regional-population"
+        target="_blank"
+        rel="noreferrer"
+        className="mt-2 block text-teal underline"
+      >
+        Source: ABS Regional Population
+      </a>
+    </aside>
   );
 }
