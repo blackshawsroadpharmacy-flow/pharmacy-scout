@@ -2,32 +2,32 @@ import { X } from "lucide-react";
 
 export interface LayerState {
   pharmacies: boolean;
-  verifiedPbs: boolean;
-  verifiedVpa: boolean;
-  saved: boolean;
-  candidates: boolean;
   supermarkets: boolean;
   medicalCentres: boolean;
 }
 
 export const DEFAULT_LAYERS: LayerState = {
   pharmacies: true,
-  verifiedPbs: true,
-  verifiedVpa: true,
-  saved: true,
-  candidates: true,
   supermarkets: false,
   medicalCentres: false,
 };
 
-const ACTIVE: Array<{ key: keyof LayerState; label: string }> = [
-  { key: "pharmacies", label: "All pharmacies" },
-  { key: "verifiedPbs", label: "Verified PBS approvals" },
-  { key: "verifiedVpa", label: "Verified VPA premises" },
-  { key: "saved", label: "Saved acquisition targets" },
-  { key: "candidates", label: "Candidate greenfield sites" },
-  { key: "supermarkets", label: "Supermarkets" },
-  { key: "medicalCentres", label: "Medical centres" },
+export const ACTIVE_LAYERS: Array<{
+  key: keyof LayerState;
+  label: string;
+  dataSource: string;
+}> = [
+  { key: "pharmacies", label: "All pharmacies", dataSource: "pharmacy_premises_geo" },
+  {
+    key: "supermarkets",
+    label: "Supermarkets",
+    dataSource: "external_locations:supermarkets",
+  },
+  {
+    key: "medicalCentres",
+    label: "Medical centres",
+    dataSource: "external_locations:medical_centres",
+  },
 ];
 
 const PLACEHOLDERS = [
@@ -63,7 +63,7 @@ export function LayerMenu({
         </button>
       </div>
       <div className="mt-2 space-y-1">
-        {ACTIVE.map((l) => (
+        {ACTIVE_LAYERS.map((l) => (
           <label
             key={l.key}
             className="flex cursor-pointer items-center gap-2 rounded px-1.5 py-1 text-xs hover:bg-accent/60"
