@@ -7,10 +7,14 @@ select ok(
   'anon retains SELECT privilege on PBS approvals'
 );
 
-select policy_exists(
-  'public',
-  'pbs_approvals',
-  'Public can read pbs approvals',
+select ok(
+  exists (
+    select 1
+    from pg_policies
+    where schemaname = 'public'
+      and tablename = 'pbs_approvals'
+      and policyname = 'Public can read pbs approvals'
+  ),
   'PBS approvals retain the explicit public-read policy'
 );
 
