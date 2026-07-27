@@ -9,29 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AppRouteImport } from './routes/app'
-import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as AppRouteImport } from './routes/app'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AppIndexRouteImport } from './routes/app.index'
-import { Route as PharmacyIdRouteImport } from './routes/pharmacy.$id'
-import { Route as AppDataSourcesRouteImport } from './routes/app.data-sources'
 import { Route as AppAcquisitionsRouteImport } from './routes/app.acquisitions'
+import { Route as AppDataSourcesRouteImport } from './routes/app.data-sources'
+import { Route as AppSecurityRouteImport } from './routes/app.security'
+import { Route as PharmacyIdRouteImport } from './routes/pharmacy.$id'
 
-const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AppRoute = AppRouteImport.update({
-  id: '/app',
-  path: '/app',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -39,9 +30,19 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
@@ -49,20 +50,25 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
-const PharmacyIdRoute = PharmacyIdRouteImport.update({
-  id: '/pharmacy/$id',
-  path: '/pharmacy/$id',
-  getParentRoute: () => rootRouteImport,
+const AppAcquisitionsRoute = AppAcquisitionsRouteImport.update({
+  id: '/acquisitions',
+  path: '/acquisitions',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppDataSourcesRoute = AppDataSourcesRouteImport.update({
   id: '/data-sources',
   path: '/data-sources',
   getParentRoute: () => AppRoute,
 } as any)
-const AppAcquisitionsRoute = AppAcquisitionsRouteImport.update({
-  id: '/acquisitions',
-  path: '/acquisitions',
+const AppSecurityRoute = AppSecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
   getParentRoute: () => AppRoute,
+} as any)
+const PharmacyIdRoute = PharmacyIdRouteImport.update({
+  id: '/pharmacy/$id',
+  path: '/pharmacy/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -73,6 +79,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/app/acquisitions': typeof AppAcquisitionsRoute
   '/app/data-sources': typeof AppDataSourcesRoute
+  '/app/security': typeof AppSecurityRoute
   '/pharmacy/$id': typeof PharmacyIdRoute
   '/app/': typeof AppIndexRoute
 }
@@ -83,6 +90,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/app/acquisitions': typeof AppAcquisitionsRoute
   '/app/data-sources': typeof AppDataSourcesRoute
+  '/app/security': typeof AppSecurityRoute
   '/pharmacy/$id': typeof PharmacyIdRoute
   '/app': typeof AppIndexRoute
 }
@@ -95,6 +103,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/app/acquisitions': typeof AppAcquisitionsRoute
   '/app/data-sources': typeof AppDataSourcesRoute
+  '/app/security': typeof AppSecurityRoute
   '/pharmacy/$id': typeof PharmacyIdRoute
   '/app/': typeof AppIndexRoute
 }
@@ -108,6 +117,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/app/acquisitions'
     | '/app/data-sources'
+    | '/app/security'
     | '/pharmacy/$id'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
@@ -118,6 +128,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/app/acquisitions'
     | '/app/data-sources'
+    | '/app/security'
     | '/pharmacy/$id'
     | '/app'
   id:
@@ -129,6 +140,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/app/acquisitions'
     | '/app/data-sources'
+    | '/app/security'
     | '/pharmacy/$id'
     | '/app/'
   fileRoutesById: FileRoutesById
@@ -144,25 +156,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/app': {
-      id: '/app'
-      path: '/app'
-      fullPath: '/app'
-      preLoaderRoute: typeof AppRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -172,11 +170,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/': {
@@ -186,12 +198,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/pharmacy/$id': {
-      id: '/pharmacy/$id'
-      path: '/pharmacy/$id'
-      fullPath: '/pharmacy/$id'
-      preLoaderRoute: typeof PharmacyIdRouteImport
-      parentRoute: typeof rootRouteImport
+    '/app/acquisitions': {
+      id: '/app/acquisitions'
+      path: '/acquisitions'
+      fullPath: '/app/acquisitions'
+      preLoaderRoute: typeof AppAcquisitionsRouteImport
+      parentRoute: typeof AppRoute
     }
     '/app/data-sources': {
       id: '/app/data-sources'
@@ -200,12 +212,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDataSourcesRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/acquisitions': {
-      id: '/app/acquisitions'
-      path: '/acquisitions'
-      fullPath: '/app/acquisitions'
-      preLoaderRoute: typeof AppAcquisitionsRouteImport
+    '/app/security': {
+      id: '/app/security'
+      path: '/security'
+      fullPath: '/app/security'
+      preLoaderRoute: typeof AppSecurityRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/pharmacy/$id': {
+      id: '/pharmacy/$id'
+      path: '/pharmacy/$id'
+      fullPath: '/pharmacy/$id'
+      preLoaderRoute: typeof PharmacyIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -213,12 +232,14 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppAcquisitionsRoute: typeof AppAcquisitionsRoute
   AppDataSourcesRoute: typeof AppDataSourcesRoute
+  AppSecurityRoute: typeof AppSecurityRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppAcquisitionsRoute: AppAcquisitionsRoute,
   AppDataSourcesRoute: AppDataSourcesRoute,
+  AppSecurityRoute: AppSecurityRoute,
   AppIndexRoute: AppIndexRoute,
 }
 

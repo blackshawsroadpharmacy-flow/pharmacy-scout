@@ -6,6 +6,7 @@ import { fetchDossier } from "@/lib/premises-public";
 import {
   deleteImAttachment,
   fetchPharmacyProfileBundle,
+  getCurrentOrganisationId,
   type PharmacyProfileBundle,
   type PharmacyStatus,
   registerImAttachment,
@@ -176,7 +177,7 @@ export function RightDossier({
               </div>
             </section>
 
-            <PublicWorkspace authed={authed} premisesId={premisesId} />
+            <PrivateWorkspace authed={authed} premisesId={premisesId} />
           </>
         )}
       </div>
@@ -209,7 +210,7 @@ export function RightDossier({
   );
 }
 
-function PublicWorkspace({ authed, premisesId }: { authed: boolean; premisesId: string }) {
+function PrivateWorkspace({ authed, premisesId }: { authed: boolean; premisesId: string }) {
   const [profileData, setProfileData] = useState<PharmacyProfileBundle | null>(null);
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -226,6 +227,7 @@ function PublicWorkspace({ authed, premisesId }: { authed: boolean; premisesId: 
   const [notesState, setNotesState] = useState<"idle" | "saving" | "saved">("idle");
 
   async function loadProfile() {
+    if (!authed) return;
     const next = await fetchPharmacyProfileBundle(premisesId);
     setProfileData(next);
     const profile = next.profile;
@@ -296,8 +298,10 @@ function PublicWorkspace({ authed, premisesId }: { authed: boolean; premisesId: 
     setUploading(true);
     try {
       for (const file of Array.from(files)) {
+        validateCommercialFile(file);
+        const organisationId = await getCurrentOrganisationId();
         const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
-        const storagePath = `${premisesId}/${Date.now()}-${safeName}`;
+        const storagePath = `${organisationId}/${premisesId}/${Date.now()}-${safeName}`;
         const upload = await supabase.storage
           .from("information-memorandums")
           .upload(storagePath, file, { upsert: false });
@@ -359,12 +363,26 @@ function PublicWorkspace({ authed, premisesId }: { authed: boolean; premisesId: 
     }
   }
 
+  if (!authed) {
+    return (
+      <section className="mt-5 rounded-lg border border-border bg-muted/20 p-3">
+        <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Private organisation workspace
+        </div>
+        <p className="mt-2 rounded-md border border-border p-3 text-[11px] leading-relaxed text-muted-foreground">
+          Sign in and choose an organisation to access commercial fields, private notes and
+          information memorandums.
+        </p>
+      </section>
+    );
+  }
+
   return (
     <section className="mt-5 rounded-lg border border-border bg-muted/20 p-3">
       <div className="flex items-center justify-between gap-3">
         <div>
           <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            {authed ? "Private workspace" : "Public MVP workspace"}
+            Private organisation workspace
           </div>
           <div className="mt-1 text-[11px] text-muted-foreground">{notesUpdatedLabel}</div>
         </div>
@@ -372,12 +390,6 @@ function PublicWorkspace({ authed, premisesId }: { authed: boolean; premisesId: 
           {notesState === "saving" ? "Saving notes…" : notesState === "saved" ? "Notes saved" : ""}
         </div>
       </div>
-
-      {!authed && (
-        <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-          Public MVP mode is open for anonymous editing right now. TODO: lock down before real data.
-        </p>
-      )}
 
       <div className="mt-3 grid grid-cols-2 gap-2">
         <label className="text-xs">
@@ -571,6 +583,26 @@ function labelForStatus(s: string) {
 
 function formatGeocodeMethod(value: string) {
   return value.replaceAll("_", " ");
+}
+
+function validateCommercialFile(file: File) {
+  const allowedMimeTypes = new Set([
+    "application/pdf",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  ]);
+  if (!allowedMimeTypes.has(file.type)) {
+    throw new Error("Only PDF, DOCX and XLSX information memorandums are accepted.");
+  }
+  if (file.size < 1 || file.size > 25 * 1024 * 1024) {
+    throw new Error("Information memorandums must be between 1 byte and 25 MB.");
+  }
+  if (/\.(exe|com|bat|cmd|scr|js|jse|vbs|vbe|msi|ps1|sh)(\.|$)/i.test(file.name)) {
+    throw new Error("Executable or script files are not accepted.");
+  }
+  if (/\.(pdf|docx|xlsx)\.(pdf|docx|xlsx)$/i.test(file.name)) {
+    throw new Error("Misleading double extensions are not accepted.");
+  }
 }
 
 function toNullableNumber(value: string) {

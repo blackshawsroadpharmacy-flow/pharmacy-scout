@@ -101,6 +101,47 @@ export type Database = {
           },
         ]
       }
+      commercial_audit_events: {
+        Row: {
+          action: string
+          actor_id: string | null
+          entity_id: string | null
+          entity_type: string
+          id: string
+          metadata: Json
+          occurred_at: string
+          organisation_id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          metadata?: Json
+          occurred_at?: string
+          organisation_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          metadata?: Json
+          occurred_at?: string
+          organisation_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commercial_audit_events_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       external_entity_conflicts: {
         Row: {
           category: string
@@ -770,9 +811,13 @@ export type Database = {
       pharmacy_im_attachments: {
         Row: {
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
           file_name: string
           id: string
           mime_type: string | null
+          organisation_id: string | null
+          orphaned_demo: boolean
           pharmacy_profile_id: string
           premises_id: string
           size_bytes: number | null
@@ -781,9 +826,13 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           file_name: string
           id?: string
           mime_type?: string | null
+          organisation_id?: string | null
+          orphaned_demo?: boolean
           pharmacy_profile_id: string
           premises_id: string
           size_bytes?: number | null
@@ -792,9 +841,13 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           file_name?: string
           id?: string
           mime_type?: string | null
+          organisation_id?: string | null
+          orphaned_demo?: boolean
           pharmacy_profile_id?: string
           premises_id?: string
           size_bytes?: number | null
@@ -802,6 +855,13 @@ export type Database = {
           uploaded_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "pharmacy_im_attachments_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "pharmacy_im_attachments_pharmacy_profile_id_fkey"
             columns: ["pharmacy_profile_id"]
@@ -897,6 +957,8 @@ export type Database = {
           created_by: string | null
           id: string
           note_text: string
+          organisation_id: string | null
+          orphaned_demo: boolean
           pharmacy_profile_id: string
           premises_id: string
         }
@@ -905,6 +967,8 @@ export type Database = {
           created_by?: string | null
           id?: string
           note_text: string
+          organisation_id?: string | null
+          orphaned_demo?: boolean
           pharmacy_profile_id: string
           premises_id: string
         }
@@ -913,10 +977,19 @@ export type Database = {
           created_by?: string | null
           id?: string
           note_text?: string
+          organisation_id?: string | null
+          orphaned_demo?: boolean
           pharmacy_profile_id?: string
           premises_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "pharmacy_note_entries_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "pharmacy_note_entries_pharmacy_profile_id_fkey"
             columns: ["pharmacy_profile_id"]
@@ -1045,6 +1118,8 @@ export type Database = {
           notes: string
           notes_updated_at: string | null
           notes_updated_by: string | null
+          organisation_id: string | null
+          orphaned_demo: boolean
           owner_licensee: string | null
           premises_id: string
           revenue: number | null
@@ -1060,6 +1135,8 @@ export type Database = {
           notes?: string
           notes_updated_at?: string | null
           notes_updated_by?: string | null
+          organisation_id?: string | null
+          orphaned_demo?: boolean
           owner_licensee?: string | null
           premises_id: string
           revenue?: number | null
@@ -1075,6 +1152,8 @@ export type Database = {
           notes?: string
           notes_updated_at?: string | null
           notes_updated_by?: string | null
+          organisation_id?: string | null
+          orphaned_demo?: boolean
           owner_licensee?: string | null
           premises_id?: string
           revenue?: number | null
@@ -1084,16 +1163,23 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "pharmacy_profiles_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "pharmacy_profiles_premises_id_fkey"
             columns: ["premises_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "pharmacy_premises"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "pharmacy_profiles_premises_id_fkey"
             columns: ["premises_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "pharmacy_premises_geo"
             referencedColumns: ["id"]
           },
@@ -1140,7 +1226,9 @@ export type Database = {
           destination_location: unknown
           id: string
           inputs: Json
+          organisation_id: string | null
           origin_pharmacy_id: string | null
+          orphaned_demo: boolean
           updated_at: string
         }
         Insert: {
@@ -1151,7 +1239,9 @@ export type Database = {
           destination_location?: unknown
           id?: string
           inputs?: Json
+          organisation_id?: string | null
           origin_pharmacy_id?: string | null
+          orphaned_demo?: boolean
           updated_at?: string
         }
         Update: {
@@ -1162,10 +1252,19 @@ export type Database = {
           destination_location?: unknown
           id?: string
           inputs?: Json
+          organisation_id?: string | null
           origin_pharmacy_id?: string | null
+          orphaned_demo?: boolean
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "relocation_scenarios_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "relocation_scenarios_origin_pharmacy_id_fkey"
             columns: ["origin_pharmacy_id"]
@@ -2184,6 +2283,7 @@ export type Database = {
       }
       is_org_member: { Args: { _org: string }; Returns: boolean }
       longtransactionsenabled: { Args: never; Returns: boolean }
+      organisation_security_status: { Args: never; Returns: Json }
       pharmacy_points_in_viewport: {
         Args: {
           p_east: number
