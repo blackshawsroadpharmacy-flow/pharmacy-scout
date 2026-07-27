@@ -1915,6 +1915,71 @@ export type Database = {
         Args: { p_lat: number; p_lng: number }
         Returns: Json
       }
+      candidate_external_within_500m: {
+        Args: { p_category: string; p_lat: number; p_lng: number }
+        Returns: {
+          address: string
+          calculated_point_distance_m: number
+          category: string
+          coordinate_confidence: number
+          coordinate_method: string
+          evidence_fetched_at: string
+          id: string
+          lat: number
+          lng: number
+          name: string
+          source_name: string
+          source_url: string
+          unresolved_conflicts: number
+          verification_status: string
+          warnings: string[]
+        }[]
+      }
+      candidate_nearest_pharmacy: {
+        Args: {
+          p_confirmed_only?: boolean
+          p_lat: number
+          p_limit?: number
+          p_lng: number
+        }
+        Returns: {
+          address: string
+          calculated_point_distance_m: number
+          confirmation_basis: string
+          coordinate_quality: string
+          distance_usable: boolean
+          evidence_fetched_at: string
+          id: string
+          lat: number
+          lng: number
+          name: string
+          source_name: string
+          source_url: string
+          unresolved_duplicate_candidates: number
+          verification_status: string
+          warnings: string[]
+        }[]
+      }
+      candidate_pharmacies_within_radius: {
+        Args: { p_lat: number; p_lng: number; p_radius_m: number }
+        Returns: {
+          address: string
+          calculated_point_distance_m: number
+          coordinate_quality: string
+          evidence_fetched_at: string
+          id: string
+          lat: number
+          lng: number
+          name: string
+          source_name: string
+          source_url: string
+          verification_status: string
+        }[]
+      }
+      candidate_site_analysis: {
+        Args: { p_lat: number; p_lng: number; p_radius_m?: number }
+        Returns: Json
+      }
       disablelongtransactions: { Args: never; Returns: string }
       dropgeometrycolumn:
         | {

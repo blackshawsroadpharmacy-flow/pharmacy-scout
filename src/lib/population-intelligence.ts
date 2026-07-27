@@ -23,6 +23,17 @@ export interface PopulationFeatureCollection {
 export const ABS_POPULATION_SOURCE =
   "https://geo.abs.gov.au/arcgis/rest/services/Hosted/SA2_RP_2024/FeatureServer/0";
 
+export const ABS_POPULATION_PROVENANCE = {
+  publisher: "Australian Bureau of Statistics",
+  dataset: "Regional Population 2023–24 — SA2_RP_2024",
+  geography: "ASGS Edition 3, Statistical Areas Level 2 (2021)",
+  referencePeriod: "ERP 2024 and annual change 2023–24",
+  licence: "Creative Commons Attribution 4.0 International",
+  licenceUrl: "https://creativecommons.org/licenses/by/4.0/",
+  copyrightUrl: "https://www.abs.gov.au/about-us/abs-copyright-and-long-form-copyright-notices",
+  attribution: "Source: Australian Bureau of Statistics",
+} as const;
+
 const QUERY = new URLSearchParams({
   where: "sa2_code_2021 >= 200000000 AND sa2_code_2021 < 300000000",
   outFields:

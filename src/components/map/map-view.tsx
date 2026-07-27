@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  Circle,
   CircleMarker,
   GeoJSON,
   MapContainer,
   Marker,
+  Polyline,
   TileLayer,
   useMap,
   useMapEvents,
@@ -135,6 +137,8 @@ export function MapView({
   onSelectExternal,
   onViewportChange,
   candidatePoint = null,
+  candidateRadiusM = 1500,
+  candidateNearestPoint = null,
   population = null,
   populationMetric = null,
 }: {
@@ -149,6 +153,8 @@ export function MapView({
   onSelectExternal?: (point: ExternalMapPoint) => void;
   onViewportChange?: (bounds: ViewportBounds) => void;
   candidatePoint?: { lat: number; lng: number } | null;
+  candidateRadiusM?: number;
+  candidateNearestPoint?: { lat: number; lng: number } | null;
   population?: PopulationFeatureCollection | null;
   populationMetric?: PopulationMetric | null;
 }) {
@@ -236,16 +242,50 @@ export function MapView({
       {onMapClick && <ClickHandler onClick={onMapClick} />}
       {onViewportChange && <ViewportReporter onChange={onViewportChange} />}
       {candidatePoint && (
-        <CircleMarker
-          center={[candidatePoint.lat, candidatePoint.lng]}
-          radius={11}
-          pathOptions={{
-            color: "#7c3aed",
-            fillColor: "#8b5cf6",
-            fillOpacity: 0.35,
-            weight: 3,
-          }}
-        />
+        <>
+          <Circle
+            center={[candidatePoint.lat, candidatePoint.lng]}
+            radius={500}
+            pathOptions={{
+              color: "#0f766e",
+              fillColor: "#14b8a6",
+              fillOpacity: 0.05,
+              weight: 2,
+              dashArray: "5 5",
+            }}
+          />
+          {candidateRadiusM !== 500 && (
+            <Circle
+              center={[candidatePoint.lat, candidatePoint.lng]}
+              radius={candidateRadiusM}
+              pathOptions={{
+                color: "#7c3aed",
+                fillColor: "#8b5cf6",
+                fillOpacity: 0.04,
+                weight: 2,
+              }}
+            />
+          )}
+          <CircleMarker
+            center={[candidatePoint.lat, candidatePoint.lng]}
+            radius={11}
+            pathOptions={{
+              color: "#7c3aed",
+              fillColor: "#8b5cf6",
+              fillOpacity: 0.35,
+              weight: 3,
+            }}
+          />
+          {candidateNearestPoint && (
+            <Polyline
+              positions={[
+                [candidatePoint.lat, candidatePoint.lng],
+                [candidateNearestPoint.lat, candidateNearestPoint.lng],
+              ]}
+              pathOptions={{ color: "#7c3aed", weight: 2, dashArray: "6 5" }}
+            />
+          )}
+        </>
       )}
 
       <MarkerClusterGroup
