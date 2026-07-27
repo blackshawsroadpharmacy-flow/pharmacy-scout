@@ -7,6 +7,7 @@
     "dev": "npm run check:sidecars && vite dev",
     "check:sidecars": "node scripts/check-sidecars.mjs",
     "clean:sidecars": "node scripts/clean-sidecars.mjs",
+    "clean:sidecars:git": "node scripts/clean-sidecars.mjs --include-git",
     "build": "npm run clean:sidecars && npm run check:sidecars && vite build && npm run clean:sidecars && npm run check:sidecars",
     "build:dev": "vite build --mode development",
     "preview": "npm run build && npm run clean:sidecars && npx wrangler dev .output/server/index.mjs --config .output/server/wrangler.json --ip 127.0.0.1",
@@ -15,7 +16,8 @@
     "import:external": "node scripts/import-external-locations.mjs",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "test": "node --test tests/*.test.mjs"
+    "test": "node --test tests/*.test.mjs",
+    "check:supabase-schema": "node scripts/check-supabase-schema.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

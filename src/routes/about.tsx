@@ -51,27 +51,26 @@ function About() {
             Map-first pharmacy intelligence for Victoria.
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground">
-            The Chemist Care Pharmacy Opportunity Scout starts with a live map of Victorian
-            pharmacy discovery records. You can pan, search and inspect records anonymously.
-            Sign in only when you want to save an acquisition target, place a candidate
-            greenfield site, analyse a relocation, add private financial notes, or upload
-            documents.
+            The Chemist Care Pharmacy Opportunity Scout starts with a live map of Victorian pharmacy
+            discovery records. You can pan, search and inspect records anonymously. Sign in only
+            when you want to save an acquisition target, place a candidate greenfield site, analyse
+            a relocation, add private financial notes, or upload documents.
           </p>
 
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             <Feature icon={Map} title="Explore">
               A full-screen map of pharmacy discovery points, clustered at low zoom and revealed
-              individually as you zoom in. Verification, source and confidence stay visible on
-              every record.
+              individually as you zoom in. Verification, source and confidence stay visible on every
+              record.
             </Feature>
             <Feature icon={Briefcase} title="Acquisition">
               Save pharmacies to a private pipeline. Track watchlist through offer and outcome.
               Financial analysis appears only when you enter private commercial data.
             </Feature>
             <Feature icon={ShieldCheck} title="Verified sources">
-              Every dataset shows its regulatory purpose, licence status, coverage and last
-              refresh. VPA and PBS status only appear once an admin imports a snapshot from the
-              authoritative register.
+              Every dataset shows its regulatory purpose, licence status, coverage and last refresh.
+              VPA and PBS status only appear once an admin imports a snapshot from the authoritative
+              register.
             </Feature>
           </div>
 
