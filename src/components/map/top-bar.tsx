@@ -77,6 +77,22 @@ export function TopBar({
           </button>
         ))}
       </nav>
+      <label className="sr-only" htmlFor="mobile-analysis-mode">
+        Analysis mode
+      </label>
+      <select
+        id="mobile-analysis-mode"
+        aria-label="Analysis mode"
+        value={mode}
+        onChange={(event) => onMode(event.target.value as Mode)}
+        className="h-9 max-w-24 rounded-md border border-input bg-background px-2 text-xs font-medium md:hidden"
+      >
+        {MODES.map((availableMode) => (
+          <option key={availableMode.id} value={availableMode.id}>
+            {availableMode.label}
+          </option>
+        ))}
+      </select>
 
       <div className="hidden lg:flex items-center gap-2 pl-2 text-xs text-muted-foreground">
         <span className="tabular-nums">{resultCount.toLocaleString()}</span> pharmacies in view
@@ -85,26 +101,29 @@ export function TopBar({
       <div className="ml-auto flex items-center gap-1">
         <button
           onClick={onToggleLayers}
-          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-input bg-background px-2.5 text-xs font-medium hover:bg-accent"
+          aria-label="Map layers"
+          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-input bg-background px-2 text-xs font-medium hover:bg-accent sm:px-2.5"
         >
-          <Layers className="h-3.5 w-3.5" /> Layers
+          <Layers className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Layers</span>
         </button>
         <button
           onClick={onSaved}
-          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-input bg-background px-2.5 text-xs font-medium hover:bg-accent"
+          className="hidden h-9 items-center gap-1.5 rounded-md border border-input bg-background px-2.5 text-xs font-medium hover:bg-accent sm:inline-flex"
         >
           <Bookmark className="h-3.5 w-3.5" /> Saved
         </button>
         <button
           onClick={onAccount}
+          aria-label={authed ? "Account" : "Sign in"}
           className={
-            "inline-flex h-9 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium " +
+            "inline-flex h-9 items-center gap-1.5 rounded-md px-2 text-xs font-medium sm:px-2.5 " +
             (authed
               ? "border border-input bg-background hover:bg-accent"
               : "bg-primary text-primary-foreground hover:opacity-90")
           }
         >
-          <User className="h-3.5 w-3.5" /> {authed ? "Account" : "Sign in"}
+          <User className="h-3.5 w-3.5" />{" "}
+          <span className="hidden sm:inline">{authed ? "Account" : "Sign in"}</span>
         </button>
       </div>
     </header>
