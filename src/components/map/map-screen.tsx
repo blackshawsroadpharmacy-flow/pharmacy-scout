@@ -147,21 +147,18 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
     }
   }
 
-  function openPremises(id: string, lat?: number, lng?: number) {
+  function openPremises(id: string) {
     setSelectedExternal(null);
     setSelectedId(id);
-    if (lat != null && lng != null) {
-      setFlyTo({ lat, lng, zoom: 15 });
-    }
-    navigate({
-      to: "/pharmacy/$id",
-      params: { id },
-    });
   }
 
   function closePremises() {
     setSelectedId(null);
-    navigate({ to: "/" });
+  }
+
+  function showPremisesOnMap(id: string, lat: number, lng: number) {
+    openPremises(id);
+    setFlyTo({ lat, lng, zoom: 15 });
   }
 
   function openExternal(point: ExternalMapPoint) {
@@ -213,7 +210,7 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
       }
     }
     if (hit) {
-      openPremises(hit.id, hit.lat, hit.lng);
+      showPremisesOnMap(hit.id, hit.lat, hit.lng);
       return;
     }
     const externalHit = externalPoints.find(
@@ -245,10 +242,7 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
           <MapView
             premises={filtered}
             selectedId={selectedId}
-            onSelect={(id) => {
-              const hit = all.find((premises) => premises.id === id);
-              openPremises(id, hit?.lat, hit?.lng);
-            }}
+            onSelect={openPremises}
             savedIds={new Set()}
             flyTo={flyTo}
             externalPoints={externalPoints}
@@ -307,10 +301,7 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
         coverageNote={pharmacyResult?.coverageNote ?? null}
         totalCount={pharmacyResult?.totalCount ?? 0}
         metrics={pharmacyResult?.metrics ?? null}
-        onSelect={(id) => {
-          const hit = all.find((premises) => premises.id === id);
-          openPremises(id, hit?.lat, hit?.lng);
-        }}
+        onSelect={openPremises}
       />
 
       <LayerMenu
