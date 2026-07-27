@@ -53,7 +53,9 @@ export interface PharmacyViewportResult {
 
 type PharmacyViewportRow = PremisesMapPoint & { total_count: number | string };
 const pharmacyCoordinator = new ViewportRequestCoordinator<PharmacyViewportResult>();
-const VIEWPORT_LIMIT = 2000;
+// Keep low-zoom views bounded; total_count tells the UI when the visible
+// viewport contains more records than can be transferred safely at once.
+const VIEWPORT_LIMIT = 500;
 
 export async function fetchPharmacyViewport(
   bounds: ViewportBounds,
