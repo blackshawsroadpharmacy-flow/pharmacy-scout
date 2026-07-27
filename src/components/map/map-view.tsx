@@ -38,10 +38,21 @@ function isApproximate(p: PremisesMapPoint) {
 }
 
 function clusterIcon(cluster: { getChildCount: () => number }) {
+  const count = cluster.getChildCount();
+  const tier = count < 10 ? "small" : count < 50 ? "medium" : "large";
+  const swarmBadges = tier === "small" ? 3 : tier === "medium" ? 5 : 7;
+  const size = tier === "small" ? 42 : tier === "medium" ? 50 : 58;
+  const pharmacyBadges = Array.from(
+    { length: swarmBadges },
+    (_, index) =>
+      `<span class="pharmacy-cluster__p pharmacy-cluster__p--${index + 1}" aria-hidden="true">P</span>`,
+  ).join("");
+
   return L.divIcon({
-    html: `<div><span>${cluster.getChildCount()}</span></div>`,
-    className: "marker-cluster-navy",
-    iconSize: L.point(40, 40, true),
+    html: `<div class="pharmacy-cluster pharmacy-cluster--${tier}" role="img" aria-label="${count} pharmacies">${pharmacyBadges}<span class="pharmacy-cluster__count">${count}</span></div>`,
+    className: "pharmacy-cluster-icon",
+    iconSize: L.point(size, size),
+    iconAnchor: L.point(size / 2, size / 2),
   });
 }
 

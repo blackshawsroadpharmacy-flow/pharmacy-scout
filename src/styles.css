@@ -152,27 +152,129 @@
   height: auto;
 }
 
-/* Marker cluster styles (imports moved to top) */
+/* Pharmacy swarm clusters. The wrapper deliberately avoids Leaflet's
+   marker-cluster class so the default plugin margins cannot offset the count. */
+.pharmacy-cluster-icon {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
 
-.marker-cluster-navy {
-  background: color-mix(in oklab, var(--navy) 25%, transparent);
-  border-radius: 9999px;
+.pharmacy-cluster {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  filter: drop-shadow(0 2px 4px rgb(15 23 42 / 38%));
 }
-.marker-cluster-navy div {
-  background: var(--navy);
-  color: var(--navy-foreground);
+
+.pharmacy-cluster__p {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  width: 19px;
+  height: 19px;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 1.5px solid #ffffff;
+  border-radius: 999px;
+  background: #ef1b24;
+  color: #ffffff;
   font-family: var(--font-sans);
-  font-weight: 600;
-  font-size: 12px;
-  border-radius: 9999px;
-  width: 32px !important;
-  height: 32px !important;
-  margin-left: 4px;
-  margin-top: 4px;
-  line-height: 32px;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
 }
-.marker-cluster-navy span {
-  line-height: 32px;
+
+.pharmacy-cluster__p--1 {
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+}
+.pharmacy-cluster__p--2 {
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.pharmacy-cluster__p--3 {
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+}
+.pharmacy-cluster__p--4 {
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.pharmacy-cluster__p--5 {
+  top: 10%;
+  left: 10%;
+}
+.pharmacy-cluster__p--6 {
+  top: 10%;
+  right: 10%;
+}
+.pharmacy-cluster__p--7 {
+  bottom: 8%;
+  left: 10%;
+}
+
+.pharmacy-cluster--medium .pharmacy-cluster__p {
+  width: 20px;
+  height: 20px;
+  font-size: 11px;
+}
+
+.pharmacy-cluster--large .pharmacy-cluster__p {
+  width: 21px;
+  height: 21px;
+  font-size: 12px;
+}
+
+.pharmacy-cluster__count {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  z-index: 2;
+  display: flex;
+  width: 25px;
+  height: 25px;
+  align-items: center;
+  justify-content: center;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #b91c1c;
+  box-shadow: 0 1px 4px rgb(15 23 42 / 35%);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  text-align: center;
+}
+
+.pharmacy-cluster--medium .pharmacy-cluster__count {
+  width: 29px;
+  height: 29px;
+  font-size: 12px;
+}
+
+.pharmacy-cluster--large .pharmacy-cluster__count {
+  width: 34px;
+  height: 34px;
+  font-size: 12px;
 }
 
 .external-pin {
