@@ -79,7 +79,7 @@ export function TopBar({
       </nav>
 
       <div className="hidden lg:flex items-center gap-2 pl-2 text-xs text-muted-foreground">
-        <span className="tabular-nums">{resultCount.toLocaleString()}</span> pharmacies loaded
+        <span className="tabular-nums">{resultCount.toLocaleString()}</span> pharmacies in view
       </div>
 
       <div className="ml-auto flex items-center gap-1">

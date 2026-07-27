@@ -1,4 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
+import { ViewportRequestCoordinator, viewportRequestKey } from "@/lib/viewport-query.mjs";
+import type { ViewportMetrics } from "@/lib/premises-public";
 
 export type ExternalCategory = "supermarkets" | "medical_centres";
 export type ExternalVerificationStatus =
@@ -25,6 +27,16 @@ export interface ExternalMapPoint {
   fetched_at: string;
 }
 
+export interface ExternalViewportResult {
+  items: ExternalMapPoint[];
+  totalCount: number;
+  truncated: boolean;
+  coverageState: "partial";
+  coverageNote: string;
+  requestKey: string;
+  metrics: ViewportMetrics;
+}
+
 export interface ExternalDossier extends ExternalMapPoint {
   trading_name?: string | null;
   brand?: string | null;
@@ -46,37 +58,53 @@ export interface ExternalDossier extends ExternalMapPoint {
 export async function fetchExternalViewport(
   category: ExternalCategory,
   bounds: ViewportBounds,
-  signal?: AbortSignal,
-): Promise<ExternalMapPoint[]> {
-  if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
-  const client = supabase as unknown as {
-    rpc: (
-      name: string,
-      args: Record<string, unknown>,
-    ) => PromiseLike<{
-      data: unknown;
-      error: { message: string } | null;
-    }>;
-  };
-  const request = client.rpc("external_points_in_viewport", {
-    p_category: category,
-    p_west: bounds.west,
-    p_south: bounds.south,
-    p_east: bounds.east,
-    p_north: bounds.north,
-    p_limit: 2000,
-  });
-  const { data, error } = await Promise.race([
-    request,
-    new Promise<never>((_, reject) => {
-      signal?.addEventListener("abort", () => reject(new DOMException("Aborted", "AbortError")), {
-        once: true,
-      });
-    }),
-  ]);
-  if (error) throw new Error(error.message);
-  return (data ?? []) as ExternalMapPoint[];
+  externalSignal?: AbortSignal,
+): Promise<ExternalViewportResult> {
+  const requestKey = viewportRequestKey(category, bounds);
+  if (!requestKey) throw new Error("Invalid Victorian viewport");
+  const coordinator = externalCoordinators[category];
+  return coordinator.request(
+    requestKey,
+    async (signal) => {
+      const startedAt = performance.now();
+      const { data, error } = await supabase
+        .rpc("external_points_in_viewport_v2", {
+          p_category: category,
+          p_west: bounds.west,
+          p_south: bounds.south,
+          p_east: bounds.east,
+          p_north: bounds.north,
+          p_limit: 2000,
+        } as never)
+        .abortSignal(signal);
+      if (error) throw new Error(error.message);
+      const rows = (data ?? []) as unknown as Array<ExternalMapPoint & { total_count: number }>;
+      const totalCount = Number(rows[0]?.total_count ?? 0);
+      const items = rows.map(({ total_count: _totalCount, ...point }) => point);
+      return {
+        items,
+        totalCount,
+        truncated: totalCount > items.length,
+        coverageState: "partial",
+        coverageNote: "OpenStreetMap community coverage varies; no record is not evidence of none.",
+        requestKey,
+        metrics: {
+          durationMs: performance.now() - startedAt,
+          payloadBytes: new Blob([JSON.stringify(rows)]).size,
+        },
+      };
+    },
+    externalSignal,
+  );
 }
+
+const externalCoordinators: Record<
+  ExternalCategory,
+  ViewportRequestCoordinator<ExternalViewportResult>
+> = {
+  supermarkets: new ViewportRequestCoordinator<ExternalViewportResult>(),
+  medical_centres: new ViewportRequestCoordinator<ExternalViewportResult>(),
+};
 
 export async function fetchExternalDossier(
   category: ExternalCategory,
