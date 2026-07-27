@@ -3,15 +3,11 @@ import type { PublicPremises } from "@/lib/premises-public";
 import type { Mode } from "./top-bar";
 
 export interface Filters {
-  verified: boolean;
-  pbsKnown: boolean;
   missingData: boolean;
   metroOnly: boolean;
 }
 
 export const DEFAULT_FILTERS: Filters = {
-  verified: false,
-  pbsKnown: false,
   missingData: false,
   metroOnly: false,
 };
@@ -144,19 +140,9 @@ function ExploreBody({
 
       <fieldset className="mt-3 space-y-2 text-xs">
         <Toggle
-          checked={filters.verified}
-          onChange={(v) => onFilters({ ...filters, verified: v })}
-          label="Only verified VPA registration"
-        />
-        <Toggle
-          checked={filters.pbsKnown}
-          onChange={(v) => onFilters({ ...filters, pbsKnown: v })}
-          label="Only PBS approval known"
-        />
-        <Toggle
           checked={filters.missingData}
           onChange={(v) => onFilters({ ...filters, missingData: v })}
-          label="Only records missing data"
+          label="Only missing contact/geocode data"
         />
         <Toggle
           checked={filters.metroOnly}

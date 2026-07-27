@@ -98,7 +98,6 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
   const filtered = useMemo(() => {
     return all.filter((p) => {
       if (!layers.pharmacies) return false;
-      if (filters.verified && p.vpa_registration_status !== "verified") return false;
       if (filters.metroOnly) {
         if (
           p.lat < METRO_BOUNDS.minLat ||
@@ -109,8 +108,15 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
           return false;
         }
       }
-      if (filters.pbsKnown) return false;
-      if (filters.missingData && p.vpa_registration_status !== "unverified") return false;
+      if (
+        filters.missingData &&
+        p.phone &&
+        p.website &&
+        p.source_confidence !== "approximate" &&
+        p.geocode_method !== "suburb_centroid"
+      ) {
+        return false;
+      }
       return true;
     });
   }, [all, filters, layers.pharmacies]);
