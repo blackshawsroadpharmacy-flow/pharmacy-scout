@@ -10,9 +10,18 @@ SELECT function_privs_are(
   'public', 'statewide_location_search', ARRAY['text', 'integer'],
   'authenticated', ARRAY['EXECUTE'], 'authenticated callers may execute search'
 );
-SELECT has_index('public', 'pharmacy_premises', 'ix_pharmacy_premises_search_name_trgm');
-SELECT has_index('public', 'supermarkets', 'ix_supermarkets_search_name_trgm');
-SELECT has_index('public', 'medical_centres', 'ix_medical_centres_search_name_trgm');
+SELECT has_index(
+  'public', 'pharmacy_premises', 'ix_pharmacy_premises_search_name_trgm',
+  'pharmacy search trigram index exists'
+);
+SELECT has_index(
+  'public', 'supermarkets', 'ix_supermarkets_search_name_trgm',
+  'supermarket search trigram index exists'
+);
+SELECT has_index(
+  'public', 'medical_centres', 'ix_medical_centres_search_name_trgm',
+  'medical-centre search trigram index exists'
+);
 
 SET LOCAL ROLE anon;
 SELECT ok(
