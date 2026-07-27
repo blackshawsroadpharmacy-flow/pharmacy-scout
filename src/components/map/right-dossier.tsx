@@ -13,6 +13,11 @@ import {
   savePharmacyNotes,
   upsertPharmacyProfile,
 } from "@/lib/pharmacy-profiles.public";
+import {
+  addPharmacyToPipeline,
+  fetchPharmacyPipelineStatus,
+  type PharmacyPipelineStatus,
+} from "@/lib/pharmacy-pipeline";
 import { VerificationBadge, EvidenceBadge } from "@/components/verification-badge";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -184,16 +189,7 @@ export function RightDossier({
 
       <div className="border-t border-border bg-muted/40 p-3">
         <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={() =>
-              authed
-                ? window.location.assign("/app/acquisitions")
-                : onRequireAuth("Save this pharmacy to your acquisition pipeline.")
-            }
-            className="inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:opacity-90"
-          >
-            <Bookmark className="h-3.5 w-3.5" /> Save target
-          </button>
+          <PipelineAction authed={authed} premisesId={premisesId} onRequireAuth={onRequireAuth} />
           <button
             onClick={() =>
               authed
@@ -207,6 +203,63 @@ export function RightDossier({
         </div>
       </div>
     </aside>
+  );
+}
+
+function PipelineAction({
+  authed,
+  premisesId,
+  onRequireAuth,
+}: {
+  authed: boolean;
+  premisesId: string;
+  onRequireAuth: (reason: string) => void;
+}) {
+  const [status, setStatus] = useState<PharmacyPipelineStatus | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (!authed) {
+      setStatus(null);
+      return;
+    }
+    fetchPharmacyPipelineStatus(premisesId)
+      .then(setStatus)
+      .catch((error) =>
+        toast.error(error instanceof Error ? error.message : "Failed to check pipeline"),
+      );
+  }, [authed, premisesId]);
+
+  async function handleClick() {
+    if (!authed) {
+      onRequireAuth("Sign in to add this pharmacy to your private acquisition pipeline.");
+      return;
+    }
+    if (status) {
+      window.location.assign(`/app/acquisitions?opportunity=${status.opportunity_id}`);
+      return;
+    }
+    setBusy(true);
+    try {
+      const created = await addPharmacyToPipeline(premisesId);
+      toast.success(created?.created ? "Added to acquisition pipeline" : "Pipeline record updated");
+      setStatus(await fetchPharmacyPipelineStatus(premisesId));
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to add to pipeline");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <button
+      onClick={handleClick}
+      disabled={busy}
+      className="inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60"
+    >
+      <Bookmark className="h-3.5 w-3.5" />
+      {busy ? "Adding…" : status ? "View in acquisition pipeline" : "Add to acquisition pipeline"}
+    </button>
   );
 }
 
