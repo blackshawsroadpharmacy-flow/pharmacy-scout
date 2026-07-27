@@ -61,5 +61,6 @@ jobs:
           supabase/tests/viewport_queries.test.sql
           supabase/tests/candidate_site_analysis.test.sql
           supabase/tests/statewide_search.test.sql
+          supabase/tests/commercial_security.test.sql
       - run: npm run check:supabase-schema
       - run: supabase db lint --local --level error
