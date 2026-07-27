@@ -1961,11 +1961,7 @@ export type Database = {
         }[]
       }
       candidate_pharmacies_within_radius: {
-        Args: {
-          p_lat: number
-          p_lng: number
-          p_radius_m: number
-        }
+        Args: { p_lat: number; p_lng: number; p_radius_m: number }
         Returns: {
           address: string
           calculated_point_distance_m: number
