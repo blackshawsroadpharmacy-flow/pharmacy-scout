@@ -2250,6 +2250,7 @@ export type Database = {
       }
       postgis_version: { Args: never; Returns: string }
       postgis_wagyu_version: { Args: never; Returns: string }
+      public_data_freshness: { Args: never; Returns: Json }
       set_premises_door: {
         Args: { _lat: number; _lng: number; _premises_id: string }
         Returns: undefined
@@ -2834,6 +2835,22 @@ export type Database = {
       st_wrapx: {
         Args: { geom: unknown; move: number; wrap: number }
         Returns: unknown
+      }
+      statewide_location_search: {
+        Args: { p_limit?: number; p_query: string }
+        Returns: {
+          is_private: boolean
+          lat: number
+          lng: number
+          relevance: number
+          result_address: string
+          result_id: string
+          result_name: string
+          result_postcode: string
+          result_suburb: string
+          result_type: string
+          source_confidence: string
+        }[]
       }
       unlockrows: { Args: { "": string }; Returns: number }
       updategeometrysrid: {
