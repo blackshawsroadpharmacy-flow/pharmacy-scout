@@ -261,3 +261,33 @@
 .leaflet-container {
   font-family: var(--font-sans);
 }
+
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+
+  #candidate-assessment,
+  #candidate-assessment * {
+    visibility: visible !important;
+  }
+
+  #candidate-assessment {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  #candidate-assessment header button {
+    display: none !important;
+  }
+
+  #candidate-assessment > div {
+    overflow: visible !important;
+  }
+}

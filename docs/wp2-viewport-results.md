@@ -24,12 +24,12 @@ pharmacy-marker regression fix in
 
 Measurements were taken from Melbourne against the production Supabase RPC after migration:
 
-| View | Returned / total | Payload | Observed median |
-| --- | ---: | ---: | ---: |
-| Statewide low zoom | 500 / 922 | 188,923 bytes | 397.8 ms |
-| Melbourne metro | 500 / 717 | 189,018 bytes | 298.9 ms |
-| Melbourne CBD | 56 / 56 | 21,303 bytes | 178.8 ms |
-| Inner CBD | 33 / 33 | 12,682 bytes | 182.1 ms |
+| View               | Returned / total |       Payload | Observed median |
+| ------------------ | ---------------: | ------------: | --------------: |
+| Statewide low zoom |        500 / 922 | 188,923 bytes |        397.8 ms |
+| Melbourne metro    |        500 / 717 | 189,018 bytes |        298.9 ms |
+| Melbourne CBD      |          56 / 56 |  21,303 bytes |        178.8 ms |
+| Inner CBD          |          33 / 33 |  12,682 bytes |        182.1 ms |
 
 The previous unconditional statewide query returned 922 full rows, transferred 669,061 bytes and
 took 1,576.9 ms in the same end-to-end network environment. These timings include public network
@@ -43,4 +43,3 @@ latency and are not database execution-only benchmarks.
 - Browser verification covered one initial request, map/list synchronisation, selection-scoped
   dossier loading, Leaflet survival, console errors and horizontal overflow.
 - Production frontend evidence must be captured again after Lovable publishes protected `main`.
-

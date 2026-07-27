@@ -22,11 +22,11 @@ service-role credentials remain server-only and untracked.
 
 ## Source catalogue
 
-| Category        | Source                                      | Dataset/query                                                                                                           | Licence  | Attribution                                          | Status                 |
-| --------------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | -------- | ---------------------------------------------------- | ---------------------- |
-| Supermarkets    | OpenStreetMap contributors via Overpass API | Victorian `shop=supermarket` nodes, ways and relations                                                                  | ODbL 1.0 | © OpenStreetMap contributors; link to copyright page | Approved for discovery |
-| Medical centres | OpenStreetMap contributors via Overpass API | Victorian `amenity=clinic`, `amenity=doctors`, `healthcare=clinic`, `healthcare=centre` and `healthcare=doctor` records | ODbL 1.0 | © OpenStreetMap contributors; link to copyright page | Approved for discovery |
-| SA2 population and annual growth | Australian Bureau of Statistics | `SA2_RP_2024` FeatureServer, Victoria (`2` series codes), 2021 ASGS SA2 boundaries | Creative Commons Attribution 4.0 International | Source: Australian Bureau of Statistics | Approved for statistical context |
+| Category                         | Source                                      | Dataset/query                                                                                                           | Licence                                        | Attribution                                          | Status                           |
+| -------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- | ---------------------------------------------------- | -------------------------------- |
+| Supermarkets                     | OpenStreetMap contributors via Overpass API | Victorian `shop=supermarket` nodes, ways and relations                                                                  | ODbL 1.0                                       | © OpenStreetMap contributors; link to copyright page | Approved for discovery           |
+| Medical centres                  | OpenStreetMap contributors via Overpass API | Victorian `amenity=clinic`, `amenity=doctors`, `healthcare=clinic`, `healthcare=centre` and `healthcare=doctor` records | ODbL 1.0                                       | © OpenStreetMap contributors; link to copyright page | Approved for discovery           |
+| SA2 population and annual growth | Australian Bureau of Statistics             | `SA2_RP_2024` FeatureServer, Victoria (`2` series codes), 2021 ASGS SA2 boundaries                                      | Creative Commons Attribution 4.0 International | Source: Australian Bureau of Statistics              | Approved for statistical context |
 
 Dataset links:
 

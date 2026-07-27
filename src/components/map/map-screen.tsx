@@ -9,9 +9,9 @@ import { LayerMenu, DEFAULT_LAYERS, type LayerState } from "@/components/map/lay
 import { RightDossier } from "@/components/map/right-dossier";
 import { ExternalDossier } from "@/components/map/external-dossier";
 import { AuthSheet } from "@/components/map/auth-sheet";
+import { CandidateAnalysisPanel } from "@/components/map/candidate-analysis-panel";
 import { useSession } from "@/hooks/use-session";
 import {
-  fetchCandidateExternalSummary,
   fetchExternalViewport,
   type ExternalCategory,
   type ExternalMapPoint,
@@ -23,6 +23,12 @@ import {
   normalizeViewportBounds,
   viewportRequestKey,
 } from "@/lib/viewport-query.mjs";
+import {
+  fetchCandidateAnalysis,
+  fetchPopulationContext,
+  searchVictorianAddress,
+  type CandidatePoint,
+} from "@/lib/candidate-analysis";
 
 const MapView = lazy(() =>
   import("@/components/map/map-view").then((m) => ({ default: m.MapView })),
@@ -51,7 +57,10 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
   const [authOpen, setAuthOpen] = useState(false);
   const [authReason, setAuthReason] = useState("");
   const [viewport, setViewport] = useState<ViewportBounds | null>(null);
-  const [candidatePoint, setCandidatePoint] = useState<{ lat: number; lng: number } | null>(null);
+  const [candidatePoint, setCandidatePoint] = useState<CandidatePoint | null>(null);
+  const [candidateRadiusM, setCandidateRadiusM] = useState(1500);
+  const [addressSearchStatus, setAddressSearchStatus] = useState<string | null>(null);
+  const candidateMode = mode === "greenfield" || mode === "relocation";
 
   const pharmacyRequestKey = viewport ? viewportRequestKey("pharmacies", viewport, filters) : null;
   const premisesQ = useQuery({
@@ -81,11 +90,22 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
     enabled: viewport != null && layers.medicalCentres,
     staleTime: 5 * 60 * 1000,
   });
-  const candidateSummaryQ = useQuery({
-    queryKey: ["candidate-external-summary", candidatePoint?.lat, candidatePoint?.lng],
-    queryFn: () => fetchCandidateExternalSummary(candidatePoint!.lat, candidatePoint!.lng),
-    enabled: mode === "greenfield" && candidatePoint != null,
+  const candidateAnalysisQ = useQuery({
+    queryKey: [
+      "candidate-site-analysis",
+      candidatePoint?.lat,
+      candidatePoint?.lng,
+      candidateRadiusM,
+    ],
+    queryFn: ({ signal }) => fetchCandidateAnalysis(candidatePoint!, candidateRadiusM, signal),
+    enabled: candidateMode && candidatePoint != null,
     staleTime: 5 * 60 * 1000,
+  });
+  const candidatePopulationQ = useQuery({
+    queryKey: ["candidate-population-context", candidatePoint?.lat, candidatePoint?.lng],
+    queryFn: ({ signal }) => fetchPopulationContext(candidatePoint!, signal),
+    enabled: candidateMode && candidatePoint != null,
+    staleTime: 24 * 60 * 60 * 1000,
   });
   const populationMetric: PopulationMetric | null = layers.populationGrowth
     ? "growth"
@@ -150,7 +170,21 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
     setFlyTo({ lat: point.lat, lng: point.lng, zoom: 15 });
   }
 
-  function handleSearch(q: string) {
+  function setCandidate(point: CandidatePoint) {
+    setCandidatePoint(point);
+    setSelectedExternal(null);
+    setSelectedId(null);
+    setFlyTo({ lat: point.lat, lng: point.lng, zoom: 15 });
+    setLayers((current) => ({
+      ...current,
+      pharmacies: true,
+      supermarkets: true,
+      medicalCentres: true,
+    }));
+  }
+
+  async function handleSearch(q: string) {
+    setAddressSearchStatus(null);
     const needle = q.toLowerCase();
     const hit = all.find(
       (p) =>
@@ -159,6 +193,25 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
         (p.suburb ?? "").toLowerCase().includes(needle) ||
         (p.postcode ?? "").includes(needle),
     );
+    if (candidateMode && !hit) {
+      setAddressSearchStatus("Searching Victorian addresses…");
+      try {
+        const results = await searchVictorianAddress(q);
+        const address = results[0];
+        if (!address) {
+          setAddressSearchStatus("No sourced Victorian address result found.");
+          return;
+        }
+        setCandidate(address);
+        setAddressSearchStatus(`Candidate placed: ${address.label}`);
+        return;
+      } catch (error) {
+        setAddressSearchStatus(
+          error instanceof Error ? error.message : "Address search could not be completed.",
+        );
+        return;
+      }
+    }
     if (hit) {
       openPremises(hit.id, hit.lat, hit.lng);
       return;
@@ -203,15 +256,22 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
             onSelectExternal={openExternal}
             onViewportChange={updateViewport}
             onMapClick={
-              mode === "greenfield"
+              candidateMode
                 ? (lat, lng) => {
-                    setCandidatePoint({ lat, lng });
-                    setSelectedExternal(null);
-                    setSelectedId(null);
+                    setCandidate({ lat, lng, label: "Map-selected candidate" });
                   }
                 : undefined
             }
-            candidatePoint={mode === "greenfield" ? candidatePoint : null}
+            candidatePoint={candidateMode ? candidatePoint : null}
+            candidateRadiusM={candidateRadiusM}
+            candidateNearestPoint={
+              candidateAnalysisQ.data?.nearest_conservative_pharmacy
+                ? {
+                    lat: candidateAnalysisQ.data.nearest_conservative_pharmacy.lat,
+                    lng: candidateAnalysisQ.data.nearest_conservative_pharmacy.lng,
+                  }
+                : null
+            }
             population={populationQ.data ?? null}
             populationMetric={populationMetric}
           />
@@ -305,6 +365,9 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
           External layer unavailable for this viewport.
         </div>
       )}
+      {addressSearchStatus && candidateMode && (
+        <ViewportNotice topClass="top-20">{addressSearchStatus}</ViewportNotice>
+      )}
       {populationMetric && (
         <PopulationLegend metric={populationMetric} loading={populationQ.isFetching} />
       )}
@@ -320,36 +383,23 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
             No medical-centre records in this view · {medicalCentresQ.data.coverageNote}
           </ViewportNotice>
         )}
-      {mode === "greenfield" && candidatePoint && (
-        <aside className="pointer-events-auto absolute bottom-4 left-1/2 z-[1050] w-[min(520px,calc(100vw-24px))] -translate-x-1/2 rounded-xl border border-border bg-card p-3 text-xs shadow-lg">
-          <div className="font-semibold">Preliminary candidate-site signals</div>
-          {candidateSummaryQ.isLoading && (
-            <p className="mt-1 text-muted-foreground">Calculating nearby discovery records…</p>
-          )}
-          {candidateSummaryQ.data && (
-            <>
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                <div className="rounded border border-border p-2">
-                  <div className="text-muted-foreground">Supermarkets within 500 m</div>
-                  <div className="text-lg font-semibold">
-                    {candidateSummaryQ.data.supermarkets_within_500m}
-                  </div>
-                </div>
-                <div className="rounded border border-border p-2">
-                  <div className="text-muted-foreground">Medical centres within 500 m</div>
-                  <div className="text-lg font-semibold">
-                    {candidateSummaryQ.data.medical_centres_within_500m}
-                  </div>
-                </div>
-              </div>
-              <p className="mt-2 font-medium">{candidateSummaryQ.data.assessment}</p>
-              <p className="mt-1 text-muted-foreground">
-                Discovery data only. Professional measurement and sourced regulatory evidence remain
-                required.
-              </p>
-            </>
-          )}
-        </aside>
+      {candidateMode && candidatePoint && (
+        <CandidateAnalysisPanel
+          point={candidatePoint}
+          radiusM={candidateRadiusM}
+          onRadius={setCandidateRadiusM}
+          analysis={candidateAnalysisQ.data ?? null}
+          population={candidatePopulationQ.data ?? null}
+          loading={candidateAnalysisQ.isLoading || candidatePopulationQ.isLoading}
+          error={
+            candidateAnalysisQ.isError
+              ? candidateAnalysisQ.error.message
+              : candidatePopulationQ.isError
+                ? candidatePopulationQ.error.message
+                : null
+          }
+          onClose={() => setCandidatePoint(null)}
+        />
       )}
     </div>
   );
