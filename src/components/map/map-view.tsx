@@ -49,7 +49,7 @@ function clusterIcon(cluster: { getChildCount: () => number }) {
   ).join("");
 
   return L.divIcon({
-    html: `<div class="pharmacy-cluster pharmacy-cluster--${tier}" role="img" aria-label="${count} pharmacies">${pharmacyBadges}<span class="pharmacy-cluster__count">${count}</span></div>`,
+    html: `<div class="pharmacy-cluster pharmacy-cluster--${tier}" role="img" aria-label="${count} pharmacies in this area">${pharmacyBadges}<span class="pharmacy-cluster__count">${count}</span></div>`,
     className: "pharmacy-cluster-icon",
     iconSize: L.point(size, size),
     iconAnchor: L.point(size / 2, size / 2),
@@ -311,6 +311,7 @@ export function MapView({
             key={p.id}
             position={[p.lat, p.lng]}
             icon={icon}
+            title={`${p.name} — Pharmacy`}
             eventHandlers={{ click: () => onSelect(p.id) }}
           />
         ))}

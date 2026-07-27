@@ -324,13 +324,16 @@
   content: "P";
 }
 .pharmacy-pin.verified {
-  background: #0f9d8a;
+  outline: 2px solid #0f9d8a;
+  outline-offset: 1px;
 }
 .pharmacy-pin.partial {
-  background: #d97706;
+  outline: 2px solid #d97706;
+  outline-offset: 1px;
 }
 .pharmacy-pin.saved {
-  background: #7c3aed;
+  outline: 2px solid #7c3aed;
+  outline-offset: 1px;
 }
 .pharmacy-pin.approximate {
   opacity: 0.9;
@@ -344,6 +347,14 @@
   box-shadow:
     0 0 0 3px rgba(37, 99, 235, 0.55),
     0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.leaflet-marker-icon:hover .pharmacy-pin {
+  transform: scale(1.08);
+}
+
+.leaflet-marker-icon:hover .pharmacy-pin.selected {
+  transform: scale(1.14);
 }
 
 @media (max-width: 640px) {
