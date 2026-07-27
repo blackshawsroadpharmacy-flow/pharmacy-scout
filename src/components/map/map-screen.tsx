@@ -2,7 +2,7 @@ import { ClientOnly, Link, useNavigate } from "@tanstack/react-router";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchAllPremises } from "@/lib/premises-public";
+import { fetchPharmacyViewport } from "@/lib/premises-public";
 import { TopBar, type Mode } from "@/components/map/top-bar";
 import { LeftPanel, DEFAULT_FILTERS, type Filters } from "@/components/map/left-panel";
 import { LayerMenu, DEFAULT_LAYERS, type LayerState } from "@/components/map/layer-menu";
@@ -18,18 +18,15 @@ import {
   type ViewportBounds,
 } from "@/lib/external-locations";
 import { fetchVictorianPopulation, type PopulationMetric } from "@/lib/population-intelligence";
+import {
+  isCurrentViewportResult,
+  normalizeViewportBounds,
+  viewportRequestKey,
+} from "@/lib/viewport-query.mjs";
 
 const MapView = lazy(() =>
   import("@/components/map/map-view").then((m) => ({ default: m.MapView })),
 );
-
-const METRO_BOUNDS = { minLat: -38.5, maxLat: -37.4, minLng: 144.5, maxLng: 145.6 };
-const VIC_QUERY_BOUNDS: ViewportBounds = {
-  west: 140.9,
-  south: -39.2,
-  east: 150,
-  north: -33.9,
-};
 
 type MapScreenProps = {
   selectedPremisesId?: string | null;
@@ -39,12 +36,6 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
   const navigate = useNavigate();
   const { user } = useSession();
   const authed = !!user;
-
-  const premisesQ = useQuery({
-    queryKey: ["premises-public"],
-    queryFn: fetchAllPremises,
-    staleTime: 5 * 60 * 1000,
-  });
 
   const [mode, setMode] = useState<Mode>("explore");
   const [selectedId, setSelectedId] = useState<string | null>(selectedPremisesId);
@@ -59,28 +50,35 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
   const [flyTo, setFlyTo] = useState<{ lat: number; lng: number; zoom?: number } | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [authReason, setAuthReason] = useState("");
-  const [viewport, setViewport] = useState<ViewportBounds>(VIC_QUERY_BOUNDS);
+  const [viewport, setViewport] = useState<ViewportBounds | null>(null);
   const [candidatePoint, setCandidatePoint] = useState<{ lat: number; lng: number } | null>(null);
 
+  const pharmacyRequestKey = viewport ? viewportRequestKey("pharmacies", viewport, filters) : null;
+  const premisesQ = useQuery({
+    queryKey: ["pharmacy-viewport", pharmacyRequestKey],
+    queryFn: ({ signal }) => fetchPharmacyViewport(viewport!, filters, signal),
+    enabled: viewport != null && layers.pharmacies,
+    staleTime: 5 * 60 * 1000,
+  });
+  const pharmacyResult = isCurrentViewportResult(pharmacyRequestKey, premisesQ.data)
+    ? premisesQ.data
+    : undefined;
+
   const viewportKey = useMemo(
-    () => [
-      Number(viewport.west.toFixed(3)),
-      Number(viewport.south.toFixed(3)),
-      Number(viewport.east.toFixed(3)),
-      Number(viewport.north.toFixed(3)),
-    ],
+    () =>
+      viewport ? [viewport.west, viewport.south, viewport.east, viewport.north] : ["unavailable"],
     [viewport],
   );
   const supermarketQ = useQuery({
     queryKey: ["external-viewport", "supermarkets", ...viewportKey],
-    queryFn: ({ signal }) => fetchExternalViewport("supermarkets", viewport, signal),
-    enabled: layers.supermarkets,
+    queryFn: ({ signal }) => fetchExternalViewport("supermarkets", viewport!, signal),
+    enabled: viewport != null && layers.supermarkets,
     staleTime: 5 * 60 * 1000,
   });
   const medicalCentresQ = useQuery({
     queryKey: ["external-viewport", "medical_centres", ...viewportKey],
-    queryFn: ({ signal }) => fetchExternalViewport("medical_centres", viewport, signal),
-    enabled: layers.medicalCentres,
+    queryFn: ({ signal }) => fetchExternalViewport("medical_centres", viewport!, signal),
+    enabled: viewport != null && layers.medicalCentres,
     staleTime: 5 * 60 * 1000,
   });
   const candidateSummaryQ = useQuery({
@@ -101,35 +99,17 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
     staleTime: 24 * 60 * 60 * 1000,
   });
 
-  const all = useMemo(() => premisesQ.data ?? [], [premisesQ.data]);
+  const all = useMemo(() => pharmacyResult?.items ?? [], [pharmacyResult]);
 
   useEffect(() => {
     setSelectedId(selectedPremisesId);
   }, [selectedPremisesId]);
 
-  const filtered = useMemo(() => {
-    return all.filter((p) => {
-      if (!layers.pharmacies) return false;
-      if (filters.verified && p.vpa_registration_status !== "verified") return false;
-      if (filters.metroOnly) {
-        if (
-          p.lat < METRO_BOUNDS.minLat ||
-          p.lat > METRO_BOUNDS.maxLat ||
-          p.lng < METRO_BOUNDS.minLng ||
-          p.lng > METRO_BOUNDS.maxLng
-        ) {
-          return false;
-        }
-      }
-      if (filters.pbsKnown) return false;
-      if (filters.missingData && p.vpa_registration_status !== "unverified") return false;
-      return true;
-    });
-  }, [all, filters, layers.pharmacies]);
+  const filtered = all;
   const externalPoints = useMemo(
     () => [
-      ...(layers.supermarkets ? (supermarketQ.data ?? []) : []),
-      ...(layers.medicalCentres ? (medicalCentresQ.data ?? []) : []),
+      ...(layers.supermarkets ? (supermarketQ.data?.items ?? []) : []),
+      ...(layers.medicalCentres ? (medicalCentresQ.data?.items ?? []) : []),
     ],
     [layers.supermarkets, layers.medicalCentres, supermarketQ.data, medicalCentresQ.data],
   );
@@ -192,13 +172,17 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
   }
 
   function updateViewport(next: ViewportBounds) {
-    const clipped = {
-      west: Math.max(VIC_QUERY_BOUNDS.west, next.west),
-      south: Math.max(VIC_QUERY_BOUNDS.south, next.south),
-      east: Math.min(VIC_QUERY_BOUNDS.east, next.east),
-      north: Math.min(VIC_QUERY_BOUNDS.north, next.north),
-    };
-    if (clipped.west < clipped.east && clipped.south < clipped.north) setViewport(clipped);
+    const normalized = normalizeViewportBounds(next);
+    if (!normalized) return;
+    setViewport((current) =>
+      current &&
+      current.west === normalized.west &&
+      current.south === normalized.south &&
+      current.east === normalized.east &&
+      current.north === normalized.north
+        ? current
+        : normalized,
+    );
   }
 
   return (
@@ -246,7 +230,7 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
         }
         onAccount={handleAccount}
         authed={authed}
-        resultCount={all.length}
+        resultCount={pharmacyResult?.totalCount ?? 0}
       />
 
       <LeftPanel
@@ -257,6 +241,12 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
         onFilters={setFilters}
         premises={all}
         filtered={filtered}
+        loading={premisesQ.isLoading}
+        fetching={premisesQ.isFetching}
+        error={premisesQ.isError ? "Pharmacy records could not be loaded for this area." : null}
+        coverageNote={pharmacyResult?.coverageNote ?? null}
+        totalCount={pharmacyResult?.totalCount ?? 0}
+        metrics={pharmacyResult?.metrics ?? null}
         onSelect={(id) => {
           const hit = all.find((premises) => premises.id === id);
           openPremises(id, hit?.lat, hit?.lng);
@@ -276,7 +266,6 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
 
       <RightDossier
         premisesId={selectedId}
-        allPremises={all}
         onClose={closePremises}
         onRequireAuth={requireAuth}
         authed={authed}
@@ -301,9 +290,9 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
         </div>
       </footer>
 
-      {premisesQ.isLoading && (
+      {premisesQ.isFetching && (
         <div className="pointer-events-none absolute left-1/2 top-20 z-[1050] -translate-x-1/2 rounded-md bg-card px-3 py-1.5 text-xs text-muted-foreground shadow">
-          Loading pharmacy records…
+          Updating visible pharmacy records…
         </div>
       )}
       {(supermarketQ.isFetching || medicalCentresQ.isFetching) && (
@@ -319,6 +308,18 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
       {populationMetric && (
         <PopulationLegend metric={populationMetric} loading={populationQ.isFetching} />
       )}
+      {layers.supermarkets && supermarketQ.isSuccess && supermarketQ.data.items.length === 0 && (
+        <ViewportNotice topClass="top-28">
+          No supermarket records in this view · {supermarketQ.data.coverageNote}
+        </ViewportNotice>
+      )}
+      {layers.medicalCentres &&
+        medicalCentresQ.isSuccess &&
+        medicalCentresQ.data.items.length === 0 && (
+          <ViewportNotice topClass="top-36">
+            No medical-centre records in this view · {medicalCentresQ.data.coverageNote}
+          </ViewportNotice>
+        )}
       {mode === "greenfield" && candidatePoint && (
         <aside className="pointer-events-auto absolute bottom-4 left-1/2 z-[1050] w-[min(520px,calc(100vw-24px))] -translate-x-1/2 rounded-xl border border-border bg-card p-3 text-xs shadow-lg">
           <div className="font-semibold">Preliminary candidate-site signals</div>
@@ -350,6 +351,16 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
           )}
         </aside>
       )}
+    </div>
+  );
+}
+
+function ViewportNotice({ children, topClass }: { children: React.ReactNode; topClass: string }) {
+  return (
+    <div
+      className={`pointer-events-none absolute left-1/2 z-[1040] max-w-[min(560px,calc(100vw-24px))] -translate-x-1/2 rounded-md border border-border bg-card/95 px-3 py-1.5 text-center text-[11px] text-muted-foreground shadow ${topClass}`}
+    >
+      {children}
     </div>
   );
 }

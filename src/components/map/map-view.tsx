@@ -10,7 +10,7 @@ import {
 } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
-import type { PublicPremises } from "@/lib/premises-public";
+import type { PremisesMapPoint } from "@/lib/premises-public";
 import type { ExternalCategory, ExternalMapPoint, ViewportBounds } from "@/lib/external-locations";
 import {
   populationColour,
@@ -31,7 +31,7 @@ const VIC_ZOOM = 7;
 
 type Kind = "discovery" | "verified" | "partial" | "saved";
 
-function isApproximate(p: PublicPremises) {
+function isApproximate(p: PremisesMapPoint) {
   return p.source_confidence === "approximate" || p.geocode_method === "suburb_centroid";
 }
 
@@ -43,7 +43,7 @@ function clusterIcon(cluster: { getChildCount: () => number }) {
   });
 }
 
-function kindFor(p: PublicPremises, savedIds: Set<string>): Kind {
+function kindFor(p: PremisesMapPoint, savedIds: Set<string>): Kind {
   if (savedIds.has(p.id)) return "saved";
   if (p.vpa_registration_status === "verified") return "verified";
   if (p.vpa_registration_status === "matched" || p.vpa_registration_status === "conflict")
@@ -138,7 +138,7 @@ export function MapView({
   population = null,
   populationMetric = null,
 }: {
-  premises: PublicPremises[];
+  premises: PremisesMapPoint[];
   selectedId: string | null;
   onSelect: (id: string) => void;
   savedIds: Set<string>;
@@ -219,9 +219,11 @@ export function MapView({
             title.textContent = properties.sa2_name_2021;
             const detail = document.createElement("div");
             detail.textContent =
-              populationMetric === "density"
-                ? `${Number(value ?? 0).toLocaleString()} people/km² · ${Number(properties.pop_yr2 ?? 0).toLocaleString()} residents`
-                : `${Number(value ?? 0).toFixed(1)}% growth · ${Number(properties.chg_yr_to_yr_no ?? 0).toLocaleString()} residents`;
+              value == null
+                ? "No source coverage for this metric"
+                : populationMetric === "density"
+                  ? `${Number(value).toLocaleString()} people/km² · ${properties.pop_yr2 == null ? "population unavailable" : `${Number(properties.pop_yr2).toLocaleString()} residents`}`
+                  : `${Number(value).toFixed(1)}% growth · ${properties.chg_yr_to_yr_no == null ? "population change unavailable" : `${Number(properties.chg_yr_to_yr_no).toLocaleString()} residents`}`;
             const source = document.createElement("div");
             source.textContent = "ABS Estimated Resident Population 2024 · SA2";
             source.style.opacity = "0.65";

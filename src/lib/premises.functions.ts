@@ -43,20 +43,22 @@ export const listPremises = createServerFn({ method: "GET" })
       new Set(rows.map((r) => r.source_id as string | null).filter((v): v is string => !!v)),
     );
 
-    const [{ data: approvals, error: apErr }, { data: sources, error: srcErr }] = await Promise.all([
-      ids.length
-        ? context.supabase
-            .from("pbs_approvals")
-            .select("premises_id, approval_number, approval_status")
-            .in("premises_id", ids)
-        : Promise.resolve({ data: [], error: null }),
-      sourceIds.length
-        ? context.supabase
-            .from("source_records")
-            .select("id, source_name, source_url, fetched_at")
-            .in("id", sourceIds)
-        : Promise.resolve({ data: [], error: null }),
-    ]);
+    const [{ data: approvals, error: apErr }, { data: sources, error: srcErr }] = await Promise.all(
+      [
+        ids.length
+          ? context.supabase
+              .from("pbs_approvals")
+              .select("premises_id, approval_number, approval_status")
+              .in("premises_id", ids)
+          : Promise.resolve({ data: [], error: null }),
+        sourceIds.length
+          ? context.supabase
+              .from("source_records")
+              .select("id, source_name, source_url, fetched_at")
+              .in("id", sourceIds)
+          : Promise.resolve({ data: [], error: null }),
+      ],
+    );
     if (apErr) throw new Error(apErr.message);
     if (srcErr) throw new Error(srcErr.message);
 
@@ -66,7 +68,10 @@ export const listPremises = createServerFn({ method: "GET" })
       list.push({ approval_number: a.approval_number, approval_status: a.approval_status });
       approvalsByPremises.set(a.premises_id as string, list);
     }
-    const sourceById = new Map<string, { source_name: string; source_url: string | null; fetched_at: string | null }>();
+    const sourceById = new Map<
+      string,
+      { source_name: string; source_url: string | null; fetched_at: string | null }
+    >();
     for (const s of sources ?? []) {
       sourceById.set(s.id as string, {
         source_name: s.source_name,

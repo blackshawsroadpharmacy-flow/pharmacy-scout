@@ -15,7 +15,10 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Sign in — Chemist Care Pharmacy Opportunity Scout" },
-      { name: "description", content: "Sign in or create an account to use the Opportunity Scout." },
+      {
+        name: "description",
+        content: "Sign in or create an account to use the Opportunity Scout.",
+      },
       { name: "robots", content: "noindex" },
       { property: "og:title", content: "Sign in — Chemist Care" },
       { property: "og:description", content: "Sign in to the Pharmacy Opportunity Scout." },

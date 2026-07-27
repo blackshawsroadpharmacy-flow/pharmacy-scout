@@ -1,4 +1,3 @@
-
 # Phase 1.5 — Map-first redesign
 
 Rebuild the frontend around a persistent full-screen map. Preserve the Phase 1 backend (auth, orgs, RLS, `pharmacy_premises`, `pbs_approvals`, `source_records`, acquisition tables, door-point RPC). No Location Rules engine yet.
@@ -12,6 +11,7 @@ The brief asks for "the full Victorian pharmacy discovery dataset from HealthDir
 - **PBS Approved Suppliers register** (Dept. of Health) — publishes a periodic CSV/XLSX of every section 90 PBS-approved pharmacy in Australia with name, address, suburb, postcode, state, approval number. This is the practical Victoria-wide dataset available without keys, and it is regulatorily meaningful (PBS approvals — a Commonwealth authoritative source).
 
 **Proposed approach:** ingest the PBS Approved Suppliers register (VIC rows only) at migration time via a server-side importer:
+
 1. Server function `syncPbsApprovedSuppliers` (admin-only) fetches the current PBS register file, filters state=VIC, geocodes each address via OSM Nominatim (respecting rate limits) server-side, and upserts rows into `pharmacy_premises` with `premises_source='pbs_register'`, plus a `pbs_approvals` row with `approval_status='verified'` and the approval number.
 2. One `source_records` snapshot per run.
 3. I'll run this once during the redesign so the map opens with ~1,300+ real VIC pharmacies.
@@ -45,6 +45,7 @@ If you'd prefer HealthDirect, tell me and provide the key — I'll swap the adap
 **Top bar (compact, 48px):** logo · address/suburb/postcode/approval-number search (client-side fuzzy over loaded set + Nominatim fallback for suburbs) · mode selector (Explore · Acquisition · Greenfield · Relocation) · layer control button · saved (auth-gated) · sign-in / user menu.
 
 **Left panel (collapsible, 320px):** context-sensitive.
+
 - Explore: filter form (verification, PBS known, VPA known, metro/regional, nearest-pharmacy distance, missing data, saved) + result count for current viewport + "Search this map area" button after pan.
 - Acquisition: pipeline board condensed to a stage list with counts; clicking a card flies to marker.
 - Greenfield: click-to-place candidate; shows distance rings (1km/1.5km/2km), nearby pharmacies list, "select possible rule pathway" chooser (no auto-evaluation yet).
@@ -66,6 +67,7 @@ If you'd prefer HealthDirect, tell me and provide the key — I'll swap the adap
 ## 7. Files to add / change
 
 New:
+
 - `src/routes/index.tsx` — rewrite as full-screen map shell (replaces landing).
 - `src/routes/about.tsx` — old landing content.
 - `src/components/map/` — `MapShell`, `TopBar`, `LeftPanel`, `RightDossier`, `LayerControl`, `ModeSwitch`, `AuthSheet`, `MarkerLayer`, `ClusteredMarkers`, `SearchBox`.
@@ -74,6 +76,7 @@ New:
 - `src/hooks/use-require-auth.tsx`.
 
 Changed:
+
 - `src/routes/app.tsx` — keep gate for `/app/*` only.
 - `src/routes/app.index.tsx` — remove (map lives at `/`); redirect to `/`.
 - `src/routes/app.acquisitions.tsx` — retain as secondary route, restyle to complement map.

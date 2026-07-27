@@ -13,8 +13,8 @@ The application must never describe a result as legally `eligible` or `approved`
 
 ## Sources
 
-- Legislative instrument: section 90 and Division 4B of the *National Health Act 1953* and the determinations made under section 99L.
-- Applicant guidance: *Pharmacy Location Rules Applicant's Handbook*, March 2026 V1.10.
+- Legislative instrument: section 90 and Division 4B of the _National Health Act 1953_ and the determinations made under section 99L.
+- Applicant guidance: _Pharmacy Location Rules Applicant's Handbook_, March 2026 V1.10.
 
 Handbook citations used below:
 
@@ -36,6 +36,7 @@ These gates apply before any Item 122-125 pathway can return `appears_to_satisfy
 - If absent, result is `insufficient_evidence`.
 
 Citation:
+
 - Handbook pp. 19-20
 
 ### Five-year continuous approval gate
@@ -44,6 +45,7 @@ Citation:
 - If the 5-year period is not met, the workflow must evaluate exceptions explicitly rather than silently assuming they apply.
 
 Citation:
+
 - Handbook pp. 19-20
 
 ### Five-year exceptions
@@ -65,11 +67,13 @@ Implementation rule:
 - If the evidence is missing or mixed, the result is `insufficient_evidence`.
 
 Citation:
+
 - Handbook pp. 19-20
 
 ## Item 122 Atomic Requirements
 
 Rule title:
+
 - `Relocation within a designated complex`
 
 Atomic requirements:
@@ -99,11 +103,13 @@ Suggested evidence fields:
 - `statutory_declaration_reference`
 
 Citation:
+
 - Handbook pp. 22-23
 
 ## Item 123 Atomic Requirements
 
 Rule title:
+
 - `Relocation within the same town (10 km)`
 
 Atomic requirements:
@@ -125,12 +131,14 @@ Data dependencies:
 - routing provider output
 
 Citation:
+
 - Handbook pp. 24-25
 - Handbook glossary `same town`, p. 57
 
 ## Item 124 Atomic Requirements
 
 Rule title:
+
 - `Relocation up to 1 km`
 
 Atomic requirements:
@@ -148,11 +156,13 @@ Implementation notes:
 - If competitor coverage is incomplete, the top-level result must be `source_coverage_incomplete`.
 
 Citation:
+
 - Handbook pp. 26-28
 
 ## Item 125 Atomic Requirements
 
 Rule title:
+
 - `Relocation of 1 to 1.5 km`
 
 Atomic requirements:
@@ -170,6 +180,7 @@ Implementation notes:
 - Near-threshold cases must escalate to `professional_measurement_required`.
 
 Citation:
+
 - Handbook pp. 29-31
 
 ## Original-Approval Relocation Restrictions
@@ -182,6 +193,7 @@ These restrictions must sit above any otherwise-favourable Item 124 or 125 spati
 - The app must never return `appears_to_satisfy` if original-town evidence is missing.
 
 Citation:
+
 - Handbook pp. 28-31
 - Handbook Item 131 restriction p. 36+
 - Handbook Item 132 restriction p. 38+
@@ -191,6 +203,7 @@ Citation:
 - If relocation is sought within 10 years of the original approval, exceptional circumstances are required when the proposed premises are not within the same facility in which the approval was originally granted.
 
 Citation:
+
 - Handbook pp. 28-31
 - Handbook Items 133 / 134 / 134A restriction sections
 
@@ -199,6 +212,7 @@ Citation:
 - Exceptional circumstances are required if the proposed premises are not within the same private hospital in which the approval was originally granted.
 
 Citation:
+
 - Handbook Item 135 restriction section
 
 ### Original approval under Item 136
@@ -206,6 +220,7 @@ Citation:
 - Exceptional circumstances are required if the proposed premises are not within the same medical centre in which the approval was originally granted.
 
 Citation:
+
 - Handbook Item 136 restriction section
 
 ## Incomplete Confirmed-PBS Coverage
@@ -237,4 +252,3 @@ Threshold comparisons to encode:
 Near-threshold safeguard:
 
 - If a measurement is within a configurable warning margin of a legal threshold and the result depends on door geometry or routing precision, return `professional_measurement_required`.
-

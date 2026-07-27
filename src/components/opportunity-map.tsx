@@ -67,8 +67,8 @@ export function OpportunityMap({
         {!viewportInCoverage && (
           <div className="absolute left-4 top-4 z-[500] max-w-sm rounded-md border border-border bg-card px-3 py-2 text-xs text-muted-foreground shadow-sm">
             <span className="font-semibold text-foreground">No source coverage.</span> The
-            demonstration region covers Camberwell, Hawthorn, Kew, Balwyn, Glen Iris and
-            surrounding suburbs. Discovery points outside this area are not available in Phase 1.
+            demonstration region covers Camberwell, Hawthorn, Kew, Balwyn, Glen Iris and surrounding
+            suburbs. Discovery points outside this area are not available in Phase 1.
           </div>
         )}
 
@@ -159,11 +159,7 @@ function ViewportWatcher({ onChange }: { onChange: (inCoverage: boolean) => void
   return null;
 }
 
-function DoorPlacementLayer({
-  onPick,
-}: {
-  onPick: (lat: number, lng: number) => void;
-}) {
+function DoorPlacementLayer({ onPick }: { onPick: (lat: number, lng: number) => void }) {
   const map = useMap();
   useEffect(() => {
     function click(e: L.LeafletMouseEvent) {
@@ -199,8 +195,8 @@ function PremisesDossier({
       <aside className="hidden w-96 shrink-0 border-l border-border bg-card p-6 md:block">
         <h2 className="text-base font-semibold">Premises dossier</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Click a point on the map to open its dossier. Every record shows its source, fetched
-          date and verification status.
+          Click a point on the map to open its dossier. Every record shows its source, fetched date
+          and verification status.
         </p>
         <div className="mt-6 space-y-3 text-xs text-muted-foreground">
           <Legend />
@@ -234,7 +230,9 @@ function PremisesDossier({
 
       <div className="mt-4 flex flex-wrap gap-2">
         <VerificationBadge
-          status={selected.vpa_registration_status as "unverified" | "matched" | "verified" | "conflict"}
+          status={
+            selected.vpa_registration_status as "unverified" | "matched" | "verified" | "conflict"
+          }
           label={
             selected.vpa_registration_status === "verified"
               ? "VPA register: verified"
@@ -260,7 +258,11 @@ function PremisesDossier({
           <Row k="Confidence" v={selected.source_confidence ?? "Unknown"} />
           <Row
             k="Fetched"
-            v={selected.source_fetched_at ? new Date(selected.source_fetched_at).toLocaleString() : "Unknown"}
+            v={
+              selected.source_fetched_at
+                ? new Date(selected.source_fetched_at).toLocaleString()
+                : "Unknown"
+            }
           />
           {selected.source_url && (
             <div className="text-xs">
