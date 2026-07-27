@@ -1,6 +1,6 @@
 BEGIN;
 
-SELECT plan(24);
+SELECT plan(26);
 
 SELECT ok(
   NOT has_table_privilege('anon', 'public.pharmacy_profiles', 'SELECT'),
@@ -81,6 +81,14 @@ SELECT function_privs_are(
 SELECT function_privs_are(
   'public', 'organisation_security_status', ARRAY[]::text[],
   'authenticated', ARRAY['EXECUTE'], 'authenticated administrators may request security status'
+);
+SELECT function_privs_are(
+  'public', 'is_org_member', ARRAY['uuid'],
+  'authenticated', ARRAY['EXECUTE'], 'authenticated RLS may execute membership checks'
+);
+SELECT function_privs_are(
+  'public', 'has_role', ARRAY['uuid', 'app_role'],
+  'authenticated', ARRAY['EXECUTE'], 'authenticated administrator checks remain functional'
 );
 SELECT function_privs_are(
   'public', 'pharmacy_points_in_viewport',

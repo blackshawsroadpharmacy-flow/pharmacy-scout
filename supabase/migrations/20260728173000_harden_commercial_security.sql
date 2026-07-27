@@ -1,5 +1,11 @@
 -- WP14: remove demo-era anonymous commercial access before real confidential data is stored.
 
+-- These SECURITY DEFINER helpers are used inside organisation RLS policies. A
+-- previous hardening migration revoked PUBLIC without restoring authenticated
+-- execution, which made all organisation-scoped policies fail closed.
+GRANT EXECUTE ON FUNCTION public.is_org_member(UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.has_role(UUID, public.app_role) TO authenticated;
+
 ALTER TABLE public.pharmacy_profiles
   ADD COLUMN IF NOT EXISTS organisation_id UUID REFERENCES public.organisations(id) ON DELETE CASCADE,
   ADD COLUMN IF NOT EXISTS orphaned_demo BOOLEAN NOT NULL DEFAULT false;
