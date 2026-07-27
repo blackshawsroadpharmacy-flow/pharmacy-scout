@@ -29,7 +29,10 @@ test("only explicit show-on-map and candidate navigation set pharmacy fly target
     source,
     /function showPremisesOnMap\(id: string, lat: number, lng: number\) \{[\s\S]*?setFlyTo\(\{ lat, lng, zoom: 15 \}\)/,
   );
-  assert.match(source, /if \(hit\) \{\s*showPremisesOnMap\(hit\.id, hit\.lat, hit\.lng\)/);
+  assert.match(
+    source,
+    /if \(result\.result_type === "pharmacy"\) \{\s*showPremisesOnMap\(result\.result_id, result\.lat, result\.lng\)/,
+  );
   assert.doesNotMatch(source, /openPremises\(id,\s*hit\?\.(?:lat|lng)/);
 });
 

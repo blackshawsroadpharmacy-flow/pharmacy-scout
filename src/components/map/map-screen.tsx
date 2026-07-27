@@ -29,6 +29,7 @@ import {
   searchVictorianAddress,
   type CandidatePoint,
 } from "@/lib/candidate-analysis";
+import type { StatewideSearchResult } from "@/lib/statewide-search";
 
 const MapView = lazy(() =>
   import("@/components/map/map-view").then((m) => ({ default: m.MapView })),
@@ -180,17 +181,9 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
     }));
   }
 
-  async function handleSearch(q: string) {
+  async function handleSearchFallback(q: string) {
     setAddressSearchStatus(null);
-    const needle = q.toLowerCase();
-    const hit = all.find(
-      (p) =>
-        p.name.toLowerCase().includes(needle) ||
-        p.address.toLowerCase().includes(needle) ||
-        (p.suburb ?? "").toLowerCase().includes(needle) ||
-        (p.postcode ?? "").includes(needle),
-    );
-    if (candidateMode && !hit) {
+    if (candidateMode) {
       setAddressSearchStatus("Searching Victorian addresses…");
       try {
         const results = await searchVictorianAddress(q);
@@ -209,16 +202,37 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
         return;
       }
     }
-    if (hit) {
-      showPremisesOnMap(hit.id, hit.lat, hit.lng);
+  }
+
+  function handleStatewideSearchResult(result: StatewideSearchResult) {
+    if (result.result_type === "acquisition_opportunity") {
+      navigate({ to: "/app/acquisitions" });
       return;
     }
-    const externalHit = externalPoints.find(
-      (point) =>
-        point.name.toLowerCase().includes(needle) ||
-        (point.address ?? "").toLowerCase().includes(needle),
-    );
-    if (externalHit) openExternal(externalHit);
+    if (result.result_type === "candidate_site") {
+      if (result.lat != null && result.lng != null) {
+        setMode("greenfield");
+        setCandidate({
+          lat: result.lat,
+          lng: result.lng,
+          label: result.result_name,
+        });
+      }
+      return;
+    }
+    if (result.lat == null || result.lng == null) return;
+    if (result.result_type === "pharmacy") {
+      showPremisesOnMap(result.result_id, result.lat, result.lng);
+      return;
+    }
+    const category = result.result_type === "supermarket" ? "supermarkets" : "medical_centres";
+    setSelectedId(null);
+    setSelectedExternal({ category, id: result.result_id });
+    setLayers((current) => ({
+      ...current,
+      [category === "supermarkets" ? "supermarkets" : "medicalCentres"]: true,
+    }));
+    setFlyTo({ lat: result.lat, lng: result.lng, zoom: 15 });
   }
 
   function updateViewport(next: ViewportBounds) {
@@ -275,7 +289,8 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
       <TopBar
         mode={mode}
         onMode={setMode}
-        onSearch={handleSearch}
+        onSearchFallback={handleSearchFallback}
+        onSearchResult={handleStatewideSearchResult}
         onToggleLayers={() => setLayersOpen((v) => !v)}
         onSaved={() =>
           authed
