@@ -745,9 +745,13 @@ export type Database = {
         Row: {
           asking_price: number | null
           broker_or_source: string | null
+          canonical_address_snapshot: string | null
+          canonical_name_snapshot: string | null
           created_at: string
           created_by: string | null
+          date_first_seen: string | null
           id: string
+          listing_status: string
           listing_url: string | null
           opportunity_status: string | null
           organisation_id: string
@@ -759,9 +763,13 @@ export type Database = {
         Insert: {
           asking_price?: number | null
           broker_or_source?: string | null
+          canonical_address_snapshot?: string | null
+          canonical_name_snapshot?: string | null
           created_at?: string
           created_by?: string | null
+          date_first_seen?: string | null
           id?: string
+          listing_status?: string
           listing_url?: string | null
           opportunity_status?: string | null
           organisation_id: string
@@ -773,9 +781,13 @@ export type Database = {
         Update: {
           asking_price?: number | null
           broker_or_source?: string | null
+          canonical_address_snapshot?: string | null
+          canonical_name_snapshot?: string | null
           created_at?: string
           created_by?: string | null
+          date_first_seen?: string | null
           id?: string
+          listing_status?: string
           listing_url?: string | null
           opportunity_status?: string | null
           organisation_id?: string
@@ -1972,6 +1984,21 @@ export type Database = {
         Returns: unknown
       }
       _st_within: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      add_pharmacy_to_pipeline: {
+        Args: {
+          p_asking_price?: number
+          p_broker_or_source?: string
+          p_date_first_seen?: string
+          p_listing_url?: string
+          p_premises_id: string
+          p_stage?: Database["public"]["Enums"]["pipeline_stage"]
+        }
+        Returns: {
+          business_id: string
+          created: boolean
+          opportunity_id: string
+        }[]
+      }
       addauth: { Args: { "": string }; Returns: boolean }
       addgeometrycolumn:
         | {
@@ -2284,6 +2311,15 @@ export type Database = {
       is_org_member: { Args: { _org: string }; Returns: boolean }
       longtransactionsenabled: { Args: never; Returns: boolean }
       organisation_security_status: { Args: never; Returns: Json }
+      pharmacy_pipeline_status: {
+        Args: { p_premises_id: string }
+        Returns: {
+          business_id: string
+          listing_status: string
+          opportunity_id: string
+          pipeline_stage: Database["public"]["Enums"]["pipeline_stage"]
+        }[]
+      }
       pharmacy_points_in_viewport: {
         Args: {
           p_east: number
