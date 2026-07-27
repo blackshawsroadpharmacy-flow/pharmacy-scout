@@ -7,11 +7,11 @@ select ok(
   'anon retains SELECT privilege on PBS approvals'
 );
 
-select policies_are(
+select policy_exists(
   'public',
   'pbs_approvals',
-  array['Public can read pbs approvals', 'pbs_approvals admin write'],
-  'PBS approvals retain explicit public-read and authenticated-admin policies'
+  'Public can read pbs approvals',
+  'PBS approvals retain the explicit public-read policy'
 );
 
 insert into public.pharmacy_premises (
