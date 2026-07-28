@@ -10,10 +10,26 @@ export type PipelineStage =
   "watchlist" | "contacting" | "im_received" | "due_diligence" | "offer" | "passed" | "acquired";
 
 export interface PharmacyPipelineStatus {
+  premises_id?: string;
   business_id: string;
   opportunity_id: string;
   pipeline_stage: PipelineStage;
   listing_status: "active" | "withdrawn" | "sold" | "unknown";
+}
+
+export async function fetchPharmacyPipelineStatuses(
+  premisesIds: string[],
+): Promise<Map<string, PharmacyPipelineStatus>> {
+  if (premisesIds.length === 0) return new Map();
+  const { data, error } = await supabase.rpc("pharmacy_pipeline_statuses", {
+    p_premises_ids: premisesIds.slice(0, 500),
+  });
+  if (error) throw new Error(error.message);
+  return new Map(
+    ((data ?? []) as PharmacyPipelineStatus[])
+      .filter((row) => row.premises_id)
+      .map((row) => [row.premises_id as string, row]),
+  );
 }
 
 export async function fetchPharmacyPipelineStatus(

@@ -2320,6 +2320,16 @@ export type Database = {
           pipeline_stage: Database["public"]["Enums"]["pipeline_stage"]
         }[]
       }
+      pharmacy_pipeline_statuses: {
+        Args: { p_premises_ids: string[] }
+        Returns: {
+          business_id: string
+          listing_status: string
+          opportunity_id: string
+          pipeline_stage: Database["public"]["Enums"]["pipeline_stage"]
+          premises_id: string
+        }[]
+      }
       pharmacy_points_in_viewport: {
         Args: {
           p_east: number
