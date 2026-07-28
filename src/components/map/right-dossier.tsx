@@ -346,7 +346,13 @@ function CalibrationForm({ pharmacyId, onSaved }: { pharmacyId: string; onSaved:
     [start, setStart] = useState(""),
     [end, setEnd] = useState(""),
     [days, setDays] = useState("6"),
-    [source, setSource] = useState("");
+    [source, setSource] = useState(""),
+    [notes, setNotes] = useState(""),
+    [confidence, setConfidence] = useState<"low" | "medium" | "high">("medium"),
+    [privateIncluded, setPrivateIncluded] = useState(false),
+    [underCopaymentIncluded, setUnderCopaymentIncluded] = useState(false),
+    [daaIncluded, setDaaIncluded] = useState(false),
+    [institutionalIncluded, setInstitutionalIncluded] = useState(false);
   async function save() {
     try {
       await saveCalibrationObservation({
@@ -355,13 +361,13 @@ function CalibrationForm({ pharmacyId, onSaved }: { pharmacyId: string; onSaved:
         evidence_period_start: start,
         evidence_period_end: end,
         trading_days_per_week: Number(days),
-        includes_private_prescriptions: null,
-        includes_under_copayment: null,
-        includes_daa_volume: null,
-        includes_institutional_supply: null,
+        includes_private_prescriptions: privateIncluded,
+        includes_under_copayment: underCopaymentIncluded,
+        includes_daa_volume: daaIncluded,
+        includes_institutional_supply: institutionalIncluded,
         source_type: source,
-        source_document_or_note: null,
-        confidence: "medium",
+        source_document_or_note: notes || null,
+        confidence,
       });
       toast.success("Genuine calibration observation saved");
       setOpen(false);
@@ -407,6 +413,36 @@ function CalibrationForm({ pharmacyId, onSaved }: { pharmacyId: string; onSaved:
             value={source}
             onChange={(e) => setSource(e.target.value)}
           />
+          <select
+            className="input"
+            value={confidence}
+            onChange={(e) => setConfidence(e.target.value as typeof confidence)}
+          >
+            <option value="low">Low confidence</option>
+            <option value="medium">Medium confidence</option>
+            <option value="high">High confidence</option>
+          </select>
+          <textarea
+            className="input col-span-2"
+            placeholder="Source document reference or notes"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
+          {[
+            ["Private prescriptions included", privateIncluded, setPrivateIncluded],
+            ["Under co-payment included", underCopaymentIncluded, setUnderCopaymentIncluded],
+            ["DAA volume included", daaIncluded, setDaaIncluded],
+            ["Institutional supply included", institutionalIncluded, setInstitutionalIncluded],
+          ].map(([label, checked, setter]) => (
+            <label key={String(label)} className="col-span-2 flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={Boolean(checked)}
+                onChange={(e) => (setter as (value: boolean) => void)(e.target.checked)}
+              />
+              {String(label)}
+            </label>
+          ))}
           <button
             className="col-span-2 rounded bg-primary p-2 text-primary-foreground"
             onClick={save}

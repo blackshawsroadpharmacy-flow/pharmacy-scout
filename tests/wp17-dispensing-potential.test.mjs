@@ -12,6 +12,14 @@ const dossier = await readFile(
   new URL("../src/components/map/right-dossier.tsx", import.meta.url),
   "utf8",
 );
+const mapScreen = await readFile(
+  new URL("../src/components/map/map-screen.tsx", import.meta.url),
+  "utf8",
+);
+const mapView = await readFile(
+  new URL("../src/components/map/map-view.tsx", import.meta.url),
+  "utf8",
+);
 test("statewide features and scores are server-side, cached and versioned", () => {
   assert.match(migration, /refresh_dispensing_potential_v1/);
   for (const x of [
@@ -44,4 +52,11 @@ test("calibration is private, genuine and unseeded", () => {
   assert.doesNotMatch(migration, /INSERT INTO public\.dispensing_calibration_observations/);
   assert.match(dossier, /Not calibrated against enough known pharmacies/);
   assert.match(dossier, /does not establish operational quality/);
+});
+test("optional map layer retains red P markers and discloses low confidence", () => {
+  assert.match(mapScreen, /Geographic Dispensing Potential/);
+  assert.match(mapScreen, /Strong potential \(75th\+ percentile\)/);
+  assert.match(mapScreen, /Dashed = low confidence/);
+  assert.match(mapView, /potential-low-confidence/);
+  assert.match(mapView, /pharmacy-pin/);
 });

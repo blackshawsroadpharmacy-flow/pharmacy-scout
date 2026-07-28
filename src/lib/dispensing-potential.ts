@@ -14,6 +14,20 @@ export async function fetchDispensingPotential(pharmacyId: string) {
   if (error) throw new Error(error.message);
   return data;
 }
+export interface MapDispensingPotential {
+  pharmacy_id: string;
+  victorian_percentile: number | null;
+  evidence_confidence: string;
+}
+export async function fetchMapDispensingPotentials(pharmacyIds: string[]) {
+  if (pharmacyIds.length === 0) return new Map<string, MapDispensingPotential>();
+  const { data, error } = await supabase
+    .from("pharmacy_dispensing_potential")
+    .select("pharmacy_id,victorian_percentile,evidence_confidence")
+    .in("pharmacy_id", pharmacyIds.slice(0, 500));
+  if (error) throw new Error(error.message);
+  return new Map((data ?? []).map((row: MapDispensingPotential) => [row.pharmacy_id, row]));
+}
 export async function fetchCalibrationSummary(pharmacyId: string) {
   const organisationId = await getCurrentOrganisationId();
   const { data, error, count } = await supabase

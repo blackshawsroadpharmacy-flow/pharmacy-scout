@@ -31,6 +31,10 @@ import {
 } from "@/lib/candidate-analysis";
 import type { StatewideSearchResult } from "@/lib/statewide-search";
 import { fetchPharmacyPipelineStatuses, type PipelineStage } from "@/lib/pharmacy-pipeline";
+import {
+  fetchMapDispensingPotentials,
+  type MapDispensingPotential,
+} from "@/lib/dispensing-potential";
 
 const MapView = lazy(() =>
   import("@/components/map/map-view").then((m) => ({ default: m.MapView })),
@@ -39,6 +43,7 @@ const EMPTY_PIPELINE_STATUSES = new Map<
   string,
   import("@/lib/pharmacy-pipeline").PharmacyPipelineStatus
 >();
+const EMPTY_DISPENSING_POTENTIALS = new Map<string, MapDispensingPotential>();
 
 type MapScreenProps = {
   selectedPremisesId?: string | null;
@@ -67,6 +72,9 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
   const [candidateRadiusM, setCandidateRadiusM] = useState(1500);
   const [addressSearchStatus, setAddressSearchStatus] = useState<string | null>(null);
   const [pipelineStageFilter, setPipelineStageFilter] = useState<PipelineStage | "all">("all");
+  const [potentialFilter, setPotentialFilter] = useState<"all" | "strong" | "high-confidence">(
+    "all",
+  );
   const candidateMode = mode === "greenfield" || mode === "relocation";
 
   const pharmacyRequestKey = viewport ? viewportRequestKey("pharmacies", viewport, filters) : null;
@@ -137,17 +145,35 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
   const pipelineStatuses = authed
     ? (pipelineQ.data ?? EMPTY_PIPELINE_STATUSES)
     : EMPTY_PIPELINE_STATUSES;
+  const dispensingPotentialQ = useQuery({
+    queryKey: ["map-dispensing-potential", visiblePremisesIds],
+    queryFn: () => fetchMapDispensingPotentials(visiblePremisesIds),
+    enabled: layers.dispensingPotential && visiblePremisesIds.length > 0,
+    staleTime: 5 * 60 * 1000,
+  });
+  const dispensingPotentials = layers.dispensingPotential
+    ? (dispensingPotentialQ.data ?? EMPTY_DISPENSING_POTENTIALS)
+    : EMPTY_DISPENSING_POTENTIALS;
 
   useEffect(() => {
     setSelectedId(selectedPremisesId);
   }, [selectedPremisesId]);
 
-  const filtered =
+  const pipelineFiltered =
     pipelineStageFilter === "all"
       ? all
       : all.filter(
           (point) => pipelineStatuses.get(point.id)?.pipeline_stage === pipelineStageFilter,
         );
+  const filtered =
+    !layers.dispensingPotential || potentialFilter === "all"
+      ? pipelineFiltered
+      : pipelineFiltered.filter((point) => {
+          const rating = dispensingPotentials.get(point.id);
+          if (!rating) return false;
+          if (potentialFilter === "high-confidence") return rating.evidence_confidence === "high";
+          return (rating.victorian_percentile ?? -1) >= 75;
+        });
   const externalPoints = useMemo(
     () => [
       ...(layers.supermarkets ? (supermarketQ.data?.items ?? []) : []),
@@ -304,6 +330,7 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
             population={populationQ.data ?? null}
             populationMetric={populationMetric}
             pipelineStatuses={pipelineStatuses}
+            dispensingPotentials={dispensingPotentials}
           />
         </Suspense>
       </ClientOnly>
@@ -379,6 +406,26 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
               P
             </span>
             <span>Coloured halo = private pipeline stage</span>
+          </div>
+        </div>
+      )}
+      {layers.dispensingPotential && (
+        <div className="absolute bottom-8 left-3 z-[1000] w-60 rounded-lg border border-border bg-card/95 p-3 text-xs shadow-lg backdrop-blur-sm">
+          <label className="font-semibold text-foreground" htmlFor="potential-filter">
+            Geographic Dispensing Potential
+          </label>
+          <select
+            id="potential-filter"
+            value={potentialFilter}
+            onChange={(event) => setPotentialFilter(event.target.value as typeof potentialFilter)}
+            className="mt-2 w-full rounded border border-input bg-background px-2 py-1.5"
+          >
+            <option value="all">All evidence confidence</option>
+            <option value="strong">Strong potential (75th+ percentile)</option>
+            <option value="high-confidence">High evidence confidence</option>
+          </select>
+          <div className="mt-2 text-muted-foreground">
+            Coloured badge = relative percentile. Dashed = low confidence. Red P fill is unchanged.
           </div>
         </div>
       )}

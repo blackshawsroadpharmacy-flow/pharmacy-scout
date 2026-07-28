@@ -6,6 +6,7 @@ export interface LayerState {
   medicalCentres: boolean;
   populationDensity: boolean;
   populationGrowth: boolean;
+  dispensingPotential: boolean;
 }
 
 export const DEFAULT_LAYERS: LayerState = {
@@ -14,6 +15,7 @@ export const DEFAULT_LAYERS: LayerState = {
   medicalCentres: false,
   populationDensity: false,
   populationGrowth: false,
+  dispensingPotential: false,
 };
 
 export const ACTIVE_LAYERS: Array<{
@@ -41,6 +43,11 @@ export const ACTIVE_LAYERS: Array<{
     key: "populationGrowth",
     label: "Population growth (ABS 2023–24)",
     dataSource: "ABS SA2 Regional Population 2024",
+  },
+  {
+    key: "dispensingPotential",
+    label: "Geographic Dispensing Potential",
+    dataSource: "Server-side model gdp-v1.0.0",
   },
 ];
 
