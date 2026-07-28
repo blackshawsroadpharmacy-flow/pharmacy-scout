@@ -47,9 +47,16 @@ const EMPTY_DISPENSING_POTENTIALS = new Map<string, MapDispensingPotential>();
 
 type MapScreenProps = {
   selectedPremisesId?: string | null;
+  publicMapState?: {
+    lat?: number;
+    lng?: number;
+    zoom?: number;
+    layers?: string;
+    potential?: "all" | "strong" | "high-confidence";
+  };
 };
 
-export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
+export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScreenProps) {
   const navigate = useNavigate();
   const { user } = useSession();
   const authed = !!user;
@@ -62,9 +69,20 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
   } | null>(null);
   const [leftOpen, setLeftOpen] = useState(true);
   const [layersOpen, setLayersOpen] = useState(false);
-  const [layers, setLayers] = useState<LayerState>(DEFAULT_LAYERS);
+  const [layers, setLayers] = useState<LayerState>(() => ({
+    ...DEFAULT_LAYERS,
+    supermarkets: publicMapState?.layers?.includes("supermarkets") ?? false,
+    medicalCentres: publicMapState?.layers?.includes("medical") ?? false,
+    populationDensity: publicMapState?.layers?.includes("density") ?? false,
+    populationGrowth: publicMapState?.layers?.includes("growth") ?? false,
+    dispensingPotential: publicMapState?.layers?.includes("potential") ?? false,
+  }));
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
-  const [flyTo, setFlyTo] = useState<{ lat: number; lng: number; zoom?: number } | null>(null);
+  const [flyTo, setFlyTo] = useState<{ lat: number; lng: number; zoom?: number } | null>(() =>
+    publicMapState?.lat != null && publicMapState.lng != null
+      ? { lat: publicMapState.lat, lng: publicMapState.lng, zoom: publicMapState.zoom }
+      : null,
+  );
   const [authOpen, setAuthOpen] = useState(false);
   const [authReason, setAuthReason] = useState("");
   const [viewport, setViewport] = useState<ViewportBounds | null>(null);
@@ -73,7 +91,7 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
   const [addressSearchStatus, setAddressSearchStatus] = useState<string | null>(null);
   const [pipelineStageFilter, setPipelineStageFilter] = useState<PipelineStage | "all">("all");
   const [potentialFilter, setPotentialFilter] = useState<"all" | "strong" | "high-confidence">(
-    "all",
+    publicMapState?.potential ?? "all",
   );
   const candidateMode = mode === "greenfield" || mode === "relocation";
 
@@ -282,7 +300,7 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
     setFlyTo({ lat: result.lat, lng: result.lng, zoom: 15 });
   }
 
-  function updateViewport(next: ViewportBounds) {
+  function updateViewport(next: ViewportBounds & { lat: number; lng: number; zoom: number }) {
     const normalized = normalizeViewportBounds(next);
     if (!normalized) return;
     setViewport((current) =>
@@ -294,6 +312,23 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
         ? current
         : normalized,
     );
+    if (window.location.pathname !== "/") return;
+    const search = new URLSearchParams();
+    search.set("lat", next.lat.toFixed(5));
+    search.set("lng", next.lng.toFixed(5));
+    search.set("z", String(next.zoom));
+    const publicLayers = [
+      layers.supermarkets ? "supermarkets" : null,
+      layers.medicalCentres ? "medical" : null,
+      layers.populationDensity ? "density" : null,
+      layers.populationGrowth ? "growth" : null,
+      layers.dispensingPotential ? "potential" : null,
+    ].filter(Boolean);
+    if (publicLayers.length) search.set("layers", publicLayers.join(","));
+    if (layers.dispensingPotential && potentialFilter !== "all") {
+      search.set("potential", potentialFilter);
+    }
+    window.history.replaceState(window.history.state, "", `/?${search.toString()}`);
   }
 
   return (
