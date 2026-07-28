@@ -169,11 +169,11 @@ export type Database = {
           exclusion_notes: string | null
           id: string
           import_batch_id: string | null
-          inclusion_notes: string | null
           includes_daa_volume: boolean | null
           includes_institutional_supply: boolean | null
           includes_private_prescriptions: boolean | null
           includes_under_copayment: boolean | null
+          inclusion_notes: string | null
           observed_scripts_per_day: number
           organisation_id: string
           pharmacy_id: string
@@ -196,11 +196,11 @@ export type Database = {
           exclusion_notes?: string | null
           id?: string
           import_batch_id?: string | null
-          inclusion_notes?: string | null
           includes_daa_volume?: boolean | null
           includes_institutional_supply?: boolean | null
           includes_private_prescriptions?: boolean | null
           includes_under_copayment?: boolean | null
+          inclusion_notes?: string | null
           observed_scripts_per_day: number
           organisation_id: string
           pharmacy_id: string
@@ -223,11 +223,11 @@ export type Database = {
           exclusion_notes?: string | null
           id?: string
           import_batch_id?: string | null
-          inclusion_notes?: string | null
           includes_daa_volume?: boolean | null
           includes_institutional_supply?: boolean | null
           includes_private_prescriptions?: boolean | null
           includes_under_copayment?: boolean | null
+          inclusion_notes?: string | null
           observed_scripts_per_day?: number
           organisation_id?: string
           pharmacy_id?: string
