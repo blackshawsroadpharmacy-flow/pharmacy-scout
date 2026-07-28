@@ -112,6 +112,225 @@ export type Database = {
           },
         ]
       }
+      dispensing_calibration_observations: {
+        Row: {
+          confidence: string
+          entered_at: string
+          entered_by: string | null
+          evidence_period_end: string
+          evidence_period_start: string
+          id: string
+          includes_daa_volume: boolean | null
+          includes_institutional_supply: boolean | null
+          includes_private_prescriptions: boolean | null
+          includes_under_copayment: boolean | null
+          observed_scripts_per_day: number
+          organisation_id: string
+          pharmacy_id: string
+          source: string
+          source_document_or_note: string | null
+          source_type: string
+          trading_days_per_week: number
+          updated_at: string
+        }
+        Insert: {
+          confidence: string
+          entered_at?: string
+          entered_by?: string | null
+          evidence_period_end: string
+          evidence_period_start: string
+          id?: string
+          includes_daa_volume?: boolean | null
+          includes_institutional_supply?: boolean | null
+          includes_private_prescriptions?: boolean | null
+          includes_under_copayment?: boolean | null
+          observed_scripts_per_day: number
+          organisation_id: string
+          pharmacy_id: string
+          source: string
+          source_document_or_note?: string | null
+          source_type: string
+          trading_days_per_week: number
+          updated_at?: string
+        }
+        Update: {
+          confidence?: string
+          entered_at?: string
+          entered_by?: string | null
+          evidence_period_end?: string
+          evidence_period_start?: string
+          id?: string
+          includes_daa_volume?: boolean | null
+          includes_institutional_supply?: boolean | null
+          includes_private_prescriptions?: boolean | null
+          includes_under_copayment?: boolean | null
+          observed_scripts_per_day?: number
+          organisation_id?: string
+          pharmacy_id?: string
+          source?: string
+          source_document_or_note?: string | null
+          source_type?: string
+          trading_days_per_week?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispensing_calibration_observations_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispensing_calibration_observations_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispensing_calibration_observations_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises_geo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dispensing_demographic_sources: {
+        Row: {
+          boundary_edition: string
+          created_at: string
+          dataset_name: string
+          exact_source: string
+          fetched_at: string
+          fields_used: string[]
+          geography_level: string
+          id: string
+          import_method: string
+          licence: string
+          reference_year: number
+          row_count: number | null
+          source_url: string
+        }
+        Insert: {
+          boundary_edition: string
+          created_at?: string
+          dataset_name: string
+          exact_source: string
+          fetched_at: string
+          fields_used: string[]
+          geography_level: string
+          id?: string
+          import_method: string
+          licence: string
+          reference_year: number
+          row_count?: number | null
+          source_url: string
+        }
+        Update: {
+          boundary_edition?: string
+          created_at?: string
+          dataset_name?: string
+          exact_source?: string
+          fetched_at?: string
+          fields_used?: string[]
+          geography_level?: string
+          id?: string
+          import_method?: string
+          licence?: string
+          reference_year?: number
+          row_count?: number | null
+          source_url?: string
+        }
+        Relationships: []
+      }
+      dispensing_population_areas: {
+        Row: {
+          annual_growth_count: number | null
+          annual_growth_percent: number | null
+          area_km2: number | null
+          boundary: unknown
+          imported_at: string
+          peer_group: string | null
+          population_2023: number | null
+          population_2024: number | null
+          population_density_2024: number | null
+          sa2_code_2021: string
+          sa2_name_2021: string
+          source_id: string
+        }
+        Insert: {
+          annual_growth_count?: number | null
+          annual_growth_percent?: number | null
+          area_km2?: number | null
+          boundary: unknown
+          imported_at?: string
+          peer_group?: string | null
+          population_2023?: number | null
+          population_2024?: number | null
+          population_density_2024?: number | null
+          sa2_code_2021: string
+          sa2_name_2021: string
+          source_id: string
+        }
+        Update: {
+          annual_growth_count?: number | null
+          annual_growth_percent?: number | null
+          area_km2?: number | null
+          boundary?: unknown
+          imported_at?: string
+          peer_group?: string | null
+          population_2023?: number | null
+          population_2024?: number | null
+          population_density_2024?: number | null
+          sa2_code_2021?: string
+          sa2_name_2021?: string
+          source_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispensing_population_areas_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "dispensing_demographic_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dispensing_potential_methods: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          label: string
+          minimum_calibration_observations: number
+          validation_requirements: Json
+          version: string
+          weights: Json
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          label: string
+          minimum_calibration_observations?: number
+          validation_requirements: Json
+          version: string
+          weights: Json
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          label?: string
+          minimum_calibration_observations?: number
+          validation_requirements?: Json
+          version?: string
+          weights?: Json
+        }
+        Relationships: []
+      }
       external_entity_conflicts: {
         Row: {
           category: string
@@ -1309,6 +1528,88 @@ export type Database = {
           {
             foreignKeyName: "pharmacy_businesses_premises_id_fkey"
             columns: ["premises_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises_geo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pharmacy_dispensing_potential: {
+        Row: {
+          calculated_at: string
+          component_scores: Json
+          evidence_confidence: string
+          experimental_scripts_day_equivalent: number | null
+          explanation: Json
+          method_id: string
+          missing_inputs: string[]
+          peer_group: string | null
+          peer_percentile: number | null
+          pharmacy_id: string
+          raw_metrics: Json
+          relative_score: number | null
+          scripts_day_status: string
+          theoretical_scripts_day_high: number | null
+          theoretical_scripts_day_low: number | null
+          victorian_percentile: number | null
+          warnings: string[]
+        }
+        Insert: {
+          calculated_at?: string
+          component_scores: Json
+          evidence_confidence: string
+          experimental_scripts_day_equivalent?: number | null
+          explanation: Json
+          method_id: string
+          missing_inputs?: string[]
+          peer_group?: string | null
+          peer_percentile?: number | null
+          pharmacy_id: string
+          raw_metrics: Json
+          relative_score?: number | null
+          scripts_day_status?: string
+          theoretical_scripts_day_high?: number | null
+          theoretical_scripts_day_low?: number | null
+          victorian_percentile?: number | null
+          warnings?: string[]
+        }
+        Update: {
+          calculated_at?: string
+          component_scores?: Json
+          evidence_confidence?: string
+          experimental_scripts_day_equivalent?: number | null
+          explanation?: Json
+          method_id?: string
+          missing_inputs?: string[]
+          peer_group?: string | null
+          peer_percentile?: number | null
+          pharmacy_id?: string
+          raw_metrics?: Json
+          relative_score?: number | null
+          scripts_day_status?: string
+          theoretical_scripts_day_high?: number | null
+          theoretical_scripts_day_low?: number | null
+          victorian_percentile?: number | null
+          warnings?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_dispensing_potential_method_id_fkey"
+            columns: ["method_id"]
+            isOneToOne: false
+            referencedRelation: "dispensing_potential_methods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_dispensing_potential_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_dispensing_potential_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
             isOneToOne: false
             referencedRelation: "pharmacy_premises_geo"
             referencedColumns: ["id"]
@@ -2977,6 +3278,7 @@ export type Database = {
       postgis_version: { Args: never; Returns: string }
       postgis_wagyu_version: { Args: never; Returns: string }
       public_data_freshness: { Args: never; Returns: Json }
+      refresh_dispensing_potential_v1: { Args: never; Returns: number }
       scenario_evidence_at_point: {
         Args: { p_lat: number; p_lng: number; p_radius_m: number }
         Returns: Json

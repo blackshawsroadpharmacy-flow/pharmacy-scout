@@ -22,6 +22,7 @@ import {
   type PopulationProperties,
 } from "@/lib/population-intelligence";
 import type { PharmacyPipelineStatus } from "@/lib/pharmacy-pipeline";
+import type { MapDispensingPotential } from "@/lib/dispensing-potential";
 
 // Ensure default marker icons resolve under bundlers (used only as fallback).
 import iconRetina from "leaflet/dist/images/marker-icon-2x.png";
@@ -154,6 +155,7 @@ export function MapView({
   population = null,
   populationMetric = null,
   pipelineStatuses = new Map(),
+  dispensingPotentials = new Map(),
 }: {
   premises: PremisesMapPoint[];
   selectedId: string | null;
@@ -171,6 +173,7 @@ export function MapView({
   population?: PopulationFeatureCollection | null;
   populationMetric?: PopulationMetric | null;
   pipelineStatuses?: Map<string, PharmacyPipelineStatus>;
+  dispensingPotentials?: Map<string, MapDispensingPotential>;
 }) {
   const iconCache = useRef(new Map<string, L.DivIcon>());
   const markers = useMemo(
@@ -180,7 +183,17 @@ export function MapView({
         const selected = p.id === selectedId;
         const approximate = isApproximate(p);
         const pipelineStage = pipelineStatuses.get(p.id)?.pipeline_stage ?? null;
-        const key = `${kind}-${selected ? 1 : 0}-${approximate ? 1 : 0}-${pipelineStage ?? "none"}`;
+        const potential = dispensingPotentials.get(p.id);
+        const potentialBand =
+          potential?.victorian_percentile == null
+            ? null
+            : potential.victorian_percentile >= 75
+              ? "high"
+              : potential.victorian_percentile >= 40
+                ? "medium"
+                : "low";
+        const lowConfidence = potential?.evidence_confidence === "low";
+        const key = `${kind}-${selected ? 1 : 0}-${approximate ? 1 : 0}-${pipelineStage ?? "none"}-${potentialBand ?? "none"}-${lowConfidence ? 1 : 0}`;
         let icon = iconCache.current.get(key);
         if (!icon) {
           const classes = [
@@ -189,6 +202,8 @@ export function MapView({
             approximate ? "approximate" : "",
             selected ? "selected" : "",
             pipelineStage ? `pipeline-stage-${pipelineStage}` : "",
+            potentialBand ? `potential-${potentialBand}` : "",
+            lowConfidence ? "potential-low-confidence" : "",
           ]
             .filter(Boolean)
             .join(" ");
@@ -202,7 +217,7 @@ export function MapView({
         }
         return { p, icon };
       }),
-    [premises, selectedId, savedIds, pipelineStatuses],
+    [premises, selectedId, savedIds, pipelineStatuses, dispensingPotentials],
   );
 
   return (

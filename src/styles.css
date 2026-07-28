@@ -304,6 +304,7 @@
 
 /* Custom pharmacy pin — red circular badge with white P */
 .pharmacy-pin {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -325,6 +326,32 @@
   box-shadow:
     0 0 0 3px var(--pipeline-stage-colour),
     0 2px 6px rgb(15 23 42 / 0.35);
+}
+.pharmacy-pin.potential-low::after,
+.pharmacy-pin.potential-medium::after,
+.pharmacy-pin.potential-high::after {
+  position: absolute;
+  right: -5px;
+  top: -5px;
+  width: 10px;
+  height: 10px;
+  border: 1px solid white;
+  border-radius: 999px;
+  content: "";
+  background: var(--potential-colour);
+}
+.pharmacy-pin.potential-low {
+  --potential-colour: #94a3b8;
+}
+.pharmacy-pin.potential-medium {
+  --potential-colour: #0ea5e9;
+}
+.pharmacy-pin.potential-high {
+  --potential-colour: #16a34a;
+}
+.pharmacy-pin.potential-low-confidence::after {
+  border-style: dashed;
+  opacity: 0.65;
 }
 
 .pharmacy-pin.pipeline-stage-watchlist {
