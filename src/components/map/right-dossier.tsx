@@ -352,6 +352,7 @@ function CalibrationForm({ pharmacyId, onSaved }: { pharmacyId: string; onSaved:
     [end, setEnd] = useState(""),
     [days, setDays] = useState("6"),
     [source, setSource] = useState(""),
+    [sourceReference, setSourceReference] = useState(""),
     [notes, setNotes] = useState(""),
     [confidence, setConfidence] = useState<"low" | "medium" | "high">("medium"),
     [privateIncluded, setPrivateIncluded] = useState(false),
@@ -371,6 +372,7 @@ function CalibrationForm({ pharmacyId, onSaved }: { pharmacyId: string; onSaved:
         includes_daa_volume: daaIncluded,
         includes_institutional_supply: institutionalIncluded,
         source_type: source,
+        source: sourceReference,
         source_document_or_note: notes || null,
         confidence,
       });
@@ -417,6 +419,12 @@ function CalibrationForm({ pharmacyId, onSaved }: { pharmacyId: string; onSaved:
             placeholder="Source type"
             value={source}
             onChange={(e) => setSource(e.target.value)}
+          />
+          <input
+            className="input col-span-2"
+            placeholder="Source / provenance"
+            value={sourceReference}
+            onChange={(e) => setSourceReference(e.target.value)}
           />
           <select
             className="input"

@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   Waypoints,
   Radar,
+  ClipboardCheck,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -20,6 +21,7 @@ const NAV = [
   { to: "/app/acquisitions", label: "Acquisition Scout", icon: Briefcase },
   { to: "/app/scenarios", label: "Saved scenarios", icon: Waypoints },
   { to: "/app/radar", label: "Opportunity Radar", icon: Radar },
+  { to: "/app/calibration", label: "Calibration evidence", icon: ClipboardCheck },
   { to: "/app/data-sources", label: "Data & Sources", icon: Database },
   { to: "/app/security", label: "Security status", icon: ShieldCheck },
 ];

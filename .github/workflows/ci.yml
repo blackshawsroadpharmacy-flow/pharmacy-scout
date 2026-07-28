@@ -66,5 +66,6 @@ jobs:
           supabase/tests/opportunity_workspace.test.sql
           supabase/tests/saved_scenarios.test.sql
           supabase/tests/dispensing_potential.test.sql
+          supabase/tests/calibration_workspace.test.sql
       - run: npm run check:supabase-schema
       - run: supabase db lint --local --level error

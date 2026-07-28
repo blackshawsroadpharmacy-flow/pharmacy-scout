@@ -50,6 +50,7 @@ export async function saveCalibrationObservation(input: {
   includes_daa_volume: boolean | null;
   includes_institutional_supply: boolean | null;
   source_type: string;
+  source: string;
   source_document_or_note: string | null;
   confidence: "low" | "medium" | "high";
 }) {
