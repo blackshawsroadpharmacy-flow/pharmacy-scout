@@ -112,6 +112,53 @@ export type Database = {
           },
         ]
       }
+      dispensing_calibration_import_batches: {
+        Row: {
+          file_name: string
+          id: string
+          imported_at: string
+          imported_by: string | null
+          organisation_id: string
+          quarantine_summary: Json
+          rows_imported: number
+          rows_quarantined: number
+          rows_received: number
+          source_note: string | null
+        }
+        Insert: {
+          file_name: string
+          id?: string
+          imported_at?: string
+          imported_by?: string | null
+          organisation_id: string
+          quarantine_summary?: Json
+          rows_imported?: number
+          rows_quarantined?: number
+          rows_received?: number
+          source_note?: string | null
+        }
+        Update: {
+          file_name?: string
+          id?: string
+          imported_at?: string
+          imported_by?: string | null
+          organisation_id?: string
+          quarantine_summary?: Json
+          rows_imported?: number
+          rows_quarantined?: number
+          rows_received?: number
+          source_note?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispensing_calibration_import_batches_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dispensing_calibration_observations: {
         Row: {
           confidence: string
@@ -119,7 +166,10 @@ export type Database = {
           entered_by: string | null
           evidence_period_end: string
           evidence_period_start: string
+          exclusion_notes: string | null
           id: string
+          import_batch_id: string | null
+          inclusion_notes: string | null
           includes_daa_volume: boolean | null
           includes_institutional_supply: boolean | null
           includes_private_prescriptions: boolean | null
@@ -127,6 +177,10 @@ export type Database = {
           observed_scripts_per_day: number
           organisation_id: string
           pharmacy_id: string
+          review_notes: string | null
+          review_status: string
+          reviewed_at: string | null
+          reviewed_by: string | null
           source: string
           source_document_or_note: string | null
           source_type: string
@@ -139,7 +193,10 @@ export type Database = {
           entered_by?: string | null
           evidence_period_end: string
           evidence_period_start: string
+          exclusion_notes?: string | null
           id?: string
+          import_batch_id?: string | null
+          inclusion_notes?: string | null
           includes_daa_volume?: boolean | null
           includes_institutional_supply?: boolean | null
           includes_private_prescriptions?: boolean | null
@@ -147,6 +204,10 @@ export type Database = {
           observed_scripts_per_day: number
           organisation_id: string
           pharmacy_id: string
+          review_notes?: string | null
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           source: string
           source_document_or_note?: string | null
           source_type: string
@@ -159,7 +220,10 @@ export type Database = {
           entered_by?: string | null
           evidence_period_end?: string
           evidence_period_start?: string
+          exclusion_notes?: string | null
           id?: string
+          import_batch_id?: string | null
+          inclusion_notes?: string | null
           includes_daa_volume?: boolean | null
           includes_institutional_supply?: boolean | null
           includes_private_prescriptions?: boolean | null
@@ -167,6 +231,10 @@ export type Database = {
           observed_scripts_per_day?: number
           organisation_id?: string
           pharmacy_id?: string
+          review_notes?: string | null
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           source?: string
           source_document_or_note?: string | null
           source_type?: string
@@ -174,6 +242,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "dispensing_calibration_observations_import_batch_id_fkey"
+            columns: ["import_batch_id"]
+            isOneToOne: false
+            referencedRelation: "dispensing_calibration_import_batches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "dispensing_calibration_observations_organisation_id_fkey"
             columns: ["organisation_id"]
@@ -2918,6 +2993,14 @@ export type Database = {
             }
             Returns: string
           }
+      calibration_observation_warnings: {
+        Args: { target_organisation_id: string }
+        Returns: {
+          inconsistent_inclusion_count: number
+          observation_id: string
+          overlap_count: number
+        }[]
+      }
       candidate_external_summary: {
         Args: { p_lat: number; p_lng: number }
         Returns: Json
