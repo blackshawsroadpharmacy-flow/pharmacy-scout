@@ -99,6 +99,7 @@ CREATE TABLE public.dispensing_population_areas (
   annual_growth_percent NUMERIC,
   area_km2 NUMERIC,
   population_density_2024 NUMERIC,
+  peer_group TEXT CHECK (peer_group IN ('metropolitan','regional')),
   source_id UUID NOT NULL REFERENCES public.dispensing_demographic_sources(id),
   imported_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -161,7 +162,7 @@ DECLARE affected INTEGER;
 BEGIN
   INSERT INTO public.pharmacy_dispensing_potential (
     pharmacy_id, method_id, calculated_at, raw_metrics, component_scores,
-    missing_inputs, warnings, evidence_confidence, relative_score, explanation
+    missing_inputs, warnings, evidence_confidence, relative_score, explanation, peer_group
   )
   SELECT p.id, m.id, now(),
     jsonb_build_object(
@@ -196,7 +197,7 @@ BEGIN
       CASE WHEN pop.population_2024 IS NULL THEN 'surrounding_population' END,
       CASE WHEN pop.annual_growth_percent IS NULL THEN 'population_growth' END,
       'age_disability_SEIFA_vehicle_access',
-      'metropolitan_or_regional_peer_group'
+      CASE WHEN pop.peer_group IS NULL THEN 'metropolitan_or_regional_peer_group' END
     ],NULL),
     ARRAY['External-location absence is not evidence of none','No prescription volume is inferred'],
     CASE WHEN pop.population_2024 IS NULL THEN 'low' ELSE 'medium' END,
@@ -220,7 +221,8 @@ BEGIN
         'competition_share','equal base share among sourced pharmacies within 2 km, widened uncertainty',
         'status','experimental and versioned, not validated'
       )
-    )
+    ),
+    pop.peer_group
   FROM public.pharmacy_premises p
   CROSS JOIN public.dispensing_potential_methods m
   CROSS JOIN LATERAL (
@@ -239,7 +241,7 @@ BEGIN
       (SELECT count(*) FROM public.supermarkets q WHERE ST_DWithin(q.location,p.location,2000))::INTEGER supermarkets_2km
   ) nearby
   LEFT JOIN LATERAL (
-    SELECT a.population_2024,a.population_density_2024,a.annual_growth_percent
+    SELECT a.population_2024,a.population_density_2024,a.annual_growth_percent,a.peer_group
     FROM public.dispensing_population_areas a
     WHERE ST_Intersects(a.boundary,p.location::geometry)
     ORDER BY a.sa2_code_2021 LIMIT 1
@@ -249,7 +251,8 @@ BEGIN
     calculated_at=excluded.calculated_at, raw_metrics=excluded.raw_metrics,
     component_scores=excluded.component_scores, missing_inputs=excluded.missing_inputs,
     warnings=excluded.warnings, evidence_confidence=excluded.evidence_confidence,
-    relative_score=excluded.relative_score, explanation=excluded.explanation;
+    relative_score=excluded.relative_score, explanation=excluded.explanation,
+    peer_group=excluded.peer_group;
   GET DIAGNOSTICS affected = ROW_COUNT;
   UPDATE public.pharmacy_dispensing_potential d
   SET victorian_percentile = ranked.percentile
@@ -257,6 +260,17 @@ BEGIN
     SELECT pharmacy_id, method_id,
       round((percent_rank() OVER (PARTITION BY method_id ORDER BY relative_score) * 100)::numeric, 1) percentile
     FROM public.pharmacy_dispensing_potential WHERE relative_score IS NOT NULL
+  ) ranked
+  WHERE d.pharmacy_id=ranked.pharmacy_id AND d.method_id=ranked.method_id;
+  UPDATE public.pharmacy_dispensing_potential d
+  SET peer_percentile = ranked.percentile
+  FROM (
+    SELECT pharmacy_id, method_id,
+      round((percent_rank() OVER (
+        PARTITION BY method_id, peer_group ORDER BY relative_score
+      ) * 100)::numeric, 1) percentile
+    FROM public.pharmacy_dispensing_potential
+    WHERE relative_score IS NOT NULL AND peer_group IS NOT NULL
   ) ranked
   WHERE d.pharmacy_id=ranked.pharmacy_id AND d.method_id=ranked.method_id;
   UPDATE public.pharmacy_dispensing_potential d SET

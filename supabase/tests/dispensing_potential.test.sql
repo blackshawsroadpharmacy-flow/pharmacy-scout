@@ -1,5 +1,5 @@
 BEGIN;
-SELECT plan(8);
+SELECT plan(9);
 SELECT has_table('public','pharmacy_dispensing_potential','cached potential table exists');
 SELECT has_table('public','dispensing_calibration_observations','private calibration table exists');
 SELECT ok(NOT has_table_privilege('anon','public.dispensing_calibration_observations','SELECT'),'anonymous cannot read actual dispensing evidence');
@@ -7,6 +7,7 @@ SELECT ok(has_table_privilege('anon','public.pharmacy_dispensing_potential','SEL
 SELECT function_privs_are('public','refresh_dispensing_potential_v1',ARRAY[]::text[],'anon',ARRAY[]::text[],'anonymous cannot refresh statewide model');
 SELECT is((SELECT count(*) FROM public.dispensing_calibration_observations),0::bigint,'no fabricated calibration observations exist');
 SELECT ok((SELECT count(*) FROM public.pharmacy_dispensing_potential)>0,'every mapped pharmacy is refreshed');
+SELECT is((SELECT count(*) FROM public.pharmacy_dispensing_potential WHERE peer_group IS NULL OR peer_percentile IS NULL),0::bigint,'every mapped pharmacy has an official ABS metropolitan or regional peer percentile');
 SELECT is((SELECT count(*) FROM public.pharmacy_dispensing_potential WHERE scripts_day_status='Scripts/day estimate not yet calibrated' AND experimental_scripts_day_equivalent IS NOT NULL),0::bigint,'uncalibrated status never carries a precise estimate');
 SELECT * FROM finish();
 ROLLBACK;

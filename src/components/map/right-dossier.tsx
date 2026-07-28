@@ -258,6 +258,11 @@ function DispensingPotentialSection({
                 : `${p.victorian_percentile}th Victorian percentile`}
             </span>
           </div>
+          <div className="mt-1 text-xs text-muted-foreground">
+            {p.peer_percentile == null
+              ? "Metropolitan or regional peer percentile unavailable"
+              : `${p.peer_percentile}th ${p.peer_group} peer percentile`}
+          </div>
           <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
             <Metric label="Demand pressure" value={components.demand_pressure} />
             <Metric label="Competitive position" value={components.competitive_position} />

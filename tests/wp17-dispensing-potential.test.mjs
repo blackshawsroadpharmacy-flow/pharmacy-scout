@@ -34,6 +34,8 @@ test("statewide features and scores are server-side, cached and versioned", () =
   ])
     assert.match(migration, new RegExp(x));
   assert.match(migration, /gdp-v1\.0\.0/);
+  assert.match(migration, /peer_percentile/);
+  assert.match(dossier, /peer percentile/);
 });
 test("theoretical output is ranged, experimental and never actual volume", () => {
   assert.match(dossier, /Experimental scripts\/day equivalent/);

@@ -252,6 +252,7 @@ export type Database = {
           area_km2: number | null
           boundary: unknown
           imported_at: string
+          peer_group: string | null
           population_2023: number | null
           population_2024: number | null
           population_density_2024: number | null
@@ -265,6 +266,7 @@ export type Database = {
           area_km2?: number | null
           boundary: unknown
           imported_at?: string
+          peer_group?: string | null
           population_2023?: number | null
           population_2024?: number | null
           population_density_2024?: number | null
@@ -278,6 +280,7 @@ export type Database = {
           area_km2?: number | null
           boundary?: unknown
           imported_at?: string
+          peer_group?: string | null
           population_2023?: number | null
           population_2024?: number | null
           population_density_2024?: number | null
