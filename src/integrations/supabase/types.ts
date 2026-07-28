@@ -7,36 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
-  }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       candidate_sites: {
@@ -621,6 +591,378 @@ export type Database = {
           },
         ]
       }
+      opportunity_checklist_items: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          label: string
+          opportunity_id: string
+          organisation_id: string
+          position: number
+          updated_at: string
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label: string
+          opportunity_id: string
+          organisation_id: string
+          position?: number
+          updated_at?: string
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label?: string
+          opportunity_id?: string
+          organisation_id?: string
+          position?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_checklist_items_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_checklist_items_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunity_commercial_figures: {
+        Row: {
+          amount: number
+          confidence: string
+          entered_at: string
+          entered_by: string | null
+          evidence_period_end: string | null
+          evidence_period_start: string | null
+          id: string
+          metric: string
+          opportunity_id: string
+          organisation_id: string
+          source: string
+          unit: string
+        }
+        Insert: {
+          amount: number
+          confidence?: string
+          entered_at?: string
+          entered_by?: string | null
+          evidence_period_end?: string | null
+          evidence_period_start?: string | null
+          id?: string
+          metric: string
+          opportunity_id: string
+          organisation_id: string
+          source: string
+          unit: string
+        }
+        Update: {
+          amount?: number
+          confidence?: string
+          entered_at?: string
+          entered_by?: string | null
+          evidence_period_end?: string | null
+          evidence_period_start?: string | null
+          id?: string
+          metric?: string
+          opportunity_id?: string
+          organisation_id?: string
+          source?: string
+          unit?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_commercial_figures_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_commercial_figures_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunity_documents: {
+        Row: {
+          file_name: string
+          id: string
+          mime_type: string | null
+          opportunity_id: string
+          organisation_id: string
+          size_bytes: number | null
+          storage_path: string
+          uploaded_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          file_name: string
+          id?: string
+          mime_type?: string | null
+          opportunity_id: string
+          organisation_id: string
+          size_bytes?: number | null
+          storage_path: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          file_name?: string
+          id?: string
+          mime_type?: string | null
+          opportunity_id?: string
+          organisation_id?: string
+          size_bytes?: number | null
+          storage_path?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_documents_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_documents_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunity_listing_history: {
+        Row: {
+          confidence: string
+          entered_by: string | null
+          evidence_period_end: string | null
+          evidence_period_start: string | null
+          id: string
+          listing_status: string
+          listing_url: string | null
+          opportunity_id: string
+          organisation_id: string
+          recorded_at: string
+          source: string
+        }
+        Insert: {
+          confidence?: string
+          entered_by?: string | null
+          evidence_period_end?: string | null
+          evidence_period_start?: string | null
+          id?: string
+          listing_status: string
+          listing_url?: string | null
+          opportunity_id: string
+          organisation_id: string
+          recorded_at?: string
+          source: string
+        }
+        Update: {
+          confidence?: string
+          entered_by?: string | null
+          evidence_period_end?: string | null
+          evidence_period_start?: string | null
+          id?: string
+          listing_status?: string
+          listing_url?: string | null
+          opportunity_id?: string
+          organisation_id?: string
+          recorded_at?: string
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_listing_history_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_listing_history_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunity_notes: {
+        Row: {
+          entered_at: string
+          entered_by: string | null
+          id: string
+          note_text: string
+          opportunity_id: string
+          organisation_id: string
+        }
+        Insert: {
+          entered_at?: string
+          entered_by?: string | null
+          id?: string
+          note_text: string
+          opportunity_id: string
+          organisation_id: string
+        }
+        Update: {
+          entered_at?: string
+          entered_by?: string | null
+          id?: string
+          note_text?: string
+          opportunity_id?: string
+          organisation_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_notes_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_notes_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunity_stage_history: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          from_stage: Database["public"]["Enums"]["pipeline_stage"] | null
+          id: string
+          opportunity_id: string
+          organisation_id: string
+          to_stage: Database["public"]["Enums"]["pipeline_stage"]
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          from_stage?: Database["public"]["Enums"]["pipeline_stage"] | null
+          id?: string
+          opportunity_id: string
+          organisation_id: string
+          to_stage: Database["public"]["Enums"]["pipeline_stage"]
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          from_stage?: Database["public"]["Enums"]["pipeline_stage"] | null
+          id?: string
+          opportunity_id?: string
+          organisation_id?: string
+          to_stage?: Database["public"]["Enums"]["pipeline_stage"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_stage_history_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_stage_history_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunity_tasks: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          due_date: string | null
+          id: string
+          opportunity_id: string
+          organisation_id: string
+          owner_name: string | null
+          owner_user_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          due_date?: string | null
+          id?: string
+          opportunity_id: string
+          organisation_id: string
+          owner_name?: string | null
+          owner_user_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          due_date?: string | null
+          id?: string
+          opportunity_id?: string
+          organisation_id?: string
+          owner_name?: string | null
+          owner_user_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_tasks_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_tasks_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organisation_members: {
         Row: {
           joined_at: string
@@ -743,58 +1085,94 @@ export type Database = {
       }
       pharmacy_businesses: {
         Row: {
+          annual_rent: number | null
           asking_price: number | null
+          broker_contact: string | null
+          broker_name: string | null
           broker_or_source: string | null
           canonical_address_snapshot: string | null
           canonical_name_snapshot: string | null
           created_at: string
           created_by: string | null
           date_first_seen: string | null
+          earnings: number | null
+          gross_profit: number | null
           id: string
+          lease_expiry: string | null
+          lease_option_periods: string | null
           listing_status: string
           listing_url: string | null
           opportunity_status: string | null
           organisation_id: string
           premises_id: string | null
           private_notes: string | null
+          scripts_per_day: number | null
+          stock_value: number | null
           trading_name: string
           updated_at: string
+          vendor_contact: string | null
+          vendor_name: string | null
+          wages: number | null
         }
         Insert: {
+          annual_rent?: number | null
           asking_price?: number | null
+          broker_contact?: string | null
+          broker_name?: string | null
           broker_or_source?: string | null
           canonical_address_snapshot?: string | null
           canonical_name_snapshot?: string | null
           created_at?: string
           created_by?: string | null
           date_first_seen?: string | null
+          earnings?: number | null
+          gross_profit?: number | null
           id?: string
+          lease_expiry?: string | null
+          lease_option_periods?: string | null
           listing_status?: string
           listing_url?: string | null
           opportunity_status?: string | null
           organisation_id: string
           premises_id?: string | null
           private_notes?: string | null
+          scripts_per_day?: number | null
+          stock_value?: number | null
           trading_name: string
           updated_at?: string
+          vendor_contact?: string | null
+          vendor_name?: string | null
+          wages?: number | null
         }
         Update: {
+          annual_rent?: number | null
           asking_price?: number | null
+          broker_contact?: string | null
+          broker_name?: string | null
           broker_or_source?: string | null
           canonical_address_snapshot?: string | null
           canonical_name_snapshot?: string | null
           created_at?: string
           created_by?: string | null
           date_first_seen?: string | null
+          earnings?: number | null
+          gross_profit?: number | null
           id?: string
+          lease_expiry?: string | null
+          lease_option_periods?: string | null
           listing_status?: string
           listing_url?: string | null
           opportunity_status?: string | null
           organisation_id?: string
           premises_id?: string | null
           private_notes?: string | null
+          scripts_per_day?: number | null
+          stock_value?: number | null
           trading_name?: string
           updated_at?: string
+          vendor_contact?: string | null
+          vendor_name?: string | null
+          wages?: number | null
         }
         Relationships: [
           {
@@ -3181,9 +3559,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       app_role: ["admin", "member"],
