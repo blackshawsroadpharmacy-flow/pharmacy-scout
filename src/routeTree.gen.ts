@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as BuildDotjsonRouteImport } from './routes/build[.]json'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppAcquisitionsRouteImport } from './routes/app.acquisitions'
@@ -40,6 +41,11 @@ const AppRoute = AppRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BuildDotjsonRoute = BuildDotjsonRouteImport.update({
+  id: '/build.json',
+  path: '/build.json',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
+  '/build.json': typeof BuildDotjsonRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/app/acquisitions': typeof AppAcquisitionsRoute
   '/app/data-sources': typeof AppDataSourcesRoute
@@ -101,6 +108,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
+  '/build.json': typeof BuildDotjsonRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/app/acquisitions': typeof AppAcquisitionsRoute
   '/app/data-sources': typeof AppDataSourcesRoute
@@ -116,6 +124,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
+  '/build.json': typeof BuildDotjsonRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/app/acquisitions': typeof AppAcquisitionsRoute
   '/app/data-sources': typeof AppDataSourcesRoute
@@ -132,6 +141,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/app'
     | '/auth'
+    | '/build.json'
     | '/sitemap.xml'
     | '/app/acquisitions'
     | '/app/data-sources'
@@ -145,6 +155,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/auth'
+    | '/build.json'
     | '/sitemap.xml'
     | '/app/acquisitions'
     | '/app/data-sources'
@@ -159,6 +170,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/app'
     | '/auth'
+    | '/build.json'
     | '/sitemap.xml'
     | '/app/acquisitions'
     | '/app/data-sources'
@@ -174,6 +186,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRoute
+  BuildDotjsonRoute: typeof BuildDotjsonRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   PharmacyIdRoute: typeof PharmacyIdRoute
 }
@@ -206,6 +219,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/build.json': {
+      id: '/build.json'
+      path: '/build.json'
+      fullPath: '/build.json'
+      preLoaderRoute: typeof BuildDotjsonRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -292,6 +312,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRoute,
+  BuildDotjsonRoute: BuildDotjsonRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   PharmacyIdRoute: PharmacyIdRoute,
 }
