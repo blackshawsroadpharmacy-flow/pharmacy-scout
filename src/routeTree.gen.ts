@@ -17,6 +17,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppAcquisitionsRouteImport } from './routes/app.acquisitions'
 import { Route as AppDataSourcesRouteImport } from './routes/app.data-sources'
+import { Route as AppRadarRouteImport } from './routes/app.radar'
 import { Route as AppScenariosRouteImport } from './routes/app.scenarios'
 import { Route as AppSecurityRouteImport } from './routes/app.security'
 import { Route as PharmacyIdRouteImport } from './routes/pharmacy.$id'
@@ -61,6 +62,11 @@ const AppDataSourcesRoute = AppDataSourcesRouteImport.update({
   path: '/data-sources',
   getParentRoute: () => AppRoute,
 } as any)
+const AppRadarRoute = AppRadarRouteImport.update({
+  id: '/radar',
+  path: '/radar',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppScenariosRoute = AppScenariosRouteImport.update({
   id: '/scenarios',
   path: '/scenarios',
@@ -85,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/app/acquisitions': typeof AppAcquisitionsRoute
   '/app/data-sources': typeof AppDataSourcesRoute
+  '/app/radar': typeof AppRadarRoute
   '/app/scenarios': typeof AppScenariosRoute
   '/app/security': typeof AppSecurityRoute
   '/pharmacy/$id': typeof PharmacyIdRoute
@@ -97,6 +104,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/app/acquisitions': typeof AppAcquisitionsRoute
   '/app/data-sources': typeof AppDataSourcesRoute
+  '/app/radar': typeof AppRadarRoute
   '/app/scenarios': typeof AppScenariosRoute
   '/app/security': typeof AppSecurityRoute
   '/pharmacy/$id': typeof PharmacyIdRoute
@@ -111,6 +119,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/app/acquisitions': typeof AppAcquisitionsRoute
   '/app/data-sources': typeof AppDataSourcesRoute
+  '/app/radar': typeof AppRadarRoute
   '/app/scenarios': typeof AppScenariosRoute
   '/app/security': typeof AppSecurityRoute
   '/pharmacy/$id': typeof PharmacyIdRoute
@@ -126,6 +135,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/app/acquisitions'
     | '/app/data-sources'
+    | '/app/radar'
     | '/app/scenarios'
     | '/app/security'
     | '/pharmacy/$id'
@@ -138,6 +148,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/app/acquisitions'
     | '/app/data-sources'
+    | '/app/radar'
     | '/app/scenarios'
     | '/app/security'
     | '/pharmacy/$id'
@@ -151,6 +162,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/app/acquisitions'
     | '/app/data-sources'
+    | '/app/radar'
     | '/app/scenarios'
     | '/app/security'
     | '/pharmacy/$id'
@@ -224,6 +236,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDataSourcesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/radar': {
+      id: '/app/radar'
+      path: '/radar'
+      fullPath: '/app/radar'
+      preLoaderRoute: typeof AppRadarRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/scenarios': {
       id: '/app/scenarios'
       path: '/scenarios'
@@ -251,6 +270,7 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppAcquisitionsRoute: typeof AppAcquisitionsRoute
   AppDataSourcesRoute: typeof AppDataSourcesRoute
+  AppRadarRoute: typeof AppRadarRoute
   AppScenariosRoute: typeof AppScenariosRoute
   AppSecurityRoute: typeof AppSecurityRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -259,6 +279,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppAcquisitionsRoute: AppAcquisitionsRoute,
   AppDataSourcesRoute: AppDataSourcesRoute,
+  AppRadarRoute: AppRadarRoute,
   AppScenariosRoute: AppScenariosRoute,
   AppSecurityRoute: AppSecurityRoute,
   AppIndexRoute: AppIndexRoute,
