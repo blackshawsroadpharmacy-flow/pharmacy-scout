@@ -100,7 +100,12 @@ function ClickHandler({ onClick }: { onClick: (lat: number, lng: number) => void
   return null;
 }
 
-function ViewportReporter({ onChange }: { onChange: (bounds: ViewportBounds) => void }) {
+export interface PublicViewportState extends ViewportBounds {
+  lat: number;
+  lng: number;
+  zoom: number;
+}
+function ViewportReporter({ onChange }: { onChange: (bounds: PublicViewportState) => void }) {
   const map = useMapEvents({
     moveend: report,
     zoomend: report,
@@ -110,11 +115,15 @@ function ViewportReporter({ onChange }: { onChange: (bounds: ViewportBounds) => 
     if (timer.current) window.clearTimeout(timer.current);
     timer.current = window.setTimeout(() => {
       const bounds = map.getBounds();
+      const centre = map.getCenter();
       onChange({
         west: bounds.getWest(),
         south: bounds.getSouth(),
         east: bounds.getEast(),
         north: bounds.getNorth(),
+        lat: centre.lat,
+        lng: centre.lng,
+        zoom: map.getZoom(),
       });
     }, 250);
   }
@@ -166,7 +175,7 @@ export function MapView({
   externalPoints?: ExternalMapPoint[];
   selectedExternal?: { category: ExternalCategory; id: string } | null;
   onSelectExternal?: (point: ExternalMapPoint) => void;
-  onViewportChange?: (bounds: ViewportBounds) => void;
+  onViewportChange?: (bounds: PublicViewportState) => void;
   candidatePoint?: { lat: number; lng: number } | null;
   candidateRadiusM?: number;
   candidateNearestPoint?: { lat: number; lng: number } | null;
