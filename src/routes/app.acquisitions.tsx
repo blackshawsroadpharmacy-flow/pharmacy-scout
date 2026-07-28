@@ -7,13 +7,13 @@ import {
   listBusinesses,
   createBusiness,
   moveOpportunity,
-  updateBusinessNotes,
   PIPELINE_STAGES,
 } from "@/lib/businesses.functions";
 import { getMyProfile, listMyOrgs } from "@/lib/orgs.functions";
 import { AppShell } from "@/components/app-shell";
 import { COMMERCIAL_LANGUAGE } from "@/lib/language";
 import { Download } from "lucide-react";
+import { OpportunityDrawer } from "@/components/acquisitions/opportunity-drawer";
 
 const STAGE_LABEL: Record<(typeof PIPELINE_STAGES)[number], string> = {
   watchlist: "Watchlist",
@@ -50,7 +50,6 @@ function AcquisitionsPage() {
   const listFn = useServerFn(listBusinesses);
   const createFn = useServerFn(createBusiness);
   const moveFn = useServerFn(moveOpportunity);
-  const notesFn = useServerFn(updateBusinessNotes);
   const profileFn = useServerFn(getMyProfile);
   const orgsFn = useServerFn(listMyOrgs);
 
@@ -61,7 +60,8 @@ function AcquisitionsPage() {
     (orgsQ.data ?? []).find((o) => o.id === profileQ.data?.current_organisation_id)?.name ?? null;
 
   const [showAdd, setShowAdd] = useState(false);
-  const [openNotesFor, setOpenNotesFor] = useState<string | null>(null);
+  const [openOpportunity, setOpenOpportunity] = useState<string | null>(null);
+  const [compareIds, setCompareIds] = useState<string[]>([]);
 
   const grouped = new Map<
     string,
@@ -124,6 +124,14 @@ function AcquisitionsPage() {
             </p>
           </div>
           <div className="flex gap-2">
+            <button
+              onClick={() =>
+                exportOpportunitiesCsv(q.data?.businesses ?? [], q.data?.opportunities ?? [])
+              }
+              className="inline-flex items-center gap-2 rounded-md border border-input px-3 py-2 text-sm font-medium hover:bg-accent"
+            >
+              <Download className="h-4 w-4" /> Export CSV
+            </button>
             <a
               href="/acquisition-template.csv"
               download
@@ -172,6 +180,22 @@ function AcquisitionsPage() {
                         : "Unknown"}
                     </div>
                     <div className="mt-3 flex flex-wrap gap-1">
+                      <label className="mr-1 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                        <input
+                          type="checkbox"
+                          checked={compareIds.includes(opp.id)}
+                          onChange={(event) =>
+                            setCompareIds((current) =>
+                              event.target.checked
+                                ? current.length < 4
+                                  ? [...current, opp.id]
+                                  : current
+                                : current.filter((id) => id !== opp.id),
+                            )
+                          }
+                        />
+                        Compare
+                      </label>
                       <button
                         onClick={() => onMove(opp.id, -1)}
                         disabled={stage === PIPELINE_STAGES[0]}
@@ -188,10 +212,10 @@ function AcquisitionsPage() {
                       </button>
                       {biz && (
                         <button
-                          onClick={() => setOpenNotesFor(biz.id)}
+                          onClick={() => setOpenOpportunity(opp.id)}
                           className="ml-auto text-xs text-teal hover:underline"
                         >
-                          Notes
+                          Details
                         </button>
                       )}
                     </div>
@@ -206,6 +230,14 @@ function AcquisitionsPage() {
             </div>
           ))}
         </div>
+        {compareIds.length >= 2 && (
+          <ComparisonPanel
+            ids={compareIds}
+            opportunities={q.data?.opportunities ?? []}
+            businesses={q.data?.businesses ?? []}
+            onClose={() => setCompareIds([])}
+          />
+        )}
       </div>
 
       {showAdd && (
@@ -224,20 +256,11 @@ function AcquisitionsPage() {
         />
       )}
 
-      {openNotesFor && (
-        <NotesDialog
-          business={q.data?.businesses.find((b) => b.id === openNotesFor) ?? null}
-          onClose={() => setOpenNotesFor(null)}
-          onSave={async (notes) => {
-            try {
-              await notesFn({ data: { business_id: openNotesFor, private_notes: notes } });
-              toast.success("Notes saved");
-              setOpenNotesFor(null);
-              q.refetch();
-            } catch (err) {
-              toast.error(err instanceof Error ? err.message : "Failed to save");
-            }
-          }}
+      {openOpportunity && (
+        <OpportunityDrawer
+          opportunityId={openOpportunity}
+          onClose={() => setOpenOpportunity(null)}
+          onChanged={() => q.refetch()}
         />
       )}
     </AppShell>
@@ -366,45 +389,145 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function NotesDialog({
-  business,
+function ComparisonPanel({
+  ids,
+  opportunities,
+  businesses,
   onClose,
-  onSave,
 }: {
-  business: { id: string; trading_name: string; private_notes: string | null } | null;
+  ids: string[];
+  opportunities: Array<{
+    id: string;
+    business_id: string | null;
+    title: string;
+    pipeline_stage: string;
+  }>;
+  businesses: Array<{
+    id: string;
+    trading_name: string;
+    asking_price: number | null;
+    broker_or_source: string | null;
+    listing_url: string | null;
+    updated_at: string;
+  }>;
   onClose: () => void;
-  onSave: (notes: string) => void;
 }) {
-  const [value, setValue] = useState(business?.private_notes ?? "");
-  if (!business) return null;
+  const rows = ids.map((id) => {
+    const opportunity = opportunities.find((item) => item.id === id);
+    return {
+      opportunity,
+      business: businesses.find((item) => item.id === opportunity?.business_id),
+    };
+  });
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-lg rounded-xl border border-border bg-card p-6 shadow-lg">
-        <h2 className="text-lg font-semibold">Notes — {business.trading_name}</h2>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Private to your organisation. Members can view. Nobody outside your organisation can read
-          this.
-        </p>
-        <textarea
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          className="mt-3 min-h-[200px] w-full rounded-md border border-input bg-background p-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-        />
-        <div className="mt-3 flex justify-end gap-2">
-          <button
-            onClick={onClose}
-            className="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => onSave(value)}
-            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
-          >
-            Save notes
-          </button>
-        </div>
+    <section className="mt-6 rounded-xl border border-border bg-card p-4">
+      <div className="flex items-center justify-between">
+        <h2 className="font-semibold">Side-by-side comparison ({rows.length})</h2>
+        <button onClick={onClose} className="text-xs text-muted-foreground hover:underline">
+          Clear
+        </button>
       </div>
-    </div>
+      <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        {rows.map(({ opportunity, business }) => (
+          <div key={opportunity?.id} className="rounded-lg border border-border p-3 text-xs">
+            <div className="text-sm font-semibold">
+              {business?.trading_name ?? opportunity?.title}
+            </div>
+            <dl className="mt-2 space-y-1 text-muted-foreground">
+              <div>
+                Stage:{" "}
+                <b className="text-foreground">
+                  {opportunity
+                    ? STAGE_LABEL[opportunity.pipeline_stage as keyof typeof STAGE_LABEL]
+                    : "Unknown"}
+                </b>
+              </div>
+              <div>
+                Asking price:{" "}
+                <b className="text-foreground">
+                  {business?.asking_price == null
+                    ? "Unknown"
+                    : `A$${Number(business.asking_price).toLocaleString()}`}
+                </b>
+              </div>
+              <div>
+                Broker/source:{" "}
+                <b className="text-foreground">{business?.broker_or_source || "Unknown"}</b>
+              </div>
+              <div>
+                Updated:{" "}
+                <b className="text-foreground">
+                  {business?.updated_at
+                    ? new Date(business.updated_at).toLocaleDateString()
+                    : "Unknown"}
+                </b>
+              </div>
+            </dl>
+          </div>
+        ))}
+      </div>
+      <p className="mt-3 text-xs text-muted-foreground">
+        Unknown values remain unknown and are not scored as zero. Open each opportunity for complete
+        financial provenance and evidence confidence.
+      </p>
+    </section>
   );
+}
+
+function exportOpportunitiesCsv(
+  businesses: Array<{
+    id: string;
+    trading_name: string;
+    asking_price: number | null;
+    broker_or_source: string | null;
+    listing_url: string | null;
+    private_notes: string | null;
+    updated_at: string;
+  }>,
+  opportunities: Array<{
+    id: string;
+    business_id: string | null;
+    title: string;
+    pipeline_stage: string;
+    summary: string | null;
+    updated_at: string;
+  }>,
+) {
+  const escape = (value: unknown) => `"${String(value ?? "").replaceAll('"', '""')}"`;
+  const header = [
+    "opportunity_id",
+    "trading_name",
+    "pipeline_stage",
+    "asking_price_aud",
+    "broker_or_source",
+    "listing_url",
+    "summary",
+    "private_notes",
+    "updated_at",
+  ];
+  const lines = opportunities.map((opportunity) => {
+    const business = businesses.find((item) => item.id === opportunity.business_id);
+    return [
+      opportunity.id,
+      business?.trading_name ?? opportunity.title,
+      opportunity.pipeline_stage,
+      business?.asking_price,
+      business?.broker_or_source,
+      business?.listing_url,
+      opportunity.summary,
+      business?.private_notes,
+      opportunity.updated_at,
+    ]
+      .map(escape)
+      .join(",");
+  });
+  const blob = new Blob([[header.map(escape).join(","), ...lines].join("\n")], {
+    type: "text/csv;charset=utf-8",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `private-acquisition-opportunities-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
 }
