@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { X, MapPin, Bookmark, Navigation, Paperclip, Eye, Download, Trash2 } from "lucide-react";
@@ -20,6 +21,12 @@ import {
 } from "@/lib/pharmacy-pipeline";
 import { VerificationBadge, EvidenceBadge } from "@/components/verification-badge";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  fetchCalibrationSummary,
+  fetchDispensingPotential,
+  potentialBand,
+  saveCalibrationObservation,
+} from "@/lib/dispensing-potential";
 
 const STATUS_OPTIONS: Array<{ value: PharmacyStatus; label: string }> = [
   { value: "active", label: "Active" },
@@ -181,6 +188,7 @@ export function RightDossier({
                 </div>
               </div>
             </section>
+            <DispensingPotentialSection premisesId={premisesId} authed={authed} />
 
             <PrivateWorkspace authed={authed} premisesId={premisesId} />
           </>
@@ -203,6 +211,211 @@ export function RightDossier({
         </div>
       </div>
     </aside>
+  );
+}
+
+function DispensingPotentialSection({
+  premisesId,
+  authed,
+}: {
+  premisesId: string;
+  authed: boolean;
+}) {
+  const potential = useQuery({
+    queryKey: ["dispensing-potential", premisesId],
+    queryFn: () => fetchDispensingPotential(premisesId),
+  });
+  const calibration = useQuery({
+    queryKey: ["dispensing-calibration", premisesId],
+    queryFn: () => fetchCalibrationSummary(premisesId),
+    enabled: authed,
+  });
+  const p = potential.data as any;
+  const metrics = p?.raw_metrics ?? {},
+    components = p?.component_scores ?? {};
+  const actual = calibration.data?.observations?.[0];
+  const sample = calibration.data?.sampleSize ?? 0;
+  const ratio =
+    actual && p?.experimental_scripts_day_equivalent
+      ? Number(actual.observed_scripts_per_day) / Number(p.experimental_scripts_day_equivalent)
+      : null;
+  return (
+    <section className="mt-4 rounded-lg border border-border p-3">
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Geographic Dispensing Potential
+      </h3>
+      {!p ? (
+        <p className="mt-2 text-xs text-muted-foreground">
+          Relative rating is awaiting the next server-side refresh.
+        </p>
+      ) : (
+        <>
+          <div className="mt-2 flex items-center justify-between">
+            <b>{potentialBand(p.victorian_percentile)}</b>
+            <span className="text-xs">
+              {p.victorian_percentile == null
+                ? "Victorian percentile unavailable"
+                : `${p.victorian_percentile}th Victorian percentile`}
+            </span>
+          </div>
+          <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+            <Metric label="Demand pressure" value={components.demand_pressure} />
+            <Metric label="Competitive position" value={components.competitive_position} />
+            <Metric label="Healthcare anchors" value={components.healthcare_anchors} />
+            <Metric label="Retail anchors" value={components.retail_anchors} />
+            <Metric label="Growth outlook" value={components.growth_outlook} />
+            <Metric label="Evidence confidence" value={p.evidence_confidence} />
+          </div>
+          <div className="mt-2 rounded bg-muted p-2 text-xs">
+            <b>Experimental scripts/day equivalent</b>
+            <div>
+              {p.experimental_scripts_day_equivalent ??
+                "Not calibrated against enough known pharmacies"}
+            </div>
+            <div>
+              Theoretical scripts/day range:{" "}
+              {p.theoretical_scripts_day_low == null
+                ? "Not yet available"
+                : `${p.theoretical_scripts_day_low}–${p.theoretical_scripts_day_high}`}
+            </div>
+            <div>
+              Calibration sample size: {sample} ·{" "}
+              {sample < 10
+                ? "relative model only; very low calibration confidence"
+                : sample < 30
+                  ? "experimental model; low confidence"
+                  : "validation required before moderate confidence"}
+            </div>
+          </div>
+          <details className="mt-2 text-xs">
+            <summary className="cursor-pointer font-medium">Explain this rating</summary>
+            <div className="mt-2">
+              Model: {p.dispensing_potential_methods?.version} · calculated{" "}
+              {new Date(p.calculated_at).toLocaleString()}
+            </div>
+            <div>
+              Raw metrics:{" "}
+              <pre className="whitespace-pre-wrap">{JSON.stringify(metrics, null, 2)}</pre>
+            </div>
+            <div>Missing inputs: {(p.missing_inputs ?? []).join(", ") || "None recorded"}</div>
+            <div>Warnings: {(p.warnings ?? []).join("; ")}</div>
+            <div>
+              Actual dispensing may differ materially because of hours, service mix, institutional
+              supply, reputation, access and operations.
+            </div>
+          </details>
+          {actual && (
+            <div className="mt-2 rounded border p-2 text-xs">
+              <b>Actual versus theoretical performance</b>
+              <div>Actual scripts/day: {actual.observed_scripts_per_day}</div>
+              <div>
+                Actual-to-theoretical ratio:{" "}
+                {ratio == null ? "Insufficient evidence" : ratio.toFixed(2)}
+              </div>
+              <div>
+                {ratio == null
+                  ? "Insufficient evidence"
+                  : ratio < 0.8
+                    ? "Materially below geographic potential"
+                    : ratio > 1.2
+                      ? "Materially above geographic potential"
+                      : "Broadly aligned with geographic potential"}{" "}
+                — this does not establish operational quality.
+              </div>
+            </div>
+          )}
+          {authed && (
+            <CalibrationForm pharmacyId={premisesId} onSaved={() => calibration.refetch()} />
+          )}
+        </>
+      )}
+    </section>
+  );
+}
+function Metric({ label, value }: { label: string; value: any }) {
+  return (
+    <div className="rounded border p-2">
+      <span className="text-muted-foreground">{label}</span>
+      <div className="font-semibold">{value == null ? "Unknown" : String(value)}</div>
+    </div>
+  );
+}
+function CalibrationForm({ pharmacyId, onSaved }: { pharmacyId: string; onSaved: () => void }) {
+  const [open, setOpen] = useState(false),
+    [value, setValue] = useState(""),
+    [start, setStart] = useState(""),
+    [end, setEnd] = useState(""),
+    [days, setDays] = useState("6"),
+    [source, setSource] = useState("");
+  async function save() {
+    try {
+      await saveCalibrationObservation({
+        pharmacy_id: pharmacyId,
+        observed_scripts_per_day: Number(value),
+        evidence_period_start: start,
+        evidence_period_end: end,
+        trading_days_per_week: Number(days),
+        includes_private_prescriptions: null,
+        includes_under_copayment: null,
+        includes_daa_volume: null,
+        includes_institutional_supply: null,
+        source_type: source,
+        source_document_or_note: null,
+        confidence: "medium",
+      });
+      toast.success("Genuine calibration observation saved");
+      setOpen(false);
+      onSaved();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Save failed");
+    }
+  }
+  return (
+    <div className="mt-2 text-xs">
+      <button className="underline" onClick={() => setOpen(!open)}>
+        Add genuine actual scripts/day evidence
+      </button>
+      {open && (
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <input
+            className="input"
+            placeholder="Average per trading day"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+          />
+          <input
+            className="input"
+            placeholder="Trading days/week"
+            value={days}
+            onChange={(e) => setDays(e.target.value)}
+          />
+          <input
+            className="input"
+            type="date"
+            value={start}
+            onChange={(e) => setStart(e.target.value)}
+          />
+          <input
+            className="input"
+            type="date"
+            value={end}
+            onChange={(e) => setEnd(e.target.value)}
+          />
+          <input
+            className="input col-span-2"
+            placeholder="Source type"
+            value={source}
+            onChange={(e) => setSource(e.target.value)}
+          />
+          <button
+            className="col-span-2 rounded bg-primary p-2 text-primary-foreground"
+            onClick={save}
+          >
+            Save evidence
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 
