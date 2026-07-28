@@ -405,6 +405,123 @@ export type Database = {
         }
         Relationships: []
       }
+      greenfield_assessments: {
+        Row: {
+          assessed_at: string
+          assessed_by: string | null
+          change_summary: Json
+          evidence_hash: string
+          evidence_snapshot: Json
+          id: string
+          organisation_id: string
+          scenario_id: string
+          sequence_number: number
+        }
+        Insert: {
+          assessed_at?: string
+          assessed_by?: string | null
+          change_summary?: Json
+          evidence_hash: string
+          evidence_snapshot: Json
+          id?: string
+          organisation_id: string
+          scenario_id: string
+          sequence_number: number
+        }
+        Update: {
+          assessed_at?: string
+          assessed_by?: string | null
+          change_summary?: Json
+          evidence_hash?: string
+          evidence_snapshot?: Json
+          id?: string
+          organisation_id?: string
+          scenario_id?: string
+          sequence_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "greenfield_assessments_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "greenfield_assessments_scenario_id_fkey"
+            columns: ["scenario_id"]
+            isOneToOne: false
+            referencedRelation: "greenfield_scenarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      greenfield_scenarios: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          created_by: string | null
+          duplicated_from: string | null
+          id: string
+          inputs: Json
+          name: string
+          notes: string | null
+          organisation_id: string
+          proposed_address: string | null
+          proposed_lat: number
+          proposed_lng: number
+          proposed_location: unknown
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          duplicated_from?: string | null
+          id?: string
+          inputs?: Json
+          name: string
+          notes?: string | null
+          organisation_id: string
+          proposed_address?: string | null
+          proposed_lat: number
+          proposed_lng: number
+          proposed_location: unknown
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          duplicated_from?: string | null
+          id?: string
+          inputs?: Json
+          name?: string
+          notes?: string | null
+          organisation_id?: string
+          proposed_address?: string | null
+          proposed_lat?: number
+          proposed_lng?: number
+          proposed_location?: unknown
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "greenfield_scenarios_duplicated_from_fkey"
+            columns: ["duplicated_from"]
+            isOneToOne: false
+            referencedRelation: "greenfield_scenarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "greenfield_scenarios_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       medical_centres: {
         Row: {
           address: string | null
@@ -1607,15 +1724,79 @@ export type Database = {
           },
         ]
       }
+      relocation_assessments: {
+        Row: {
+          assessed_at: string
+          assessed_by: string | null
+          change_summary: Json
+          comparison_snapshot: Json
+          destination_evidence_snapshot: Json
+          evidence_hash: string
+          id: string
+          organisation_id: string
+          origin_evidence_snapshot: Json
+          scenario_id: string
+          sequence_number: number
+        }
+        Insert: {
+          assessed_at?: string
+          assessed_by?: string | null
+          change_summary?: Json
+          comparison_snapshot: Json
+          destination_evidence_snapshot: Json
+          evidence_hash: string
+          id?: string
+          organisation_id: string
+          origin_evidence_snapshot: Json
+          scenario_id: string
+          sequence_number: number
+        }
+        Update: {
+          assessed_at?: string
+          assessed_by?: string | null
+          change_summary?: Json
+          comparison_snapshot?: Json
+          destination_evidence_snapshot?: Json
+          evidence_hash?: string
+          id?: string
+          organisation_id?: string
+          origin_evidence_snapshot?: Json
+          scenario_id?: string
+          sequence_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relocation_assessments_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relocation_assessments_scenario_id_fkey"
+            columns: ["scenario_id"]
+            isOneToOne: false
+            referencedRelation: "relocation_scenarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       relocation_scenarios: {
         Row: {
           actor_id: string | null
+          archived_at: string | null
           created_at: string
+          created_by: string | null
           destination_address: string | null
           destination_door_point: unknown
+          destination_lat: number | null
+          destination_lng: number | null
           destination_location: unknown
+          duplicated_from: string | null
           id: string
           inputs: Json
+          name: string
+          notes: string | null
           organisation_id: string | null
           origin_pharmacy_id: string | null
           orphaned_demo: boolean
@@ -1623,12 +1804,19 @@ export type Database = {
         }
         Insert: {
           actor_id?: string | null
+          archived_at?: string | null
           created_at?: string
+          created_by?: string | null
           destination_address?: string | null
           destination_door_point?: unknown
+          destination_lat?: number | null
+          destination_lng?: number | null
           destination_location?: unknown
+          duplicated_from?: string | null
           id?: string
           inputs?: Json
+          name: string
+          notes?: string | null
           organisation_id?: string | null
           origin_pharmacy_id?: string | null
           orphaned_demo?: boolean
@@ -1636,18 +1824,32 @@ export type Database = {
         }
         Update: {
           actor_id?: string | null
+          archived_at?: string | null
           created_at?: string
+          created_by?: string | null
           destination_address?: string | null
           destination_door_point?: unknown
+          destination_lat?: number | null
+          destination_lng?: number | null
           destination_location?: unknown
+          duplicated_from?: string | null
           id?: string
           inputs?: Json
+          name?: string
+          notes?: string | null
           organisation_id?: string | null
           origin_pharmacy_id?: string | null
           orphaned_demo?: boolean
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "relocation_scenarios_duplicated_from_fkey"
+            columns: ["duplicated_from"]
+            isOneToOne: false
+            referencedRelation: "relocation_scenarios"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "relocation_scenarios_organisation_id_fkey"
             columns: ["organisation_id"]
@@ -2775,6 +2977,23 @@ export type Database = {
       postgis_version: { Args: never; Returns: string }
       postgis_wagyu_version: { Args: never; Returns: string }
       public_data_freshness: { Args: never; Returns: Json }
+      scenario_evidence_at_point: {
+        Args: { p_lat: number; p_lng: number; p_radius_m: number }
+        Returns: Json
+      }
+      scenario_origin_pharmacy: {
+        Args: { p_pharmacy_id: string }
+        Returns: {
+          address: string
+          coordinate_quality: string
+          id: string
+          lat: number
+          lng: number
+          name: string
+          source_confidence: string
+          unresolved_conflicts: number
+        }[]
+      }
       set_premises_door: {
         Args: { _lat: number; _lng: number; _premises_id: string }
         Returns: undefined
