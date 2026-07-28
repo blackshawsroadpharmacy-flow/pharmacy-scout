@@ -3,7 +3,10 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const migration = await readFile(
-  new URL("../supabase/migrations/20260728210000_complete_acquisition_workspace.sql", import.meta.url),
+  new URL(
+    "../supabase/migrations/20260728210000_complete_acquisition_workspace.sql",
+    import.meta.url,
+  ),
   "utf8",
 );
 const server = await readFile(
@@ -14,7 +17,10 @@ const drawer = await readFile(
   new URL("../src/components/acquisitions/opportunity-drawer.tsx", import.meta.url),
   "utf8",
 );
-const route = await readFile(new URL("../src/routes/app.acquisitions.tsx", import.meta.url), "utf8");
+const route = await readFile(
+  new URL("../src/routes/app.acquisitions.tsx", import.meta.url),
+  "utf8",
+);
 
 test("opportunity children are organisation scoped and anonymous access is revoked", () => {
   for (const table of [
@@ -40,7 +46,13 @@ test("duplicate active acquisition opportunities are rejected", () => {
 });
 
 test("every commercial figure carries provenance without zero-filling", () => {
-  for (const field of ["source", "evidence_period_start", "evidence_period_end", "confidence", "entered_by"]) {
+  for (const field of [
+    "source",
+    "evidence_period_start",
+    "evidence_period_end",
+    "confidence",
+    "entered_by",
+  ]) {
     assert.match(migration, new RegExp(field));
     assert.match(drawer, new RegExp(field));
   }
