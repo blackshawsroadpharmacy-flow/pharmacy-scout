@@ -30,10 +30,15 @@ import {
   type CandidatePoint,
 } from "@/lib/candidate-analysis";
 import type { StatewideSearchResult } from "@/lib/statewide-search";
+import { fetchPharmacyPipelineStatuses, type PipelineStage } from "@/lib/pharmacy-pipeline";
 
 const MapView = lazy(() =>
   import("@/components/map/map-view").then((m) => ({ default: m.MapView })),
 );
+const EMPTY_PIPELINE_STATUSES = new Map<
+  string,
+  import("@/lib/pharmacy-pipeline").PharmacyPipelineStatus
+>();
 
 type MapScreenProps = {
   selectedPremisesId?: string | null;
@@ -61,6 +66,7 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
   const [candidatePoint, setCandidatePoint] = useState<CandidatePoint | null>(null);
   const [candidateRadiusM, setCandidateRadiusM] = useState(1500);
   const [addressSearchStatus, setAddressSearchStatus] = useState<string | null>(null);
+  const [pipelineStageFilter, setPipelineStageFilter] = useState<PipelineStage | "all">("all");
   const candidateMode = mode === "greenfield" || mode === "relocation";
 
   const pharmacyRequestKey = viewport ? viewportRequestKey("pharmacies", viewport, filters) : null;
@@ -121,12 +127,27 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
   });
 
   const all = useMemo(() => pharmacyResult?.items ?? [], [pharmacyResult]);
+  const visiblePremisesIds = useMemo(() => all.map((point) => point.id), [all]);
+  const pipelineQ = useQuery({
+    queryKey: ["private-pipeline-map-statuses", visiblePremisesIds],
+    queryFn: () => fetchPharmacyPipelineStatuses(visiblePremisesIds),
+    enabled: authed && visiblePremisesIds.length > 0,
+    staleTime: 60 * 1000,
+  });
+  const pipelineStatuses = authed
+    ? (pipelineQ.data ?? EMPTY_PIPELINE_STATUSES)
+    : EMPTY_PIPELINE_STATUSES;
 
   useEffect(() => {
     setSelectedId(selectedPremisesId);
   }, [selectedPremisesId]);
 
-  const filtered = all;
+  const filtered =
+    pipelineStageFilter === "all"
+      ? all
+      : all.filter(
+          (point) => pipelineStatuses.get(point.id)?.pipeline_stage === pipelineStageFilter,
+        );
   const externalPoints = useMemo(
     () => [
       ...(layers.supermarkets ? (supermarketQ.data?.items ?? []) : []),
@@ -282,6 +303,7 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
             }
             population={populationQ.data ?? null}
             populationMetric={populationMetric}
+            pipelineStatuses={pipelineStatuses}
           />
         </Suspense>
       </ClientOnly>
@@ -329,6 +351,37 @@ export function MapScreen({ selectedPremisesId = null }: MapScreenProps) {
           setLayers(next);
         }}
       />
+
+      {authed && pipelineStatuses.size > 0 && (
+        <div className="absolute bottom-8 right-3 z-[1000] w-56 rounded-lg border border-border bg-card/95 p-3 text-xs shadow-lg backdrop-blur-sm">
+          <label className="font-semibold text-foreground" htmlFor="pipeline-stage-filter">
+            Acquisition pipeline
+          </label>
+          <select
+            id="pipeline-stage-filter"
+            value={pipelineStageFilter}
+            onChange={(event) =>
+              setPipelineStageFilter(event.target.value as PipelineStage | "all")
+            }
+            className="mt-2 w-full rounded border border-input bg-background px-2 py-1.5"
+          >
+            <option value="all">All visible pharmacies</option>
+            <option value="watchlist">Watchlist</option>
+            <option value="contacting">Contacting</option>
+            <option value="im_received">IM received</option>
+            <option value="due_diligence">Due diligence</option>
+            <option value="offer">Offer</option>
+            <option value="passed">Passed</option>
+            <option value="acquired">Acquired</option>
+          </select>
+          <div className="mt-2 flex items-center gap-2 text-muted-foreground">
+            <span className="pipeline-legend-marker" aria-hidden="true">
+              P
+            </span>
+            <span>Coloured halo = private pipeline stage</span>
+          </div>
+        </div>
+      )}
 
       <RightDossier
         premisesId={selectedId}

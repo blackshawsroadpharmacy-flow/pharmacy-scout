@@ -21,6 +21,7 @@ import {
   type PopulationMetric,
   type PopulationProperties,
 } from "@/lib/population-intelligence";
+import type { PharmacyPipelineStatus } from "@/lib/pharmacy-pipeline";
 
 // Ensure default marker icons resolve under bundlers (used only as fallback).
 import iconRetina from "leaflet/dist/images/marker-icon-2x.png";
@@ -152,6 +153,7 @@ export function MapView({
   candidateNearestPoint = null,
   population = null,
   populationMetric = null,
+  pipelineStatuses = new Map(),
 }: {
   premises: PremisesMapPoint[];
   selectedId: string | null;
@@ -168,6 +170,7 @@ export function MapView({
   candidateNearestPoint?: { lat: number; lng: number } | null;
   population?: PopulationFeatureCollection | null;
   populationMetric?: PopulationMetric | null;
+  pipelineStatuses?: Map<string, PharmacyPipelineStatus>;
 }) {
   const iconCache = useRef(new Map<string, L.DivIcon>());
   const markers = useMemo(
@@ -176,7 +179,8 @@ export function MapView({
         const kind = kindFor(p, savedIds);
         const selected = p.id === selectedId;
         const approximate = isApproximate(p);
-        const key = `${kind}-${selected ? 1 : 0}-${approximate ? 1 : 0}`;
+        const pipelineStage = pipelineStatuses.get(p.id)?.pipeline_stage ?? null;
+        const key = `${kind}-${selected ? 1 : 0}-${approximate ? 1 : 0}-${pipelineStage ?? "none"}`;
         let icon = iconCache.current.get(key);
         if (!icon) {
           const classes = [
@@ -184,6 +188,7 @@ export function MapView({
             kind,
             approximate ? "approximate" : "",
             selected ? "selected" : "",
+            pipelineStage ? `pipeline-stage-${pipelineStage}` : "",
           ]
             .filter(Boolean)
             .join(" ");
@@ -197,7 +202,7 @@ export function MapView({
         }
         return { p, icon };
       }),
-    [premises, selectedId, savedIds],
+    [premises, selectedId, savedIds, pipelineStatuses],
   );
 
   return (
