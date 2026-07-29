@@ -83,7 +83,7 @@ CREATE POLICY public_reads_official_demographic_profiles
   ON public.demographic_area_profiles FOR SELECT TO anon,authenticated USING (true);
 
 INSERT INTO public.demographic_area_profiles (
-  sa2_code_2021,sa2_name_2021,census_total_population,
+  sa2_code_2021,reference_year,sa2_name_2021,census_total_population,
   age_65_plus_count,age_65_plus_percent,age_75_plus_count,age_75_plus_percent,
   under_five_count,under_five_percent,need_assistance_count,need_assistance_percent,
   no_vehicle_dwellings_count,vehicle_response_dwellings_count,no_vehicle_dwellings_percent,

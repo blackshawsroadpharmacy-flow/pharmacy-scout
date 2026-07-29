@@ -159,6 +159,7 @@ try {
     ].filter(Boolean);
     return `(${[
       sqlString(code),
+      "2021",
       sqlString(population?.SA2_NAME_2021 ?? index.name ?? code),
       sqlNumber(total),
       sqlNumber(age65),
