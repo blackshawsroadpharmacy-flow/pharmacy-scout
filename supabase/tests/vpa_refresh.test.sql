@@ -1,11 +1,34 @@
 BEGIN;
 SELECT plan(11);
 
-SELECT has_column('public', 'pharmacy_premises', 'vpa_record_key');
-SELECT has_column('public', 'pharmacy_premises', 'proprietor_names');
-SELECT has_column('public', 'pharmacy_premises', 'vpa_last_synced_at');
-SELECT has_table('public', 'pharmacy_premises_licensees');
-SELECT has_table('public', 'pharmacy_vpa_runs');
+SELECT has_column(
+  'public',
+  'pharmacy_premises',
+  'vpa_record_key',
+  'pharmacy premises has a stable VPA record key'
+);
+SELECT has_column(
+  'public',
+  'pharmacy_premises',
+  'proprietor_names',
+  'pharmacy premises has denormalised proprietor names'
+);
+SELECT has_column(
+  'public',
+  'pharmacy_premises',
+  'vpa_last_synced_at',
+  'pharmacy premises records its latest VPA sync'
+);
+SELECT has_table(
+  'public',
+  'pharmacy_premises_licensees',
+  'VPA licensees table exists'
+);
+SELECT has_table(
+  'public',
+  'pharmacy_vpa_runs',
+  'VPA refresh run table exists'
+);
 SELECT col_is_fk(
   'public',
   'pharmacy_premises_licensees',
