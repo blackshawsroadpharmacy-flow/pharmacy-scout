@@ -934,6 +934,173 @@ export type Database = {
           },
         ]
       }
+      healthcare_anchor_raw: {
+        Row: {
+          id: string
+          imported_at: string
+          raw_record: Json
+          source_id: string
+          source_record_key: string
+          source_row_reference: string | null
+        }
+        Insert: {
+          id: string
+          imported_at?: string
+          raw_record: Json
+          source_id: string
+          source_record_key: string
+          source_row_reference?: string | null
+        }
+        Update: {
+          id?: string
+          imported_at?: string
+          raw_record?: Json
+          source_id?: string
+          source_record_key?: string
+          source_row_reference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "healthcare_anchor_raw_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "healthcare_anchor_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      healthcare_anchor_sources: {
+        Row: {
+          coverage_notes: string[]
+          dataset_name: string
+          exact_endpoint: string
+          field_definitions: Json
+          id: string
+          licence: string
+          publisher: string
+          reference_date: string
+          retrieved_at: string
+          rows_imported: number
+          source_sha256: string
+        }
+        Insert: {
+          coverage_notes?: string[]
+          dataset_name: string
+          exact_endpoint: string
+          field_definitions: Json
+          id: string
+          licence: string
+          publisher: string
+          reference_date: string
+          retrieved_at: string
+          rows_imported: number
+          source_sha256: string
+        }
+        Update: {
+          coverage_notes?: string[]
+          dataset_name?: string
+          exact_endpoint?: string
+          field_definitions?: Json
+          id?: string
+          licence?: string
+          publisher?: string
+          reference_date?: string
+          retrieved_at?: string
+          rows_imported?: number
+          source_sha256?: string
+        }
+        Relationships: []
+      }
+      healthcare_anchors: {
+        Row: {
+          address: string | null
+          approved_places: number | null
+          authoritative_identifier: string | null
+          canonical_name: string
+          category: string
+          coordinate_method: string
+          created_at: string
+          emergency_department: boolean | null
+          evidence_confidence: string
+          facility_type: string | null
+          hospital_type: string | null
+          id: string
+          location: unknown
+          operational_status: string | null
+          postcode: string | null
+          provider: string | null
+          raw_id: string
+          source_date: string
+          source_id: string
+          state: string | null
+          suburb: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          approved_places?: number | null
+          authoritative_identifier?: string | null
+          canonical_name: string
+          category: string
+          coordinate_method: string
+          created_at?: string
+          emergency_department?: boolean | null
+          evidence_confidence: string
+          facility_type?: string | null
+          hospital_type?: string | null
+          id: string
+          location: unknown
+          operational_status?: string | null
+          postcode?: string | null
+          provider?: string | null
+          raw_id: string
+          source_date: string
+          source_id: string
+          state?: string | null
+          suburb?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          approved_places?: number | null
+          authoritative_identifier?: string | null
+          canonical_name?: string
+          category?: string
+          coordinate_method?: string
+          created_at?: string
+          emergency_department?: boolean | null
+          evidence_confidence?: string
+          facility_type?: string | null
+          hospital_type?: string | null
+          id?: string
+          location?: unknown
+          operational_status?: string | null
+          postcode?: string | null
+          provider?: string | null
+          raw_id?: string
+          source_date?: string
+          source_id?: string
+          state?: string | null
+          suburb?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "healthcare_anchors_raw_id_fkey"
+            columns: ["raw_id"]
+            isOneToOne: true
+            referencedRelation: "healthcare_anchor_raw"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "healthcare_anchors_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "healthcare_anchor_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       medical_centres: {
         Row: {
           address: string | null
@@ -1782,6 +1949,7 @@ export type Database = {
           evidence_confidence: string
           experimental_scripts_day_equivalent: number | null
           explanation: Json
+          healthcare_anchor_evidence: Json | null
           method_id: string
           missing_inputs: string[]
           peer_group: string | null
@@ -1801,6 +1969,7 @@ export type Database = {
           evidence_confidence: string
           experimental_scripts_day_equivalent?: number | null
           explanation: Json
+          healthcare_anchor_evidence?: Json | null
           method_id: string
           missing_inputs?: string[]
           peer_group?: string | null
@@ -1820,6 +1989,7 @@ export type Database = {
           evidence_confidence?: string
           experimental_scripts_day_equivalent?: number | null
           explanation?: Json
+          healthcare_anchor_evidence?: Json | null
           method_id?: string
           missing_inputs?: string[]
           peer_group?: string | null
@@ -3446,6 +3616,36 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      healthcare_anchors_in_viewport: {
+        Args: {
+          categories?: string[]
+          east: number
+          north: number
+          south: number
+          west: number
+        }
+        Returns: {
+          address: string
+          approved_places: number
+          category: string
+          emergency_department: boolean
+          evidence_confidence: string
+          facility_type: string
+          hospital_type: string
+          id: string
+          lat: number
+          lng: number
+          name: string
+          operational_status: string
+          provider: string
+          source_date: string
+          suburb: string
+        }[]
+      }
+      healthcare_demand_at_point: {
+        Args: { p_lat: number; p_lng: number }
+        Returns: Json
       }
       import_external_location_batch: {
         Args: {
