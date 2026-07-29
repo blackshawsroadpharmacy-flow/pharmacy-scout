@@ -28,6 +28,7 @@ import {
   saveCalibrationObservation,
 } from "@/lib/dispensing-potential";
 import { fetchPharmacyDemographics } from "@/lib/demographic-intelligence";
+import { fetchHealthcareDemand } from "@/lib/healthcare-anchors";
 
 const STATUS_OPTIONS: Array<{ value: PharmacyStatus; label: string }> = [
   { value: "active", label: "Active" },
@@ -191,6 +192,7 @@ export function RightDossier({
             </section>
             <DispensingPotentialSection premisesId={premisesId} authed={authed} />
             <OfficialDemographicsSection premisesId={premisesId} />
+            <HealthcareDemandSection lat={dossier.lat} lng={dossier.lng} />
 
             <PrivateWorkspace authed={authed} premisesId={premisesId} />
           </>
@@ -213,6 +215,43 @@ export function RightDossier({
         </div>
       </div>
     </aside>
+  );
+}
+
+function HealthcareDemandSection({ lat, lng }: { lat: number; lng: number }) {
+  const query = useQuery({
+    queryKey: ["pharmacy-healthcare-demand", lat, lng],
+    queryFn: () => fetchHealthcareDemand(lat, lng),
+    staleTime: 24 * 60 * 60 * 1000,
+  });
+  const data = query.data;
+  return (
+    <section className="mt-4">
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Healthcare-demand anchors
+      </h3>
+      {data ? (
+        <div className="mt-2 rounded-md border border-border p-3 text-xs">
+          <div className="grid grid-cols-2 gap-1.5 text-muted-foreground">
+            <div>Aged care ≤ 500 m: {data.aged_care_500m}</div>
+            <div>Aged care ≤ 1 km: {data.aged_care_1km}</div>
+            <div>Aged care ≤ 2 km: {data.aged_care_2km}</div>
+            <div>Aged care ≤ 5 km: {data.aged_care_5km}</div>
+            <div>Published places ≤ 2 km: {data.approved_places_2km ?? "Unavailable"}</div>
+            <div>Weighted anchor index: {data.weighted_healthcare_anchor_index}</div>
+          </div>
+          <p className="mt-2 text-[11px] text-muted-foreground">{data.warning}</p>
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Official aged-care coverage: 30 June 2025. Authoritative statewide hospital coverage is
+            unavailable in this package and is not treated as zero.
+          </p>
+        </div>
+      ) : (
+        <p className="mt-2 text-xs text-muted-foreground">
+          {query.isLoading ? "Loading healthcare evidence…" : "Healthcare evidence unavailable."}
+        </p>
+      )}
+    </section>
   );
 }
 

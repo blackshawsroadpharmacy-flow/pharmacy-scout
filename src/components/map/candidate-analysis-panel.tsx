@@ -5,6 +5,7 @@ import type {
   PopulationContext,
 } from "@/lib/candidate-analysis";
 import type { DemographicContext } from "@/lib/demographic-intelligence";
+import type { HealthcareDemand } from "@/lib/healthcare-anchors";
 
 const RADII = [300, 500, 1000, 1500, 2000, 5000];
 
@@ -31,6 +32,7 @@ export function CandidateAnalysisPanel({
   analysis,
   population,
   demographics,
+  healthcare,
   loading,
   error,
   onClose,
@@ -41,6 +43,7 @@ export function CandidateAnalysisPanel({
   analysis: CandidateAnalysis | null;
   population: PopulationContext | null;
   demographics: DemographicContext | null;
+  healthcare: HealthcareDemand | null;
   loading: boolean;
   error: string | null;
   onClose: () => void;
@@ -137,6 +140,26 @@ export function CandidateAnalysisPanel({
                   {warning}
                 </p>
               ))}
+            </section>
+            <section className="mt-4">
+              <h3 className="font-semibold">Healthcare-demand anchors</h3>
+              {healthcare ? (
+                <div className="mt-2 rounded border border-border p-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>Aged care ≤ 500 m: {healthcare.aged_care_500m}</div>
+                    <div>Aged care ≤ 1 km: {healthcare.aged_care_1km}</div>
+                    <div>Aged care ≤ 2 km: {healthcare.aged_care_2km}</div>
+                    <div>Aged care ≤ 5 km: {healthcare.aged_care_5km}</div>
+                    <div>
+                      Published places ≤ 2 km: {healthcare.approved_places_2km ?? "Unavailable"}
+                    </div>
+                    <div>Weighted anchor index: {healthcare.weighted_healthcare_anchor_index}</div>
+                  </div>
+                  <p className="mt-2 text-[11px] text-muted-foreground">{healthcare.warning}</p>
+                </div>
+              ) : (
+                <p className="mt-2 text-muted-foreground">Healthcare evidence unavailable.</p>
+              )}
             </section>
             <section className="mt-4">
               <h3 className="font-semibold">Official demographic context</h3>

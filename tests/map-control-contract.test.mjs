@@ -32,6 +32,7 @@ test("every visible layer toggle declares a data source and changes rendered dat
       "needAssistance",
       "seifaDisadvantage",
       "noVehicle",
+      "agedCare",
     ],
   );
   for (const entry of entries) {
