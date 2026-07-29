@@ -226,7 +226,7 @@ DECLARE
   licensee_count integer := 0;
   no_longer_observed_count integer := 0;
   has_prior_baseline boolean;
-  result jsonb;
+  v_result jsonb;
 BEGIN
   IF current_user_id IS NULL OR NOT public.has_role(current_user_id, 'admin') THEN
     RAISE EXCEPTION 'Administrator role required' USING ERRCODE = '42501';
@@ -239,8 +239,10 @@ BEGIN
   FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'VPA import run not found'; END IF;
   IF import_run.status = 'promoted' THEN
-    SELECT result INTO result FROM public.pharmacy_vpa_promotion_audit WHERE run_id = p_run_id;
-    RETURN COALESCE(result, '{}'::jsonb);
+    SELECT a.result INTO v_result
+    FROM public.pharmacy_vpa_promotion_audit AS a
+    WHERE a.run_id = p_run_id;
+    RETURN COALESCE(v_result, '{}'::jsonb);
   END IF;
   IF import_run.status <> 'validated' THEN
     RAISE EXCEPTION 'VPA import run must be validated before promotion';
@@ -390,7 +392,7 @@ BEGIN
       confidence = 'authoritative'
   WHERE id = source_record_id;
 
-  result := jsonb_build_object(
+  v_result := jsonb_build_object(
     'run_id', p_run_id,
     'canonical_rows_updated', updated_count,
     'canonical_rows_inserted', inserted_count,
@@ -404,13 +406,13 @@ BEGIN
     licensee_rows_no_longer_observed, source_freshness_updated, result
   ) VALUES (
     p_run_id, current_user_id, import_run.source_file_hash, updated_count,
-    inserted_count, licensee_count, no_longer_observed_count, true, result
+    inserted_count, licensee_count, no_longer_observed_count, true, v_result
   );
   UPDATE public.pharmacy_vpa_runs
   SET status = 'promoted', promoted_at = now(), promoted_by = current_user_id,
       finished_at = now()
   WHERE id = p_run_id;
-  RETURN result;
+  RETURN v_result;
 END;
 $$;
 
