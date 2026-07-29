@@ -1,92 +1,67 @@
--- Boundary checks for relocation Items 122-125.
--- These are deterministic SQL assertions for threshold logic.
--- They intentionally avoid legal wording such as "eligible" or "approved".
+-- Boundary checks for relocation Items 122-125 threshold logic.
+-- Deterministic distance assertions; intentionally avoids legal wording such
+-- as "eligible" or "approved".
+--
+-- Written as pgTAP so pg_prove sees a plan (the earlier DO-block version
+-- produced no TAP output and was reported as "No plan found").
 
-CREATE EXTENSION IF NOT EXISTS postgis;
+BEGIN;
 
-DO $$
-DECLARE
-  origin geography := ST_SetSRID(ST_MakePoint(144.9631, -37.8136), 4326)::geography;
-  p_299_99 geography := ST_Project(origin, 299.99, radians(90));
-  p_300_00 geography := ST_Project(origin, 300.00, radians(90));
-  p_300_01 geography := ST_Project(origin, 300.01, radians(90));
-  p_499_99 geography := ST_Project(origin, 499.99, radians(90));
-  p_500_00 geography := ST_Project(origin, 500.00, radians(90));
-  p_500_01 geography := ST_Project(origin, 500.01, radians(90));
-  p_999_99 geography := ST_Project(origin, 999.99, radians(90));
-  p_1000_00 geography := ST_Project(origin, 1000.00, radians(90));
-  p_1000_01 geography := ST_Project(origin, 1000.01, radians(90));
-  p_1499_99 geography := ST_Project(origin, 1499.99, radians(90));
-  p_1500_00 geography := ST_Project(origin, 1500.00, radians(90));
-  p_1500_01 geography := ST_Project(origin, 1500.01, radians(90));
-BEGIN
-  -- Item 124 straight-line distance: <= 1 km
-  IF NOT ST_Distance(origin, p_999_99) < 1000 THEN
-    RAISE EXCEPTION 'Expected 999.99 m to be below 1 km threshold';
-  END IF;
-  IF NOT ST_Distance(origin, p_1000_00) <= 1000 THEN
-    RAISE EXCEPTION 'Expected 1000.00 m to satisfy inclusive 1 km threshold';
-  END IF;
-  IF NOT ST_Distance(origin, p_1000_01) > 1000 THEN
-    RAISE EXCEPTION 'Expected 1000.01 m to exceed 1 km threshold';
-  END IF;
+SELECT plan(15);
 
-  -- Item 125 lower bound: > 1 km
-  IF NOT ST_Distance(origin, p_1000_00) <= 1000 THEN
-    RAISE EXCEPTION 'Expected 1000.00 m to fail strict > 1 km lower bound';
-  END IF;
-  IF NOT ST_Distance(origin, p_1000_01) > 1000 THEN
-    RAISE EXCEPTION 'Expected 1000.01 m to satisfy strict > 1 km lower bound';
-  END IF;
+-- Points projected due east of a fixed Melbourne origin at exact metre offsets,
+-- so ST_Distance is asserted against known ground truth. Materialised into a
+-- temp table so each assertion below is its own statement (the conventional,
+-- unambiguous pgTAP form).
+CREATE TEMP TABLE boundary_distances AS
+WITH o AS (
+  SELECT ST_SetSRID(ST_MakePoint(144.9631, -37.8136), 4326)::geography AS origin
+)
+SELECT
+  ST_Distance(origin, ST_Project(origin, 299.99, radians(90)))  AS d_299_99,
+  ST_Distance(origin, ST_Project(origin, 300.00, radians(90)))  AS d_300_00,
+  ST_Distance(origin, ST_Project(origin, 300.01, radians(90)))  AS d_300_01,
+  ST_Distance(origin, ST_Project(origin, 499.99, radians(90)))  AS d_499_99,
+  ST_Distance(origin, ST_Project(origin, 500.00, radians(90)))  AS d_500_00,
+  ST_Distance(origin, ST_Project(origin, 500.01, radians(90)))  AS d_500_01,
+  ST_Distance(origin, ST_Project(origin, 999.99, radians(90)))  AS d_999_99,
+  ST_Distance(origin, ST_Project(origin, 1000.00, radians(90))) AS d_1000_00,
+  ST_Distance(origin, ST_Project(origin, 1000.01, radians(90))) AS d_1000_01,
+  ST_Distance(origin, ST_Project(origin, 1499.99, radians(90))) AS d_1499_99,
+  ST_Distance(origin, ST_Project(origin, 1500.00, radians(90))) AS d_1500_00,
+  ST_Distance(origin, ST_Project(origin, 1500.01, radians(90))) AS d_1500_01
+FROM o;
 
-  -- Item 125 upper bound: <= 1.5 km
-  IF NOT ST_Distance(origin, p_1499_99) < 1500 THEN
-    RAISE EXCEPTION 'Expected 1499.99 m to be below 1.5 km upper bound';
-  END IF;
-  IF NOT ST_Distance(origin, p_1500_00) <= 1500 THEN
-    RAISE EXCEPTION 'Expected 1500.00 m to satisfy inclusive 1.5 km upper bound';
-  END IF;
-  IF NOT ST_Distance(origin, p_1500_01) > 1500 THEN
-    RAISE EXCEPTION 'Expected 1500.01 m to exceed 1.5 km upper bound';
-  END IF;
+-- Item 124 straight-line distance: <= 1 km
+SELECT ok((SELECT d_999_99  FROM boundary_distances) < 1000,  '999.99 m is below the 1 km threshold');
+SELECT ok((SELECT d_1000_00 FROM boundary_distances) <= 1000, '1000.00 m satisfies the inclusive 1 km threshold');
+SELECT ok((SELECT d_1000_01 FROM boundary_distances) > 1000,  '1000.01 m exceeds the 1 km threshold');
 
-  -- 300 m competitor threshold: at least 300 m
-  IF NOT ST_Distance(origin, p_299_99) < 300 THEN
-    RAISE EXCEPTION 'Expected 299.99 m to fail >= 300 m threshold';
-  END IF;
-  IF NOT ST_Distance(origin, p_300_00) >= 300 THEN
-    RAISE EXCEPTION 'Expected 300.00 m to satisfy >= 300 m threshold';
-  END IF;
-  IF NOT ST_Distance(origin, p_300_01) > 300 THEN
-    RAISE EXCEPTION 'Expected 300.01 m to exceed 300 m threshold';
-  END IF;
+-- Item 125 lower bound: > 1 km
+SELECT ok(NOT ((SELECT d_1000_00 FROM boundary_distances) > 1000), '1000.00 m fails the strict > 1 km lower bound');
+SELECT ok((SELECT d_1000_01 FROM boundary_distances) > 1000,       '1000.01 m satisfies the strict > 1 km lower bound');
 
-  -- 500 m competitor threshold: at least 500 m
-  IF NOT ST_Distance(origin, p_499_99) < 500 THEN
-    RAISE EXCEPTION 'Expected 499.99 m to fail >= 500 m threshold';
-  END IF;
-  IF NOT ST_Distance(origin, p_500_00) >= 500 THEN
-    RAISE EXCEPTION 'Expected 500.00 m to satisfy >= 500 m threshold';
-  END IF;
-  IF NOT ST_Distance(origin, p_500_01) > 500 THEN
-    RAISE EXCEPTION 'Expected 500.01 m to exceed 500 m threshold';
-  END IF;
-END $$;
+-- Item 125 upper bound: <= 1.5 km
+SELECT ok((SELECT d_1499_99 FROM boundary_distances) < 1500,  '1499.99 m is below the 1.5 km upper bound');
+SELECT ok((SELECT d_1500_00 FROM boundary_distances) <= 1500, '1500.00 m satisfies the inclusive 1.5 km upper bound');
+SELECT ok((SELECT d_1500_01 FROM boundary_distances) > 1500,  '1500.01 m exceeds the 1.5 km upper bound');
 
-DO $$
-DECLARE
-  route_9999_99 numeric := 9999.99;
-  route_10000_00 numeric := 10000.00;
-  route_10000_01 numeric := 10000.01;
-BEGIN
-  -- Item 123 route threshold: at least 10 km
-  IF NOT route_9999_99 < 10000 THEN
-    RAISE EXCEPTION 'Expected 9999.99 m route to fail >= 10 km threshold';
-  END IF;
-  IF NOT route_10000_00 >= 10000 THEN
-    RAISE EXCEPTION 'Expected 10000.00 m route to satisfy inclusive >= 10 km threshold';
-  END IF;
-  IF NOT route_10000_01 > 10000 THEN
-    RAISE EXCEPTION 'Expected 10000.01 m route to exceed 10 km threshold';
-  END IF;
-END $$;
+-- 300 m competitor threshold: at least 300 m
+SELECT ok((SELECT d_299_99 FROM boundary_distances) < 300,  '299.99 m fails the >= 300 m threshold');
+SELECT ok((SELECT d_300_00 FROM boundary_distances) >= 300, '300.00 m satisfies the >= 300 m threshold');
+SELECT ok((SELECT d_300_01 FROM boundary_distances) > 300,  '300.01 m exceeds the 300 m threshold');
+
+-- 500 m competitor threshold: at least 500 m
+SELECT ok((SELECT d_499_99 FROM boundary_distances) < 500,  '499.99 m fails the >= 500 m threshold');
+SELECT ok((SELECT d_500_00 FROM boundary_distances) >= 500, '500.00 m satisfies the >= 500 m threshold');
+SELECT ok((SELECT d_500_01 FROM boundary_distances) > 500,  '500.01 m exceeds the 500 m threshold');
+
+-- Item 123 route threshold: at least 10 km (scalar distance, not spatial)
+SELECT ok(
+  9999.99 < 10000 AND 10000.00 >= 10000 AND 10000.01 > 10000,
+  '10 km route threshold is inclusive at exactly 10 km'
+);
+
+SELECT * FROM finish();
+
+ROLLBACK;
