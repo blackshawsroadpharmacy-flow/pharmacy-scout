@@ -1,6 +1,6 @@
 import { ClientOnly, Link, useNavigate } from "@tanstack/react-router";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchPharmacyViewport } from "@/lib/premises-public";
 import { TopBar, type Mode } from "@/components/map/top-bar";
@@ -65,6 +65,7 @@ type MapScreenProps = {
 
 export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScreenProps) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user } = useSession();
   const authed = !!user;
 
@@ -203,7 +204,7 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
   const all = useMemo(() => pharmacyResult?.items ?? [], [pharmacyResult]);
   const visiblePremisesIds = useMemo(() => all.map((point) => point.id), [all]);
   const pipelineQ = useQuery({
-    queryKey: ["private-pipeline-map-statuses", visiblePremisesIds],
+    queryKey: ["private-pipeline-map-statuses", user?.id ?? null, visiblePremisesIds],
     queryFn: () => fetchPharmacyPipelineStatuses(visiblePremisesIds),
     enabled: authed && visiblePremisesIds.length > 0,
     staleTime: 60 * 1000,
@@ -255,6 +256,10 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
 
   async function handleAccount() {
     if (authed) {
+      // Private pipeline data lives in the query cache under keys that carry no
+      // tenant identity, so it must be dropped before the next sign-in.
+      await queryClient.cancelQueries();
+      queryClient.clear();
       await supabase.auth.signOut();
     } else {
       requireAuth("Sign in to access saved opportunities and private notes.");
@@ -461,6 +466,8 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
         error={premisesQ.isError ? "Pharmacy records could not be loaded for this area." : null}
         coverageNote={pharmacyResult?.coverageNote ?? null}
         totalCount={pharmacyResult?.totalCount ?? 0}
+        truncated={pharmacyResult?.truncated ?? false}
+        hasViewport={viewport != null}
         metrics={pharmacyResult?.metrics ?? null}
         onSelect={openPremises}
       />

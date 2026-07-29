@@ -45,7 +45,7 @@ export interface PharmacyViewportResult {
   items: PremisesMapPoint[];
   totalCount: number;
   truncated: boolean;
-  coverageState: "covered";
+  coverageState: "covered" | "truncated";
   coverageNote: string;
   requestKey: string;
   metrics: ViewportMetrics;
@@ -84,13 +84,15 @@ export async function fetchPharmacyViewport(
       const rows = (data ?? []) as unknown as PharmacyViewportRow[];
       const totalCount = Number(rows[0]?.total_count ?? 0);
       const items = rows.map(({ total_count: _totalCount, ...point }) => point);
+      const truncated = totalCount > items.length;
       return {
         items,
         totalCount,
-        truncated: totalCount > items.length,
-        coverageState: "covered",
-        coverageNote:
-          "Victorian pharmacy discovery dataset. Regulatory verification remains unavailable.",
+        truncated,
+        coverageState: truncated ? "truncated" : "covered",
+        coverageNote: truncated
+          ? `Showing ${items.length} of ${totalCount} pharmacies in view — zoom in to see them all. Regulatory verification remains unavailable.`
+          : "Victorian pharmacy discovery dataset. Regulatory verification remains unavailable.",
         requestKey,
         metrics: {
           durationMs: performance.now() - startedAt,
@@ -106,36 +108,37 @@ export async function fetchDossier(
   id: string,
   signal?: AbortSignal,
 ): Promise<PremisesDossier | null> {
-  const premisesRequest = supabase
+  // abortSignal must be applied to the filter builder, before the terminal
+  // .maybeSingle() narrows it to a PostgrestBuilder.
+  const premisesQuery = supabase
     .from("pharmacy_premises_geo")
     .select(
       "id, name, address, suburb, postcode, locality_name, lat, lng, vpa_registration_status, premises_source, source_confidence, source_id, geocode_method, door_lat, door_lng, phone, website",
     )
-    .eq("id", id)
-    .maybeSingle();
-  const approvalsRequest = supabase
+    .eq("id", id);
+  const premisesRequest = (
+    signal ? premisesQuery.abortSignal(signal) : premisesQuery
+  ).maybeSingle();
+  const approvalsQuery = supabase
     .from("pbs_approvals")
     .select("approval_number, approval_status")
     .eq("premises_id", id);
+  const approvalsRequest = signal ? approvalsQuery.abortSignal(signal) : approvalsQuery;
 
-  const [premisesRes, approvalsRes] = await Promise.all([
-    signal ? premisesRequest.abortSignal(signal) : premisesRequest,
-    signal ? approvalsRequest.abortSignal(signal) : approvalsRequest,
-  ]);
+  const [premisesRes, approvalsRes] = await Promise.all([premisesRequest, approvalsRequest]);
   if (premisesRes.error) throw new Error(premisesRes.error.message);
   if (approvalsRes.error) throw new Error(approvalsRes.error.message);
   if (!premisesRes.data) return null;
 
   const premises = premisesRes.data;
-  const sourceRequest = premises.source_id
+  const sourceQuery = premises.source_id
     ? supabase
         .from("source_records")
         .select("source_name, source_url, fetched_at")
         .eq("id", premises.source_id)
-        .maybeSingle()
     : null;
-  const sourceRes = sourceRequest
-    ? await (signal ? sourceRequest.abortSignal(signal) : sourceRequest)
+  const sourceRes = sourceQuery
+    ? await (signal ? sourceQuery.abortSignal(signal) : sourceQuery).maybeSingle()
     : { data: null, error: null };
   if (sourceRes.error) throw new Error(sourceRes.error.message);
 
