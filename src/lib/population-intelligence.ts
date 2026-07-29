@@ -76,8 +76,7 @@ export function populationColour(metric: PopulationMetric, value: number | null)
           [5_000, "#1d4ed8"],
         ];
   return (
-    breaks.find(([limit]) => value < limit)?.[1] ??
-    (metric === "growth" ? "#166534" : "#172554")
+    breaks.find(([limit]) => value < limit)?.[1] ?? (metric === "growth" ? "#166534" : "#172554")
   );
 }
 

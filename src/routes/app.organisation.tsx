@@ -204,8 +204,8 @@ function OrganisationPage() {
           <section className="mt-5 rounded-xl border bg-card p-4">
             <h2 className="font-semibold">Invite a colleague</h2>
             <p className="text-xs text-muted-foreground">
-              The invitation is tied to this email address and expires in 14 days. The link is copied
-              to your clipboard — send it to them yourself.
+              The invitation is tied to this email address and expires in 14 days. The link is
+              copied to your clipboard — send it to them yourself.
             </p>
             <form onSubmit={handleInvite} className="mt-3 flex flex-wrap items-end gap-2">
               <label className="flex flex-1 flex-col gap-1 text-sm">

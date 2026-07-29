@@ -141,9 +141,7 @@ export const inviteToOrg = createServerFn({ method: "POST" })
 
 export const acceptOrgInvitation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z.object({ token: z.string().min(16).max(200) }).parse(input),
-  )
+  .inputValidator((input: unknown) => z.object({ token: z.string().min(16).max(200) }).parse(input))
   .handler(async ({ data, context }) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: rows, error } = await (context.supabase as any).rpc(

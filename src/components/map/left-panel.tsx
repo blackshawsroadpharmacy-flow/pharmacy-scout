@@ -164,8 +164,8 @@ function ExploreBody({
         </div>
         {truncated && (
           <div className="mt-2 rounded border border-amber-300 bg-amber-50 px-2 py-1.5 text-[11px] leading-relaxed text-amber-900">
-            <b>Not all matches are shown.</b> {total - filtered.length} of {total} pharmacies in this
-            view are hidden by the per-request limit. Zoom in to see them all.
+            <b>Not all matches are shown.</b> {total - filtered.length} of {total} pharmacies in
+            this view are hidden by the per-request limit. Zoom in to see them all.
           </div>
         )}
         <div className="mt-2 grid grid-cols-2 gap-2 border-t border-border pt-2">

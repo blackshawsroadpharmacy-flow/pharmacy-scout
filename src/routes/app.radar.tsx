@@ -47,7 +47,9 @@ function RadarPage() {
     (orgs.data ?? []).find((row) => row.id === profile.data?.current_organisation_id)?.name ?? null;
   type RadarRow = NonNullable<typeof radar.data>["rankings"][keyof typeof MODES][number];
   const rows: RadarRow[] = radar.data?.rankings[mode] ?? [];
-  const compared = rows.filter((row: RadarRow) => row.pharmacy_id && compare.includes(row.pharmacy_id));
+  const compared = rows.filter(
+    (row: RadarRow) => row.pharmacy_id && compare.includes(row.pharmacy_id),
+  );
   async function add(pharmacyId: string) {
     try {
       const result = await addPharmacyToPipeline(pharmacyId);
