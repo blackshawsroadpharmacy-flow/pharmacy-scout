@@ -19,6 +19,7 @@ import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppAcquisitionsRouteImport } from './routes/app.acquisitions'
 import { Route as AppCalibrationRouteImport } from './routes/app.calibration'
 import { Route as AppDataSourcesRouteImport } from './routes/app.data-sources'
+import { Route as AppOrganisationRouteImport } from './routes/app.organisation'
 import { Route as AppRadarRouteImport } from './routes/app.radar'
 import { Route as AppScenariosRouteImport } from './routes/app.scenarios'
 import { Route as AppSecurityRouteImport } from './routes/app.security'
@@ -74,6 +75,11 @@ const AppDataSourcesRoute = AppDataSourcesRouteImport.update({
   path: '/data-sources',
   getParentRoute: () => AppRoute,
 } as any)
+const AppOrganisationRoute = AppOrganisationRouteImport.update({
+  id: '/organisation',
+  path: '/organisation',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppRadarRoute = AppRadarRouteImport.update({
   id: '/radar',
   path: '/radar',
@@ -105,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/app/acquisitions': typeof AppAcquisitionsRoute
   '/app/calibration': typeof AppCalibrationRoute
   '/app/data-sources': typeof AppDataSourcesRoute
+  '/app/organisation': typeof AppOrganisationRoute
   '/app/radar': typeof AppRadarRoute
   '/app/scenarios': typeof AppScenariosRoute
   '/app/security': typeof AppSecurityRoute
@@ -120,6 +127,7 @@ export interface FileRoutesByTo {
   '/app/acquisitions': typeof AppAcquisitionsRoute
   '/app/calibration': typeof AppCalibrationRoute
   '/app/data-sources': typeof AppDataSourcesRoute
+  '/app/organisation': typeof AppOrganisationRoute
   '/app/radar': typeof AppRadarRoute
   '/app/scenarios': typeof AppScenariosRoute
   '/app/security': typeof AppSecurityRoute
@@ -137,6 +145,7 @@ export interface FileRoutesById {
   '/app/acquisitions': typeof AppAcquisitionsRoute
   '/app/calibration': typeof AppCalibrationRoute
   '/app/data-sources': typeof AppDataSourcesRoute
+  '/app/organisation': typeof AppOrganisationRoute
   '/app/radar': typeof AppRadarRoute
   '/app/scenarios': typeof AppScenariosRoute
   '/app/security': typeof AppSecurityRoute
@@ -155,6 +164,7 @@ export interface FileRouteTypes {
     | '/app/acquisitions'
     | '/app/calibration'
     | '/app/data-sources'
+    | '/app/organisation'
     | '/app/radar'
     | '/app/scenarios'
     | '/app/security'
@@ -170,6 +180,7 @@ export interface FileRouteTypes {
     | '/app/acquisitions'
     | '/app/calibration'
     | '/app/data-sources'
+    | '/app/organisation'
     | '/app/radar'
     | '/app/scenarios'
     | '/app/security'
@@ -186,6 +197,7 @@ export interface FileRouteTypes {
     | '/app/acquisitions'
     | '/app/calibration'
     | '/app/data-sources'
+    | '/app/organisation'
     | '/app/radar'
     | '/app/scenarios'
     | '/app/security'
@@ -275,6 +287,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDataSourcesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/organisation': {
+      id: '/app/organisation'
+      path: '/organisation'
+      fullPath: '/app/organisation'
+      preLoaderRoute: typeof AppOrganisationRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/radar': {
       id: '/app/radar'
       path: '/radar'
@@ -310,6 +329,7 @@ interface AppRouteChildren {
   AppAcquisitionsRoute: typeof AppAcquisitionsRoute
   AppCalibrationRoute: typeof AppCalibrationRoute
   AppDataSourcesRoute: typeof AppDataSourcesRoute
+  AppOrganisationRoute: typeof AppOrganisationRoute
   AppRadarRoute: typeof AppRadarRoute
   AppScenariosRoute: typeof AppScenariosRoute
   AppSecurityRoute: typeof AppSecurityRoute
@@ -320,6 +340,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAcquisitionsRoute: AppAcquisitionsRoute,
   AppCalibrationRoute: AppCalibrationRoute,
   AppDataSourcesRoute: AppDataSourcesRoute,
+  AppOrganisationRoute: AppOrganisationRoute,
   AppRadarRoute: AppRadarRoute,
   AppScenariosRoute: AppScenariosRoute,
   AppSecurityRoute: AppSecurityRoute,
