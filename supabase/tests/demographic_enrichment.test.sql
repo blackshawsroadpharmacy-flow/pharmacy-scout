@@ -15,7 +15,7 @@ SELECT is(
 );
 SELECT is(
   (SELECT count(*) FROM public.pharmacy_demographic_context),
-  (SELECT count(*) FROM public.pharmacy_premises WHERE lat IS NOT NULL AND lng IS NOT NULL),
+  (SELECT count(*) FROM public.pharmacy_premises WHERE location IS NOT NULL),
   'every mapped pharmacy has an explicit matched or unavailable context'
 );
 SELECT ok(
