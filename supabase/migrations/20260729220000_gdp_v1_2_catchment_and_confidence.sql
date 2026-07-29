@@ -59,16 +59,24 @@ CREATE OR REPLACE FUNCTION public.catchment_population(
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   WITH catchment AS (
     SELECT ST_Buffer(_location, _radius_m)::geometry AS geom
+  ), valid_areas AS (
+    -- ST_Intersects (used everywhere else in this schema) tolerates the minor
+    -- self-intersections real government boundary data tends to have.
+    -- ST_Intersection actually computes an overlay and throws a GEOS
+    -- TopologyException on the same geometries. ST_MakeValid before any
+    -- overlay operation is the standard defence against that.
+    SELECT a.population_2024, ST_MakeValid(a.boundary) AS boundary
+    FROM public.dispensing_population_areas a
+    WHERE a.population_2024 IS NOT NULL
   )
   SELECT COALESCE(SUM(
     a.population_2024
       * (ST_Area(ST_Intersection(a.boundary, c.geom)::geography)
          / NULLIF(ST_Area(a.boundary::geography), 0))
   ), 0)
-  FROM public.dispensing_population_areas a
+  FROM valid_areas a
   CROSS JOIN catchment c
-  WHERE a.population_2024 IS NOT NULL
-    AND ST_Intersects(a.boundary, c.geom);
+  WHERE ST_Intersects(a.boundary, c.geom);
 $$;
 REVOKE ALL ON FUNCTION public.catchment_population(GEOGRAPHY, INTEGER) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.catchment_population(GEOGRAPHY, INTEGER) TO service_role;
@@ -226,12 +234,13 @@ $$;
 REVOKE ALL ON FUNCTION public.refresh_dispensing_potential_v1_2() FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.refresh_dispensing_potential_v1_2() TO service_role;
 
--- Populate v1.2 rows. v1.2 is left inactive: activate it deliberately after
--- reviewing the recomputed distribution against the v1.1 baseline.
-DO $$
-BEGIN
-  PERFORM public.refresh_dispensing_potential_v1_2();
-EXCEPTION WHEN OTHERS THEN
-  RAISE EXCEPTION 'GDP v1.2 refresh failed: % (%)', SQLERRM, SQLSTATE;
-END;
-$$;
+-- v1.2 rows are deliberately NOT populated by this migration. Unlike v1.0/v1.1,
+-- this refresh performs a real geometric overlay (ST_Intersection) against
+-- externally-sourced ABS SA2 polygons rather than a simple point-in-polygon
+-- test, so its behaviour on production geometry has not been exercised outside
+-- this migration's own review. Run it as an explicit, reviewable step once
+-- staged:
+--
+--   SELECT public.refresh_dispensing_potential_v1_2();
+--
+-- then compare the result against gdp-v1.1.0 before activating the method.
