@@ -112,6 +112,124 @@ export type Database = {
           },
         ]
       }
+      demographic_area_profiles: {
+        Row: {
+          age_65_plus_count: number | null
+          age_65_plus_percent: number | null
+          age_75_plus_count: number | null
+          age_75_plus_percent: number | null
+          boundary_edition: string
+          census_source_id: string
+          census_total_population: number | null
+          coverage_status: string
+          created_at: string
+          geography_level: string
+          missing_reasons: Json
+          need_assistance_count: number | null
+          need_assistance_percent: number | null
+          no_vehicle_dwellings_count: number | null
+          no_vehicle_dwellings_percent: number | null
+          reference_year: number
+          retrieved_at: string
+          sa2_code_2021: string
+          sa2_name_2021: string
+          seifa_ier_score: number | null
+          seifa_ier_state_decile: number | null
+          seifa_ier_state_percentile: number | null
+          seifa_irsd_score: number | null
+          seifa_irsd_state_decile: number | null
+          seifa_irsd_state_percentile: number | null
+          seifa_source_id: string
+          under_five_count: number | null
+          under_five_percent: number | null
+          vehicle_response_dwellings_count: number | null
+        }
+        Insert: {
+          age_65_plus_count?: number | null
+          age_65_plus_percent?: number | null
+          age_75_plus_count?: number | null
+          age_75_plus_percent?: number | null
+          boundary_edition?: string
+          census_source_id: string
+          census_total_population?: number | null
+          coverage_status: string
+          created_at?: string
+          geography_level?: string
+          missing_reasons?: Json
+          need_assistance_count?: number | null
+          need_assistance_percent?: number | null
+          no_vehicle_dwellings_count?: number | null
+          no_vehicle_dwellings_percent?: number | null
+          reference_year: number
+          retrieved_at?: string
+          sa2_code_2021: string
+          sa2_name_2021: string
+          seifa_ier_score?: number | null
+          seifa_ier_state_decile?: number | null
+          seifa_ier_state_percentile?: number | null
+          seifa_irsd_score?: number | null
+          seifa_irsd_state_decile?: number | null
+          seifa_irsd_state_percentile?: number | null
+          seifa_source_id: string
+          under_five_count?: number | null
+          under_five_percent?: number | null
+          vehicle_response_dwellings_count?: number | null
+        }
+        Update: {
+          age_65_plus_count?: number | null
+          age_65_plus_percent?: number | null
+          age_75_plus_count?: number | null
+          age_75_plus_percent?: number | null
+          boundary_edition?: string
+          census_source_id?: string
+          census_total_population?: number | null
+          coverage_status?: string
+          created_at?: string
+          geography_level?: string
+          missing_reasons?: Json
+          need_assistance_count?: number | null
+          need_assistance_percent?: number | null
+          no_vehicle_dwellings_count?: number | null
+          no_vehicle_dwellings_percent?: number | null
+          reference_year?: number
+          retrieved_at?: string
+          sa2_code_2021?: string
+          sa2_name_2021?: string
+          seifa_ier_score?: number | null
+          seifa_ier_state_decile?: number | null
+          seifa_ier_state_percentile?: number | null
+          seifa_irsd_score?: number | null
+          seifa_irsd_state_decile?: number | null
+          seifa_irsd_state_percentile?: number | null
+          seifa_source_id?: string
+          under_five_count?: number | null
+          under_five_percent?: number | null
+          vehicle_response_dwellings_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "demographic_area_profiles_census_source_id_fkey"
+            columns: ["census_source_id"]
+            isOneToOne: false
+            referencedRelation: "dispensing_demographic_sources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "demographic_area_profiles_sa2_code_2021_fkey"
+            columns: ["sa2_code_2021"]
+            isOneToOne: false
+            referencedRelation: "dispensing_population_areas"
+            referencedColumns: ["sa2_code_2021"]
+          },
+          {
+            foreignKeyName: "demographic_area_profiles_seifa_source_id_fkey"
+            columns: ["seifa_source_id"]
+            isOneToOne: false
+            referencedRelation: "dispensing_demographic_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dispensing_calibration_import_batches: {
         Row: {
           file_name: string
@@ -1609,6 +1727,54 @@ export type Database = {
           },
         ]
       }
+      pharmacy_demographic_context: {
+        Row: {
+          assignment_method: string
+          calculated_at: string
+          context: Json
+          coverage_quality: string
+          geographic_resolution: string
+          pharmacy_id: string
+          reference_year: number | null
+          sa2_code_2021: string | null
+        }
+        Insert: {
+          assignment_method?: string
+          calculated_at?: string
+          context?: Json
+          coverage_quality: string
+          geographic_resolution?: string
+          pharmacy_id: string
+          reference_year?: number | null
+          sa2_code_2021?: string | null
+        }
+        Update: {
+          assignment_method?: string
+          calculated_at?: string
+          context?: Json
+          coverage_quality?: string
+          geographic_resolution?: string
+          pharmacy_id?: string
+          reference_year?: number | null
+          sa2_code_2021?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_demographic_context_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: true
+            referencedRelation: "pharmacy_premises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_demographic_context_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: true
+            referencedRelation: "pharmacy_premises_geo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pharmacy_dispensing_potential: {
         Row: {
           calculated_at: string
@@ -3070,6 +3236,27 @@ export type Database = {
         Args: { p_lat: number; p_lng: number; p_radius_m?: number }
         Returns: Json
       }
+      demographic_areas_in_viewport: {
+        Args: {
+          east: number
+          metric: string
+          north: number
+          south: number
+          west: number
+        }
+        Returns: {
+          coverage_status: string
+          geometry: Json
+          reference_year: number
+          sa2_code_2021: string
+          sa2_name_2021: string
+          value: number
+        }[]
+      }
+      demographic_context_at_point: {
+        Args: { candidate_lat: number; candidate_lng: number }
+        Returns: Json
+      }
       disablelongtransactions: { Args: never; Returns: string }
       dropgeometrycolumn:
         | {
@@ -3362,6 +3549,7 @@ export type Database = {
       postgis_wagyu_version: { Args: never; Returns: string }
       public_data_freshness: { Args: never; Returns: Json }
       refresh_dispensing_potential_v1: { Args: never; Returns: number }
+      refresh_pharmacy_demographic_context: { Args: never; Returns: number }
       scenario_evidence_at_point: {
         Args: { p_lat: number; p_lng: number; p_radius_m: number }
         Returns: Json
