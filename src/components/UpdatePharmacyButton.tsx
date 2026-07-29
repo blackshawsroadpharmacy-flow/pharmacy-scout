@@ -31,6 +31,8 @@ type Progress = {
   };
 };
 
+const VPA_REFRESH_MAINTENANCE_MODE = true;
+
 export function UpdatePharmacyButton() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [running, setRunning] = useState(false);
@@ -91,7 +93,7 @@ export function UpdatePharmacyButton() {
             throw new Error(event.error_message ?? "VPA refresh failed");
           } else if (event.phase === "done" && event.summary) {
             toast.success(
-              `VPA updated: ${event.summary.premises_added} added, ${event.summary.premises_updated} updated, ${event.summary.licensees_upserted} proprietors.`,
+              `VPA updated: ${event.summary.premises_added} added, ${event.summary.premises_updated} updated, ${event.summary.licensees_upserted} registered licensees.`,
               { id: toastId, duration: 10_000 },
             );
           }
@@ -118,7 +120,7 @@ export function UpdatePharmacyButton() {
       <div className="mt-3 border-t border-sidebar-border px-2 pt-3">
         <button
           type="button"
-          disabled={running}
+          disabled={running || VPA_REFRESH_MAINTENANCE_MODE}
           onClick={() => setConfirmOpen(true)}
           className="flex w-full items-center gap-2 rounded-md bg-white/10 px-3 py-2 text-sm text-sidebar-foreground hover:bg-white/15 disabled:cursor-wait disabled:opacity-70"
         >
@@ -130,7 +132,11 @@ export function UpdatePharmacyButton() {
             : "Update Pharmacy"}
         </button>
         <div className="mt-1 px-3 text-[11px] text-sidebar-muted">
-          {lastSynced.data ? `Last synced ${relativeTime(lastSynced.data)}` : "Not synced yet"}
+          {VPA_REFRESH_MAINTENANCE_MODE
+            ? "Temporarily disabled pending data-quality review"
+            : lastSynced.data
+              ? `Last synced ${relativeTime(lastSynced.data)}`
+              : "Not synced yet"}
         </div>
       </div>
 
