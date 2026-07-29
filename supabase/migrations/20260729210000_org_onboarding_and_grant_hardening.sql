@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS public.organisation_invitations (
   organisation_id UUID NOT NULL REFERENCES public.organisations(id) ON DELETE CASCADE,
   email CITEXT NOT NULL,
   role TEXT NOT NULL DEFAULT 'member' CHECK (role IN ('owner', 'admin', 'member')),
-  token TEXT NOT NULL UNIQUE DEFAULT encode(gen_random_bytes(32), 'hex'),
+  token TEXT NOT NULL UNIQUE DEFAULT encode(extensions.gen_random_bytes(32), 'hex'),
   invited_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   expires_at TIMESTAMPTZ NOT NULL DEFAULT now() + INTERVAL '14 days',
