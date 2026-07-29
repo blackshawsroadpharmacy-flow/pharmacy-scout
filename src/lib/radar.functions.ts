@@ -82,6 +82,7 @@ export const getOpportunityRadar = createServerFn({ method: "GET" })
     }
     const rows = (potential.data ?? []).map((row: any) => {
       const raw = row.raw_metrics ?? {};
+      const demographics = raw.official_demographic_context ?? {};
       const components = row.component_scores ?? {};
       const pharmacy = row.pharmacy_premises;
       const reasons = [
@@ -94,12 +95,21 @@ export const getOpportunityRadar = createServerFn({ method: "GET" })
         number(raw, "population_growth_2023_2024_percent") != null
           ? `${number(raw, "population_growth_2023_2024_percent")?.toFixed(1)}% sourced population growth`
           : null,
+        number(demographics, "age_65_plus_percent") != null
+          ? `${number(demographics, "age_65_plus_percent")?.toFixed(1)}% aged 65+ in the matched ABS 2021 SA2`
+          : null,
+        number(demographics, "need_assistance_percent") != null
+          ? `${number(demographics, "need_assistance_percent")?.toFixed(1)}% report a core activity need for assistance in the matched SA2`
+          : null,
       ].filter(Boolean);
       const limits = [
         ...(row.missing_inputs ?? []),
         number(raw, "pharmacies_2km") == null
           ? "Nearby pharmacy coverage unavailable"
           : `${number(raw, "pharmacies_2km")} competing pharmacies within 2 km`,
+        demographics.coverage_status === "partial" || demographics.coverage_status === "unavailable"
+          ? "Official ABS demographic coverage is incomplete; missing values are not zero"
+          : null,
       ].filter(Boolean);
       return {
         pharmacy_id: pharmacy.id,

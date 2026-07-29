@@ -4,6 +4,7 @@ import type {
   CandidatePoint,
   PopulationContext,
 } from "@/lib/candidate-analysis";
+import type { DemographicContext } from "@/lib/demographic-intelligence";
 
 const RADII = [300, 500, 1000, 1500, 2000, 5000];
 
@@ -15,12 +16,21 @@ function evidenceDate(value: string | null | undefined) {
   return value ? new Date(value).toLocaleDateString("en-AU") : "Date unavailable";
 }
 
+function percent(value: number | null | undefined) {
+  return value == null ? "Unavailable" : `${Number(value).toFixed(1)}%`;
+}
+
+function value(value: number | null | undefined) {
+  return value == null ? "Unavailable" : Number(value).toFixed(0);
+}
+
 export function CandidateAnalysisPanel({
   point,
   radiusM,
   onRadius,
   analysis,
   population,
+  demographics,
   loading,
   error,
   onClose,
@@ -30,6 +40,7 @@ export function CandidateAnalysisPanel({
   onRadius: (radius: number) => void;
   analysis: CandidateAnalysis | null;
   population: PopulationContext | null;
+  demographics: DemographicContext | null;
   loading: boolean;
   error: string | null;
   onClose: () => void;
@@ -126,6 +137,30 @@ export function CandidateAnalysisPanel({
                   {warning}
                 </p>
               ))}
+            </section>
+            <section className="mt-4">
+              <h3 className="font-semibold">Official demographic context</h3>
+              {demographics?.coverage_status !== "unavailable" ? (
+                <div className="mt-2 rounded border border-border p-2">
+                  <div className="font-medium">{demographics?.sa2_name_2021 ?? "Matched SA2"}</div>
+                  <div className="mt-1 grid grid-cols-2 gap-2">
+                    <div>Age 65+: {percent(demographics?.age_65_plus_percent)}</div>
+                    <div>Age 75+: {percent(demographics?.age_75_plus_percent)}</div>
+                    <div>Under five: {percent(demographics?.under_five_percent)}</div>
+                    <div>Need assistance: {percent(demographics?.need_assistance_percent)}</div>
+                    <div>SEIFA IRSD: {value(demographics?.seifa_irsd_state_percentile)}</div>
+                    <div>No vehicle: {percent(demographics?.no_vehicle_dwellings_percent)}</div>
+                  </div>
+                  <p className="mt-2 text-[11px] text-muted-foreground">
+                    ABS 2021 SA2 area average assigned by point-in-polygon. Census counts are not
+                    Estimated Resident Population or a precise street-level catchment.
+                  </p>
+                </div>
+              ) : (
+                <p className="mt-2 text-muted-foreground">
+                  No official demographic coverage. Missing values are not treated as zero.
+                </p>
+              )}
             </section>
 
             <section className="mt-4">

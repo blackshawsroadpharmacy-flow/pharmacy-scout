@@ -23,6 +23,12 @@ import {
 } from "@/lib/population-intelligence";
 import type { PharmacyPipelineStatus } from "@/lib/pharmacy-pipeline";
 import type { MapDispensingPotential } from "@/lib/dispensing-potential";
+import {
+  demographicColour,
+  DEMOGRAPHIC_LABELS,
+  type DemographicFeatureCollection,
+  type DemographicMetric,
+} from "@/lib/demographic-intelligence";
 
 // Ensure default marker icons resolve under bundlers (used only as fallback).
 import iconRetina from "leaflet/dist/images/marker-icon-2x.png";
@@ -163,6 +169,8 @@ export function MapView({
   candidateNearestPoint = null,
   population = null,
   populationMetric = null,
+  demographics = null,
+  demographicMetric = null,
   pipelineStatuses = new Map(),
   dispensingPotentials = new Map(),
 }: {
@@ -181,6 +189,8 @@ export function MapView({
   candidateNearestPoint?: { lat: number; lng: number } | null;
   population?: PopulationFeatureCollection | null;
   populationMetric?: PopulationMetric | null;
+  demographics?: DemographicFeatureCollection | null;
+  demographicMetric?: DemographicMetric | null;
   pipelineStatuses?: Map<string, PharmacyPipelineStatus>;
   dispensingPotentials?: Map<string, MapDispensingPotential>;
 }) {
@@ -272,6 +282,38 @@ export function MapView({
                   : `${Number(value).toFixed(1)}% growth · ${properties.chg_yr_to_yr_no == null ? "population change unavailable" : `${Number(properties.chg_yr_to_yr_no).toLocaleString()} residents`}`;
             const source = document.createElement("div");
             source.textContent = "ABS Estimated Resident Population 2024 · SA2";
+            source.style.opacity = "0.65";
+            content.append(title, detail, source);
+            layer.bindTooltip(content, { sticky: true });
+          }}
+        />
+      )}
+      {demographics && demographicMetric && (
+        <GeoJSON
+          key={`demographic-${demographicMetric}`}
+          data={demographics as GeoJSON.FeatureCollection}
+          style={(feature) => ({
+            color: "#ffffff",
+            weight: 0.65,
+            fillColor: demographicColour(
+              demographicMetric,
+              (feature?.properties?.value as number | null) ?? null,
+            ),
+            fillOpacity: 0.55,
+          })}
+          onEachFeature={(feature, layer) => {
+            const properties = feature.properties;
+            const value = properties?.value as number | null;
+            const content = document.createElement("div");
+            const title = document.createElement("strong");
+            title.textContent = String(properties?.sa2_name_2021 ?? "SA2 area");
+            const detail = document.createElement("div");
+            detail.textContent =
+              value == null
+                ? "No source coverage; missing is not zero"
+                : `${DEMOGRAPHIC_LABELS[demographicMetric]}: ${Number(value).toFixed(1)}${demographicMetric === "disadvantage" ? " percentile" : "%"}`;
+            const source = document.createElement("div");
+            source.textContent = "ABS 2021 · SA2 area average, not a street-level estimate";
             source.style.opacity = "0.65";
             content.append(title, detail, source);
             layer.bindTooltip(content, { sticky: true });

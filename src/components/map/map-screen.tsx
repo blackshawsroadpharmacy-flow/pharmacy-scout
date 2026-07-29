@@ -35,6 +35,12 @@ import {
   fetchMapDispensingPotentials,
   type MapDispensingPotential,
 } from "@/lib/dispensing-potential";
+import {
+  DEMOGRAPHIC_LABELS,
+  fetchDemographicViewport,
+  fetchDemographicsAtPoint,
+  type DemographicMetric,
+} from "@/lib/demographic-intelligence";
 
 const MapView = lazy(() =>
   import("@/components/map/map-view").then((m) => ({ default: m.MapView })),
@@ -76,6 +82,11 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
     populationDensity: publicMapState?.layers?.includes("density") ?? false,
     populationGrowth: publicMapState?.layers?.includes("growth") ?? false,
     dispensingPotential: publicMapState?.layers?.includes("potential") ?? false,
+    age65: publicMapState?.layers?.includes("age65") ?? false,
+    age75: publicMapState?.layers?.includes("age75") ?? false,
+    needAssistance: publicMapState?.layers?.includes("assistance") ?? false,
+    seifaDisadvantage: publicMapState?.layers?.includes("disadvantage") ?? false,
+    noVehicle: publicMapState?.layers?.includes("no-vehicle") ?? false,
   }));
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [flyTo, setFlyTo] = useState<{ lat: number; lng: number; zoom?: number } | null>(() =>
@@ -140,6 +151,12 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
     enabled: candidateMode && candidatePoint != null,
     staleTime: 24 * 60 * 60 * 1000,
   });
+  const candidateDemographicsQ = useQuery({
+    queryKey: ["candidate-official-demographics", candidatePoint?.lat, candidatePoint?.lng],
+    queryFn: () => fetchDemographicsAtPoint(candidatePoint!.lat, candidatePoint!.lng),
+    enabled: candidateMode && candidatePoint != null,
+    staleTime: 24 * 60 * 60 * 1000,
+  });
   const populationMetric: PopulationMetric | null = layers.populationGrowth
     ? "growth"
     : layers.populationDensity
@@ -149,6 +166,23 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
     queryKey: ["abs-population", "sa2", "2024"],
     queryFn: ({ signal }) => fetchVictorianPopulation(signal),
     enabled: populationMetric != null,
+    staleTime: 24 * 60 * 60 * 1000,
+  });
+  const demographicMetric: DemographicMetric | null = layers.age65
+    ? "age65"
+    : layers.age75
+      ? "age75"
+      : layers.needAssistance
+        ? "assistance"
+        : layers.seifaDisadvantage
+          ? "disadvantage"
+          : layers.noVehicle
+            ? "no_vehicle"
+            : null;
+  const demographicQ = useQuery({
+    queryKey: ["official-demographic-viewport", demographicMetric, ...viewportKey],
+    queryFn: ({ signal }) => fetchDemographicViewport(viewport!, demographicMetric!, signal),
+    enabled: viewport != null && demographicMetric != null,
     staleTime: 24 * 60 * 60 * 1000,
   });
 
@@ -323,6 +357,11 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
       layers.populationDensity ? "density" : null,
       layers.populationGrowth ? "growth" : null,
       layers.dispensingPotential ? "potential" : null,
+      layers.age65 ? "age65" : null,
+      layers.age75 ? "age75" : null,
+      layers.needAssistance ? "assistance" : null,
+      layers.seifaDisadvantage ? "disadvantage" : null,
+      layers.noVehicle ? "no-vehicle" : null,
     ].filter(Boolean);
     if (publicLayers.length) search.set("layers", publicLayers.join(","));
     if (layers.dispensingPotential && potentialFilter !== "all") {
@@ -364,6 +403,8 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
             }
             population={populationQ.data ?? null}
             populationMetric={populationMetric}
+            demographics={demographicQ.data ?? null}
+            demographicMetric={demographicMetric}
             pipelineStatuses={pipelineStatuses}
             dispensingPotentials={dispensingPotentials}
           />
@@ -410,6 +451,17 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
         onLayers={(next) => {
           if (next.populationDensity && !layers.populationDensity) next.populationGrowth = false;
           if (next.populationGrowth && !layers.populationGrowth) next.populationDensity = false;
+          const demographicKeys: Array<keyof LayerState> = [
+            "age65",
+            "age75",
+            "needAssistance",
+            "seifaDisadvantage",
+            "noVehicle",
+          ];
+          const newlyEnabled = demographicKeys.find((key) => next[key] && !layers[key]);
+          if (newlyEnabled) {
+            for (const key of demographicKeys) if (key !== newlyEnabled) next[key] = false;
+          }
           setLayers(next);
         }}
       />
@@ -512,6 +564,13 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
       {populationMetric && (
         <PopulationLegend metric={populationMetric} loading={populationQ.isFetching} />
       )}
+      {demographicMetric && (
+        <ViewportNotice topClass="top-36">
+          {DEMOGRAPHIC_LABELS[demographicMetric]} · ABS 2021 SA2 average
+          {demographicQ.isFetching ? " · loading…" : ""}
+          {demographicQ.isError ? " · source temporarily unavailable" : ""}
+        </ViewportNotice>
+      )}
       {layers.supermarkets && supermarketQ.isSuccess && supermarketQ.data.items.length === 0 && (
         <ViewportNotice topClass="top-28">
           No supermarket records in this view · {supermarketQ.data.coverageNote}
@@ -531,13 +590,20 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
           onRadius={setCandidateRadiusM}
           analysis={candidateAnalysisQ.data ?? null}
           population={candidatePopulationQ.data ?? null}
-          loading={candidateAnalysisQ.isLoading || candidatePopulationQ.isLoading}
+          demographics={candidateDemographicsQ.data ?? null}
+          loading={
+            candidateAnalysisQ.isLoading ||
+            candidatePopulationQ.isLoading ||
+            candidateDemographicsQ.isLoading
+          }
           error={
             candidateAnalysisQ.isError
               ? candidateAnalysisQ.error.message
               : candidatePopulationQ.isError
                 ? candidatePopulationQ.error.message
-                : null
+                : candidateDemographicsQ.isError
+                  ? candidateDemographicsQ.error.message
+                  : null
           }
           onClose={() => setCandidatePoint(null)}
         />
