@@ -78,7 +78,7 @@ jobs:
         with:
           version: latest
       - run: supabase start
-      - run: supabase db reset
+      - run: supabase db reset --debug
       - run: >-
           supabase test db
           supabase/tests/pbs_approvals_rls.test.sql
