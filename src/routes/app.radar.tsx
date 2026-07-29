@@ -45,8 +45,11 @@ function RadarPage() {
   const [entityCompare, setEntityCompare] = useState<string[]>([]);
   const orgName =
     (orgs.data ?? []).find((row) => row.id === profile.data?.current_organisation_id)?.name ?? null;
-  const rows = radar.data?.rankings[mode] ?? [];
-  const compared = rows.filter((row) => compare.includes(row.pharmacy_id));
+  type RadarRow = NonNullable<typeof radar.data>["rankings"][keyof typeof MODES][number];
+  const rows: RadarRow[] = radar.data?.rankings[mode] ?? [];
+  const compared = rows.filter(
+    (row: RadarRow) => row.pharmacy_id && compare.includes(row.pharmacy_id),
+  );
   async function add(pharmacyId: string) {
     try {
       const result = await addPharmacyToPipeline(pharmacyId);
@@ -93,12 +96,12 @@ function RadarPage() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((row, index) => (
-                <tr key={row.pharmacy_id} className="border-t align-top">
+              {rows.map((row: RadarRow, index: number) => (
+                <tr key={row.pharmacy_id ?? `row-${index}`} className="border-t align-top">
                   <td className="p-3 font-semibold">#{index + 1}</td>
                   <td className="py-3 pr-3">
-                    <b>{row.name}</b>
-                    <div>{row.suburb ?? row.address}</div>
+                    <b>{row.name ?? "Unknown pharmacy"}</b>
+                    <div>{row.suburb ?? row.address ?? "Location unavailable"}</div>
                   </td>
                   <td className="py-3 pr-3">
                     <b>{row.score ?? "Unknown"}</b>
@@ -111,8 +114,8 @@ function RadarPage() {
                   <td className="py-3 pr-3">
                     {row.evidence_confidence}
                     <div>
-                      {row.missing_inputs.length
-                        ? `${row.missing_inputs.length} missing inputs`
+                      {(row.missing_inputs ?? []).length
+                        ? `${(row.missing_inputs ?? []).length} missing inputs`
                         : "No missing inputs recorded"}
                     </div>
                   </td>
@@ -132,7 +135,12 @@ function RadarPage() {
                         ? "Unknown"
                         : `${row.population_growth.toFixed(1)}%`}
                     </div>
-                    <div>Calculated: {new Date(row.calculated_at).toLocaleDateString()}</div>
+                    <div>
+                      Calculated:{" "}
+                      {row.calculated_at
+                        ? new Date(row.calculated_at).toLocaleDateString()
+                        : "Unknown"}
+                    </div>
                   </td>
                   <td className="py-3 pr-3">
                     <Link className="underline" to="/pharmacy/$id" params={{ id: row.pharmacy_id }}>
@@ -165,9 +173,9 @@ function RadarPage() {
           <section className="mt-5 rounded-xl border bg-card p-4">
             <h2 className="font-semibold">Side-by-side comparison ({compared.length}/4)</h2>
             <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-              {compared.map((row) => (
+              {compared.map((row: RadarRow) => (
                 <div key={row.pharmacy_id} className="rounded border p-3">
-                  <b>{row.name}</b>
+                  <b>{row.name ?? "Unknown pharmacy"}</b>
                   <div>Score {row.score ?? "Unknown"}</div>
                   <div>Victorian percentile {row.victorian_percentile ?? "Unknown"}</div>
                   <div>Confidence {row.evidence_confidence}</div>

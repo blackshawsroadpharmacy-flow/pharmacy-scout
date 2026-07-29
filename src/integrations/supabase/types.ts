@@ -1709,6 +1709,53 @@ export type Database = {
           },
         ]
       }
+      organisation_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string | null
+          organisation_id: string
+          role: string
+          token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          organisation_id: string
+          role?: string
+          token?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          organisation_id?: string
+          role?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organisation_invitations_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organisation_members: {
         Row: {
           joined_at: string
@@ -3363,6 +3410,13 @@ export type Database = {
         Returns: unknown
       }
       _st_within: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      accept_organisation_invitation: {
+        Args: { _token: string }
+        Returns: {
+          organisation_id: string
+          organisation_name: string
+        }[]
+      }
       add_pharmacy_to_pipeline: {
         Args: {
           p_asking_price?: number
@@ -3492,6 +3546,17 @@ export type Database = {
       candidate_site_analysis: {
         Args: { p_lat: number; p_lng: number; p_radius_m?: number }
         Returns: Json
+      }
+      catchment_population: {
+        Args: { _location: unknown; _radius_m?: number }
+        Returns: number
+      }
+      create_organisation: {
+        Args: { _name: string }
+        Returns: {
+          id: string
+          name: string
+        }[]
       }
       demographic_areas_in_viewport: {
         Args: {
@@ -3837,6 +3902,7 @@ export type Database = {
       public_data_freshness: { Args: never; Returns: Json }
       refresh_dispensing_potential_v1: { Args: never; Returns: number }
       refresh_dispensing_potential_v1_1: { Args: never; Returns: number }
+      refresh_dispensing_potential_v1_2: { Args: never; Returns: number }
       refresh_pharmacy_demographic_context: { Args: never; Returns: number }
       scenario_evidence_at_point: {
         Args: { p_lat: number; p_lng: number; p_radius_m: number }

@@ -46,6 +46,30 @@ jobs:
       - run: npm ci
       - run: npm run lint
 
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+
+  # vite build strips types without checking them, and prettier's LF rule only
+  # holds on a checkout that honours .gitattributes. Both are verified here.
+  lint-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+
   supabase-migrations:
     runs-on: ubuntu-latest
     steps:
@@ -70,5 +94,7 @@ jobs:
           supabase/tests/demographic_enrichment.test.sql
           supabase/tests/healthcare_anchors.test.sql
           supabase/tests/dispensing_potential_v1_1.test.sql
+          supabase/tests/location_rules_boundaries.test.sql
+          supabase/tests/anon_privileges.test.sql
       - run: npm run check:supabase-schema
       - run: supabase db lint --local --level error

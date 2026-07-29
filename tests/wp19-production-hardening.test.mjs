@@ -18,10 +18,15 @@ test("production build identity is machine-readable and contains no credentials"
     "VITE_BUILD_DATE",
     "VITE_BUILD_ENVIRONMENT",
     "VITE_SUPABASE_PROJECT_ID",
-    "gdp-v1.0.0",
   ]) {
     assert.match(buildRoute, new RegExp(field));
   }
+  // The active model must be read from the database. A hard-coded literal here
+  // silently went stale when GDP v1.1 was activated, so /build.json — the one
+  // endpoint whose job is to report what is deployed — reported the wrong model.
+  assert.doesNotMatch(buildRoute, /dispensing_potential_model:\s*"gdp-/);
+  assert.match(buildRoute, /dispensing_potential_methods/);
+  assert.match(buildRoute, /\.eq\("active", true\)/);
   assert.match(buildRoute, /Cache-Control": "no-store"/);
   assert.doesNotMatch(buildRoute, /PUBLISHABLE_KEY|SERVICE_ROLE|SUPABASE_URL/);
 });

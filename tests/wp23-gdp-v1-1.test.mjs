@@ -33,7 +33,7 @@ test("v1.1 stays assumption-based below the genuine evidence threshold", () => {
 });
 
 test("pharmacy dossier exposes the old/new comparison", () => {
-  assert.match(dossier, /Compare model versions/);
+  assert.match(dossier, /score_change/);
   assert.match(dossier, /old_version/);
   assert.match(dossier, /new_version/);
   assert.match(migration, /dispensing_potential_model_comparison/);

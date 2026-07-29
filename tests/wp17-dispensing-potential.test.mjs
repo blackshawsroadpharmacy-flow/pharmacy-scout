@@ -35,11 +35,13 @@ test("statewide features and scores are server-side, cached and versioned", () =
     assert.match(migration, new RegExp(x));
   assert.match(migration, /gdp-v1\.0\.0/);
   assert.match(migration, /peer_percentile/);
-  assert.match(dossier, /peer percentile/);
+  assert.match(dossier, /percentile statewide/);
+  assert.match(dossier, /among /);
 });
 test("theoretical output is ranged, experimental and never actual volume", () => {
-  assert.match(dossier, /Experimental scripts\/day equivalent/);
-  assert.match(dossier, /Theoretical scripts\/day range/);
+  assert.match(dossier, /Estimated daily scripts/);
+  assert.match(dossier, /Experimental and not calibrated/);
+  assert.match(dossier, /Modelled range/);
   assert.match(migration, /not actual dispensing volume/);
   assert.match(migration, /theoretical_scripts_day_low/);
   assert.match(migration, /theoretical_scripts_day_high/);
@@ -52,7 +54,7 @@ test("calibration is private, genuine and unseeded", () => {
   assert.match(migration, /dispensing_calibration_observations/);
   assert.match(migration, /public\.is_org_member/);
   assert.doesNotMatch(migration, /INSERT INTO public\.dispensing_calibration_observations/);
-  assert.match(dossier, /Not calibrated against enough known pharmacies/);
+  assert.match(dossier, /Not enough sourced evidence to estimate/);
   assert.match(dossier, /does not establish operational quality/);
 });
 test("optional map layer retains red P markers and discloses low confidence", () => {

@@ -25,6 +25,8 @@ export function LeftPanel({
   error,
   coverageNote,
   totalCount,
+  truncated,
+  hasViewport,
   metrics,
   onSelect,
 }: {
@@ -40,6 +42,8 @@ export function LeftPanel({
   error: string | null;
   coverageNote: string | null;
   totalCount: number;
+  truncated: boolean;
+  hasViewport: boolean;
   metrics: ViewportMetrics | null;
   onSelect: (id: string) => void;
 }) {
@@ -81,6 +85,8 @@ export function LeftPanel({
               error={error}
               coverageNote={coverageNote}
               totalCount={totalCount}
+              truncated={truncated}
+              hasViewport={hasViewport}
               metrics={metrics}
               onSelect={onSelect}
             />
@@ -120,6 +126,8 @@ function ExploreBody({
   error,
   coverageNote,
   totalCount,
+  truncated,
+  hasViewport,
   metrics,
   onSelect,
 }: {
@@ -132,6 +140,8 @@ function ExploreBody({
   error: string | null;
   coverageNote: string | null;
   totalCount: number;
+  truncated: boolean;
+  hasViewport: boolean;
   metrics: ViewportMetrics | null;
   onSelect: (id: string) => void;
 }) {
@@ -152,6 +162,12 @@ function ExploreBody({
           <span className="text-muted-foreground">Matches in view</span>
           <span className="tabular-nums">{total}</span>
         </div>
+        {truncated && (
+          <div className="mt-2 rounded border border-amber-300 bg-amber-50 px-2 py-1.5 text-[11px] leading-relaxed text-amber-900">
+            <b>Not all matches are shown.</b> {total - filtered.length} of {total} pharmacies in
+            this view are hidden by the per-request limit. Zoom in to see them all.
+          </div>
+        )}
         <div className="mt-2 grid grid-cols-2 gap-2 border-t border-border pt-2">
           <div className="rounded border border-border bg-card px-2 py-1">
             <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
@@ -225,7 +241,10 @@ function ExploreBody({
       </div>
 
       <div className="mt-3 rounded-md border border-border bg-muted/30 p-2 text-[10px] leading-relaxed text-muted-foreground">
-        <div>{coverageNote ?? "Waiting for visible map bounds…"}</div>
+        <div>
+          {coverageNote ??
+            (hasViewport ? "Loading pharmacy records…" : "Waiting for visible map bounds…")}
+        </div>
         {metrics && (
           <div className="mt-1 tabular-nums">
             {metrics.payloadBytes.toLocaleString()} bytes · {metrics.durationMs.toFixed(0)} ms
