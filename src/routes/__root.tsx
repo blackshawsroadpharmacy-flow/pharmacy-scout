@@ -27,6 +27,7 @@ function NotFoundComponent() {
         <div className="mt-6">
           <Link
             to="/"
+            search={{}}
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90"
           >
             Return home
@@ -142,7 +143,11 @@ function AuthStateBridge() {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       router.invalidate();
-      if (event === "SIGNED_OUT") navigate({ to: "/auth", replace: true });
+      // Supabase also emits SIGNED_OUT when a stored refresh token turns out to
+      // be expired. Bouncing a public visitor off the public map for that is
+      // wrong, so only redirect from inside the authenticated area.
+      const insideApp = window.location.pathname.startsWith("/app");
+      if (event === "SIGNED_OUT" && insideApp) navigate({ to: "/auth", replace: true });
     });
     return () => {
       sub.subscription.unsubscribe();

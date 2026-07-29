@@ -8,6 +8,7 @@ import { AppShell } from "@/components/app-shell";
 import { getMyProfile, listMyOrgs } from "@/lib/orgs.functions";
 import { getOpportunityRadar } from "@/lib/radar.functions";
 import { addPharmacyToPipeline } from "@/lib/pharmacy-pipeline";
+import { pharmacyIntelligenceSummary } from "@/lib/pharmacy-intelligence-summary";
 
 export const Route = createFileRoute("/app/radar")({
   head: () => ({
@@ -25,6 +26,12 @@ const MODES = {
   metropolitan: "Metropolitan opportunities",
   regional: "Regional opportunities",
   acquisition_below_potential: "Acquisitions below theoretical potential",
+  ageing_population_demand: "Ageing-population demand context",
+  aged_care_anchors: "Aged-care anchor opportunities",
+  healthcare_demand: "Healthcare-demand opportunities",
+  high_confidence_strong_potential: "Strong potential with high confidence",
+  low_demographic_resolution: "Strong potential with low demographic resolution",
+  largest_model_change: "Largest change from GDP v1.0 to v1.1",
 } as const;
 
 function RadarPage() {
@@ -39,8 +46,11 @@ function RadarPage() {
   const [entityCompare, setEntityCompare] = useState<string[]>([]);
   const orgName =
     (orgs.data ?? []).find((row) => row.id === profile.data?.current_organisation_id)?.name ?? null;
-  const rows = radar.data?.rankings[mode] ?? [];
-  const compared = rows.filter((row) => compare.includes(row.pharmacy_id));
+  type RadarRow = NonNullable<typeof radar.data>["rankings"][keyof typeof MODES][number];
+  const rows: RadarRow[] = radar.data?.rankings[mode] ?? [];
+  const compared = rows.filter(
+    (row: RadarRow) => row.pharmacy_id && compare.includes(row.pharmacy_id),
+  );
   async function add(pharmacyId: string) {
     try {
       const result = await addPharmacyToPipeline(pharmacyId);
@@ -87,71 +97,90 @@ function RadarPage() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((row, index) => (
-                <tr key={row.pharmacy_id} className="border-t align-top">
-                  <td className="p-3 font-semibold">#{index + 1}</td>
-                  <td className="py-3 pr-3">
-                    <b>{row.name}</b>
-                    <div>{row.suburb ?? row.address}</div>
-                  </td>
-                  <td className="py-3 pr-3">
-                    <b>{row.score ?? "Unknown"}</b>
-                    <div>
-                      {row.theoretical_low == null
-                        ? "No theoretical range"
-                        : `Experimental theoretical range ${row.theoretical_low}–${row.theoretical_high}/day`}
-                    </div>
-                  </td>
-                  <td className="py-3 pr-3">
-                    {row.evidence_confidence}
-                    <div>
-                      {row.missing_inputs.length
-                        ? `${row.missing_inputs.length} missing inputs`
-                        : "No missing inputs recorded"}
-                    </div>
-                  </td>
-                  <td className="py-3 pr-3">{row.principal_reason}</td>
-                  <td className="py-3 pr-3">{row.limiting_factor}</td>
-                  <td className="py-3 pr-3">
-                    <div>
-                      Nearest competitor:{" "}
-                      {row.nearest_competitor_m == null
-                        ? "Unknown"
-                        : `${Math.round(row.nearest_competitor_m)} m`}
-                    </div>
-                    <div>Medical centres (1 km): {row.medical_centres_1km ?? "Unknown"}</div>
-                    <div>
-                      Population growth:{" "}
-                      {row.population_growth == null
-                        ? "Unknown"
-                        : `${row.population_growth.toFixed(1)}%`}
-                    </div>
-                    <div>Calculated: {new Date(row.calculated_at).toLocaleDateString()}</div>
-                  </td>
-                  <td className="py-3 pr-3">
-                    <Link className="underline" to="/pharmacy/$id" params={{ id: row.pharmacy_id }}>
-                      Open on map
-                    </Link>
-                    <button
-                      className="ml-2 underline"
-                      onClick={() =>
-                        setCompare((current) =>
-                          current.includes(row.pharmacy_id)
-                            ? current.filter((id) => id !== row.pharmacy_id)
-                            : current.length < 4
-                              ? [...current, row.pharmacy_id]
-                              : current,
-                        )
-                      }
-                    >
-                      Compare
-                    </button>
-                    <button className="ml-2 underline" onClick={() => add(row.pharmacy_id)}>
-                      Add to pipeline
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {rows.map((row: RadarRow, index: number) => {
+                const intelligence = pharmacyIntelligenceSummary(row);
+                return (
+                  <tr key={row.pharmacy_id ?? `row-${index}`} className="border-t align-top">
+                    <td className="p-3 font-semibold">#{index + 1}</td>
+                    <td className="py-3 pr-3">
+                      <b>{row.name ?? "Unknown pharmacy"}</b>
+                      <div>{row.suburb ?? row.address ?? "Location unavailable"}</div>
+                    </td>
+                    <td className="py-3 pr-3">
+                      {intelligence.estimateLabel ? (
+                        <b>{intelligence.estimateLabel}</b>
+                      ) : (
+                        <b>Estimate unavailable</b>
+                      )}
+                      <div>Relative score: {row.score ?? "Unknown"}</div>
+                      <div>
+                        {row.theoretical_low == null
+                          ? "No theoretical range"
+                          : `Experimental theoretical range ${row.theoretical_low}–${row.theoretical_high}/day`}
+                      </div>
+                    </td>
+                    <td className="py-3 pr-3">
+                      {row.evidence_confidence}
+                      <div>
+                        {(row.missing_inputs ?? []).length
+                          ? `${(row.missing_inputs ?? []).length} missing inputs`
+                          : "No missing inputs recorded"}
+                      </div>
+                    </td>
+                    <td className="py-3 pr-3">
+                      {intelligence.topInsight ?? "No sourced insight available"}
+                    </td>
+                    <td className="py-3 pr-3">{row.limiting_factor}</td>
+                    <td className="py-3 pr-3">
+                      <div>
+                        Nearest competitor:{" "}
+                        {row.nearest_competitor_m == null
+                          ? "Unknown"
+                          : `${Math.round(row.nearest_competitor_m)} m`}
+                      </div>
+                      <div>Medical centres (1 km): {row.medical_centres_1km ?? "Unknown"}</div>
+                      <div>
+                        Population growth:{" "}
+                        {row.population_growth == null
+                          ? "Unknown"
+                          : `${row.population_growth.toFixed(1)}%`}
+                      </div>
+                      <div>
+                        Calculated:{" "}
+                        {row.calculated_at
+                          ? new Date(row.calculated_at).toLocaleDateString()
+                          : "Unknown"}
+                      </div>
+                    </td>
+                    <td className="py-3 pr-3">
+                      <Link
+                        className="underline"
+                        to="/pharmacy/$id"
+                        params={{ id: row.pharmacy_id }}
+                      >
+                        Open on map
+                      </Link>
+                      <button
+                        className="ml-2 underline"
+                        onClick={() =>
+                          setCompare((current) =>
+                            current.includes(row.pharmacy_id)
+                              ? current.filter((id) => id !== row.pharmacy_id)
+                              : current.length < 4
+                                ? [...current, row.pharmacy_id]
+                                : current,
+                          )
+                        }
+                      >
+                        Compare
+                      </button>
+                      <button className="ml-2 underline" onClick={() => add(row.pharmacy_id)}>
+                        Add to pipeline
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -159,9 +188,9 @@ function RadarPage() {
           <section className="mt-5 rounded-xl border bg-card p-4">
             <h2 className="font-semibold">Side-by-side comparison ({compared.length}/4)</h2>
             <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-              {compared.map((row) => (
+              {compared.map((row: RadarRow) => (
                 <div key={row.pharmacy_id} className="rounded border p-3">
-                  <b>{row.name}</b>
+                  <b>{row.name ?? "Unknown pharmacy"}</b>
                   <div>Score {row.score ?? "Unknown"}</div>
                   <div>Victorian percentile {row.victorian_percentile ?? "Unknown"}</div>
                   <div>Confidence {row.evidence_confidence}</div>

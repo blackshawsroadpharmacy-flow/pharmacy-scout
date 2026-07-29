@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { PremisesMapPoint, ViewportMetrics } from "@/lib/premises-public";
 import type { Mode } from "./top-bar";
+import type { MapDispensingPotential } from "@/lib/dispensing-potential";
 
 export interface Filters {
   missingData: boolean;
@@ -25,8 +26,11 @@ export function LeftPanel({
   error,
   coverageNote,
   totalCount,
+  truncated,
+  hasViewport,
   metrics,
   onSelect,
+  dispensingPotentials,
 }: {
   open: boolean;
   onToggle: () => void;
@@ -40,8 +44,11 @@ export function LeftPanel({
   error: string | null;
   coverageNote: string | null;
   totalCount: number;
+  truncated: boolean;
+  hasViewport: boolean;
   metrics: ViewportMetrics | null;
   onSelect: (id: string) => void;
+  dispensingPotentials: Map<string, MapDispensingPotential>;
 }) {
   return (
     <aside
@@ -81,8 +88,11 @@ export function LeftPanel({
               error={error}
               coverageNote={coverageNote}
               totalCount={totalCount}
+              truncated={truncated}
+              hasViewport={hasViewport}
               metrics={metrics}
               onSelect={onSelect}
+              dispensingPotentials={dispensingPotentials}
             />
           )}
           {mode === "acquisition" && (
@@ -120,8 +130,11 @@ function ExploreBody({
   error,
   coverageNote,
   totalCount,
+  truncated,
+  hasViewport,
   metrics,
   onSelect,
+  dispensingPotentials,
 }: {
   filters: Filters;
   onFilters: (f: Filters) => void;
@@ -132,8 +145,11 @@ function ExploreBody({
   error: string | null;
   coverageNote: string | null;
   totalCount: number;
+  truncated: boolean;
+  hasViewport: boolean;
   metrics: ViewportMetrics | null;
   onSelect: (id: string) => void;
+  dispensingPotentials: Map<string, MapDispensingPotential>;
 }) {
   const total = totalCount;
   const approximateRows = filtered.filter(
@@ -152,6 +168,12 @@ function ExploreBody({
           <span className="text-muted-foreground">Matches in view</span>
           <span className="tabular-nums">{total}</span>
         </div>
+        {truncated && (
+          <div className="mt-2 rounded border border-amber-300 bg-amber-50 px-2 py-1.5 text-[11px] leading-relaxed text-amber-900">
+            <b>Not all matches are shown.</b> {total - filtered.length} of {total} pharmacies in
+            this view are hidden by the per-request limit. Zoom in to see them all.
+          </div>
+        )}
         <div className="mt-2 grid grid-cols-2 gap-2 border-t border-border pt-2">
           <div className="rounded border border-border bg-card px-2 py-1">
             <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
@@ -213,6 +235,20 @@ function ExploreBody({
                   {p.address}
                   {p.suburb ? `, ${p.suburb}` : ""}
                 </div>
+                {dispensingPotentials.get(p.id)?.experimental_scripts_day_equivalent != null && (
+                  <div className="mt-1 text-[11px] text-foreground">
+                    Experimental estimate:{" "}
+                    {Math.round(
+                      dispensingPotentials.get(p.id)!.experimental_scripts_day_equivalent!,
+                    ).toLocaleString("en-AU")}
+                    /day
+                  </div>
+                )}
+                {dispensingPotentials.get(p.id)?.top_insight && (
+                  <div className="mt-0.5 line-clamp-2 text-[10px] text-muted-foreground">
+                    {dispensingPotentials.get(p.id)!.top_insight}
+                  </div>
+                )}
               </button>
             </li>
           ))}
@@ -225,7 +261,10 @@ function ExploreBody({
       </div>
 
       <div className="mt-3 rounded-md border border-border bg-muted/30 p-2 text-[10px] leading-relaxed text-muted-foreground">
-        <div>{coverageNote ?? "Waiting for visible map bounds…"}</div>
+        <div>
+          {coverageNote ??
+            (hasViewport ? "Loading pharmacy records…" : "Waiting for visible map bounds…")}
+        </div>
         {metrics && (
           <div className="mt-1 tabular-nums">
             {metrics.payloadBytes.toLocaleString()} bytes · {metrics.durationMs.toFixed(0)} ms

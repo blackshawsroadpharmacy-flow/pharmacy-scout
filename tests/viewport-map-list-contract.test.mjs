@@ -16,8 +16,17 @@ test("map and list receive the same viewport-scoped pharmacy collection", async 
 test("broad viewports use an explicit transfer cap and expose truncation", async () => {
   const source = await readFile(new URL("../src/lib/premises-public.ts", import.meta.url), "utf8");
   assert.match(source, /const VIEWPORT_LIMIT = 500/);
-  assert.match(source, /truncated: totalCount > items\.length/);
+  assert.match(source, /truncated = totalCount > items\.length/);
   assert.doesNotMatch(source, /const VIEWPORT_LIMIT = 2000/);
+  // Computing `truncated` is not enough — it went unconsumed while the UI
+  // reported full coverage. Coverage state must follow it, and the panel must
+  // receive it. Behavioural assertions live in viewport-truncation-behaviour.
+  assert.match(source, /coverageState: truncated \? "truncated" : "covered"/);
+  const panel = await readFile(
+    new URL("../src/components/map/map-screen.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.match(panel, /truncated=\{pharmacyResult\?\.truncated/);
 });
 
 test("dossier loading is selected-record scoped", async () => {
@@ -25,7 +34,8 @@ test("dossier loading is selected-record scoped", async () => {
     readFile(new URL("../src/lib/premises-public.ts", import.meta.url), "utf8"),
     readFile(new URL("../src/components/map/right-dossier.tsx", import.meta.url), "utf8"),
   ]);
-  assert.match(source, /\.eq\("id", id\)\s*\.maybeSingle\(\)/);
+  assert.match(source, /\.eq\("id", id\)/);
+  assert.match(source, /\.maybeSingle\(\)/);
   assert.match(dossier, /queryKey: \["pharmacy-dossier", premisesId\]/);
   assert.doesNotMatch(dossier, /allPremises/);
   assert.doesNotMatch(source, /haversine/i);

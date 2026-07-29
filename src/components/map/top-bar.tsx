@@ -102,7 +102,7 @@ export function TopBar({
 
   return (
     <header className="pointer-events-auto absolute inset-x-0 top-0 z-[1100] flex h-14 items-center gap-3 border-b border-border/60 bg-card/95 px-3 backdrop-blur-sm">
-      <Link to="/" className="flex items-center gap-2 pr-2">
+      <Link to="/" search={{}} className="flex items-center gap-2 pr-2">
         <div className="grid h-8 w-8 place-items-center rounded-md bg-navy text-navy-foreground text-xs font-semibold">
           CC
         </div>
@@ -284,6 +284,7 @@ const SEARCH_GROUPS: Array<{ label: string; types: StatewideSearchType[] }> = [
   { label: "Pharmacies", types: ["pharmacy"] },
   { label: "Supermarkets", types: ["supermarket"] },
   { label: "Medical centres", types: ["medical_centre"] },
+  { label: "Residential aged care", types: ["aged_care"] },
   {
     label: "Your private records",
     types: ["acquisition_opportunity", "candidate_site"],

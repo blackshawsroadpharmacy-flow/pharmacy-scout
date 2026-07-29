@@ -1,7 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export type StatewideSearchType =
-  "pharmacy" | "supermarket" | "medical_centre" | "acquisition_opportunity" | "candidate_site";
+  | "pharmacy"
+  | "supermarket"
+  | "medical_centre"
+  | "aged_care"
+  | "acquisition_opportunity"
+  | "candidate_site";
 
 export interface StatewideSearchResult {
   result_type: StatewideSearchType;

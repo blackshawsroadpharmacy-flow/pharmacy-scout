@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
 
-const BASE_URL = "";
+// Sitemap <loc> values must be absolute; relative paths are discarded by
+// crawlers, which made the whole sitemap inert.
+const BASE_URL = "https://pharmacymapper.lovable.app";
 
 export const Route = createFileRoute("/sitemap.xml")({
   server: {
@@ -9,7 +11,9 @@ export const Route = createFileRoute("/sitemap.xml")({
       GET: async () => {
         const entries = [
           { path: "/", changefreq: "weekly", priority: "1.0" },
-          { path: "/auth", changefreq: "monthly", priority: "0.4" },
+          // /auth is Disallow-ed in robots.txt and carries noindex; listing it
+          // here contradicted both.
+          { path: "/about", changefreq: "monthly", priority: "0.5" },
         ];
         const urls = entries.map(
           (e) =>

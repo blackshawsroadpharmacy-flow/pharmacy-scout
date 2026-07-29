@@ -112,6 +112,171 @@ export type Database = {
           },
         ]
       }
+      demographic_area_profiles: {
+        Row: {
+          age_65_plus_count: number | null
+          age_65_plus_percent: number | null
+          age_75_plus_count: number | null
+          age_75_plus_percent: number | null
+          boundary_edition: string
+          census_source_id: string
+          census_total_population: number | null
+          coverage_status: string
+          created_at: string
+          geography_level: string
+          missing_reasons: Json
+          need_assistance_count: number | null
+          need_assistance_percent: number | null
+          no_vehicle_dwellings_count: number | null
+          no_vehicle_dwellings_percent: number | null
+          reference_year: number
+          retrieved_at: string
+          sa2_code_2021: string
+          sa2_name_2021: string
+          seifa_ier_score: number | null
+          seifa_ier_state_decile: number | null
+          seifa_ier_state_percentile: number | null
+          seifa_irsd_score: number | null
+          seifa_irsd_state_decile: number | null
+          seifa_irsd_state_percentile: number | null
+          seifa_source_id: string
+          under_five_count: number | null
+          under_five_percent: number | null
+          vehicle_response_dwellings_count: number | null
+        }
+        Insert: {
+          age_65_plus_count?: number | null
+          age_65_plus_percent?: number | null
+          age_75_plus_count?: number | null
+          age_75_plus_percent?: number | null
+          boundary_edition?: string
+          census_source_id: string
+          census_total_population?: number | null
+          coverage_status: string
+          created_at?: string
+          geography_level?: string
+          missing_reasons?: Json
+          need_assistance_count?: number | null
+          need_assistance_percent?: number | null
+          no_vehicle_dwellings_count?: number | null
+          no_vehicle_dwellings_percent?: number | null
+          reference_year: number
+          retrieved_at?: string
+          sa2_code_2021: string
+          sa2_name_2021: string
+          seifa_ier_score?: number | null
+          seifa_ier_state_decile?: number | null
+          seifa_ier_state_percentile?: number | null
+          seifa_irsd_score?: number | null
+          seifa_irsd_state_decile?: number | null
+          seifa_irsd_state_percentile?: number | null
+          seifa_source_id: string
+          under_five_count?: number | null
+          under_five_percent?: number | null
+          vehicle_response_dwellings_count?: number | null
+        }
+        Update: {
+          age_65_plus_count?: number | null
+          age_65_plus_percent?: number | null
+          age_75_plus_count?: number | null
+          age_75_plus_percent?: number | null
+          boundary_edition?: string
+          census_source_id?: string
+          census_total_population?: number | null
+          coverage_status?: string
+          created_at?: string
+          geography_level?: string
+          missing_reasons?: Json
+          need_assistance_count?: number | null
+          need_assistance_percent?: number | null
+          no_vehicle_dwellings_count?: number | null
+          no_vehicle_dwellings_percent?: number | null
+          reference_year?: number
+          retrieved_at?: string
+          sa2_code_2021?: string
+          sa2_name_2021?: string
+          seifa_ier_score?: number | null
+          seifa_ier_state_decile?: number | null
+          seifa_ier_state_percentile?: number | null
+          seifa_irsd_score?: number | null
+          seifa_irsd_state_decile?: number | null
+          seifa_irsd_state_percentile?: number | null
+          seifa_source_id?: string
+          under_five_count?: number | null
+          under_five_percent?: number | null
+          vehicle_response_dwellings_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "demographic_area_profiles_census_source_id_fkey"
+            columns: ["census_source_id"]
+            isOneToOne: false
+            referencedRelation: "dispensing_demographic_sources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "demographic_area_profiles_sa2_code_2021_fkey"
+            columns: ["sa2_code_2021"]
+            isOneToOne: false
+            referencedRelation: "dispensing_population_areas"
+            referencedColumns: ["sa2_code_2021"]
+          },
+          {
+            foreignKeyName: "demographic_area_profiles_seifa_source_id_fkey"
+            columns: ["seifa_source_id"]
+            isOneToOne: false
+            referencedRelation: "dispensing_demographic_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dispensing_calibration_import_batches: {
+        Row: {
+          file_name: string
+          id: string
+          imported_at: string
+          imported_by: string | null
+          organisation_id: string
+          quarantine_summary: Json
+          rows_imported: number
+          rows_quarantined: number
+          rows_received: number
+          source_note: string | null
+        }
+        Insert: {
+          file_name: string
+          id?: string
+          imported_at?: string
+          imported_by?: string | null
+          organisation_id: string
+          quarantine_summary?: Json
+          rows_imported?: number
+          rows_quarantined?: number
+          rows_received?: number
+          source_note?: string | null
+        }
+        Update: {
+          file_name?: string
+          id?: string
+          imported_at?: string
+          imported_by?: string | null
+          organisation_id?: string
+          quarantine_summary?: Json
+          rows_imported?: number
+          rows_quarantined?: number
+          rows_received?: number
+          source_note?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispensing_calibration_import_batches_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dispensing_calibration_observations: {
         Row: {
           confidence: string
@@ -119,14 +284,21 @@ export type Database = {
           entered_by: string | null
           evidence_period_end: string
           evidence_period_start: string
+          exclusion_notes: string | null
           id: string
+          import_batch_id: string | null
           includes_daa_volume: boolean | null
           includes_institutional_supply: boolean | null
           includes_private_prescriptions: boolean | null
           includes_under_copayment: boolean | null
+          inclusion_notes: string | null
           observed_scripts_per_day: number
           organisation_id: string
           pharmacy_id: string
+          review_notes: string | null
+          review_status: string
+          reviewed_at: string | null
+          reviewed_by: string | null
           source: string
           source_document_or_note: string | null
           source_type: string
@@ -139,14 +311,21 @@ export type Database = {
           entered_by?: string | null
           evidence_period_end: string
           evidence_period_start: string
+          exclusion_notes?: string | null
           id?: string
+          import_batch_id?: string | null
           includes_daa_volume?: boolean | null
           includes_institutional_supply?: boolean | null
           includes_private_prescriptions?: boolean | null
           includes_under_copayment?: boolean | null
+          inclusion_notes?: string | null
           observed_scripts_per_day: number
           organisation_id: string
           pharmacy_id: string
+          review_notes?: string | null
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           source: string
           source_document_or_note?: string | null
           source_type: string
@@ -159,14 +338,21 @@ export type Database = {
           entered_by?: string | null
           evidence_period_end?: string
           evidence_period_start?: string
+          exclusion_notes?: string | null
           id?: string
+          import_batch_id?: string | null
           includes_daa_volume?: boolean | null
           includes_institutional_supply?: boolean | null
           includes_private_prescriptions?: boolean | null
           includes_under_copayment?: boolean | null
+          inclusion_notes?: string | null
           observed_scripts_per_day?: number
           organisation_id?: string
           pharmacy_id?: string
+          review_notes?: string | null
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           source?: string
           source_document_or_note?: string | null
           source_type?: string
@@ -174,6 +360,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "dispensing_calibration_observations_import_batch_id_fkey"
+            columns: ["import_batch_id"]
+            isOneToOne: false
+            referencedRelation: "dispensing_calibration_import_batches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "dispensing_calibration_observations_organisation_id_fkey"
             columns: ["organisation_id"]
@@ -298,13 +491,57 @@ export type Database = {
           },
         ]
       }
+      dispensing_potential_assumptions: {
+        Row: {
+          assumption_key: string
+          assumption_value: Json
+          id: string
+          implemented_at: string
+          implemented_by: string
+          method_id: string
+          rationale: string
+          unit: string | null
+        }
+        Insert: {
+          assumption_key: string
+          assumption_value: Json
+          id?: string
+          implemented_at: string
+          implemented_by: string
+          method_id: string
+          rationale: string
+          unit?: string | null
+        }
+        Update: {
+          assumption_key?: string
+          assumption_value?: Json
+          id?: string
+          implemented_at?: string
+          implemented_by?: string
+          method_id?: string
+          rationale?: string
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispensing_potential_assumptions_method_id_fkey"
+            columns: ["method_id"]
+            isOneToOne: false
+            referencedRelation: "dispensing_potential_methods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dispensing_potential_methods: {
         Row: {
           active: boolean
           created_at: string
           id: string
+          implemented_at: string | null
+          implemented_by: string | null
           label: string
           minimum_calibration_observations: number
+          rationale: string | null
           validation_requirements: Json
           version: string
           weights: Json
@@ -313,8 +550,11 @@ export type Database = {
           active?: boolean
           created_at?: string
           id?: string
+          implemented_at?: string | null
+          implemented_by?: string | null
           label: string
           minimum_calibration_observations?: number
+          rationale?: string | null
           validation_requirements: Json
           version: string
           weights: Json
@@ -323,8 +563,11 @@ export type Database = {
           active?: boolean
           created_at?: string
           id?: string
+          implemented_at?: string | null
+          implemented_by?: string | null
           label?: string
           minimum_calibration_observations?: number
+          rationale?: string | null
           validation_requirements?: Json
           version?: string
           weights?: Json
@@ -737,6 +980,173 @@ export type Database = {
             columns: ["organisation_id"]
             isOneToOne: false
             referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      healthcare_anchor_raw: {
+        Row: {
+          id: string
+          imported_at: string
+          raw_record: Json
+          source_id: string
+          source_record_key: string
+          source_row_reference: string | null
+        }
+        Insert: {
+          id: string
+          imported_at?: string
+          raw_record: Json
+          source_id: string
+          source_record_key: string
+          source_row_reference?: string | null
+        }
+        Update: {
+          id?: string
+          imported_at?: string
+          raw_record?: Json
+          source_id?: string
+          source_record_key?: string
+          source_row_reference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "healthcare_anchor_raw_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "healthcare_anchor_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      healthcare_anchor_sources: {
+        Row: {
+          coverage_notes: string[]
+          dataset_name: string
+          exact_endpoint: string
+          field_definitions: Json
+          id: string
+          licence: string
+          publisher: string
+          reference_date: string
+          retrieved_at: string
+          rows_imported: number
+          source_sha256: string
+        }
+        Insert: {
+          coverage_notes?: string[]
+          dataset_name: string
+          exact_endpoint: string
+          field_definitions: Json
+          id: string
+          licence: string
+          publisher: string
+          reference_date: string
+          retrieved_at: string
+          rows_imported: number
+          source_sha256: string
+        }
+        Update: {
+          coverage_notes?: string[]
+          dataset_name?: string
+          exact_endpoint?: string
+          field_definitions?: Json
+          id?: string
+          licence?: string
+          publisher?: string
+          reference_date?: string
+          retrieved_at?: string
+          rows_imported?: number
+          source_sha256?: string
+        }
+        Relationships: []
+      }
+      healthcare_anchors: {
+        Row: {
+          address: string | null
+          approved_places: number | null
+          authoritative_identifier: string | null
+          canonical_name: string
+          category: string
+          coordinate_method: string
+          created_at: string
+          emergency_department: boolean | null
+          evidence_confidence: string
+          facility_type: string | null
+          hospital_type: string | null
+          id: string
+          location: unknown
+          operational_status: string | null
+          postcode: string | null
+          provider: string | null
+          raw_id: string
+          source_date: string
+          source_id: string
+          state: string | null
+          suburb: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          approved_places?: number | null
+          authoritative_identifier?: string | null
+          canonical_name: string
+          category: string
+          coordinate_method: string
+          created_at?: string
+          emergency_department?: boolean | null
+          evidence_confidence: string
+          facility_type?: string | null
+          hospital_type?: string | null
+          id: string
+          location: unknown
+          operational_status?: string | null
+          postcode?: string | null
+          provider?: string | null
+          raw_id: string
+          source_date: string
+          source_id: string
+          state?: string | null
+          suburb?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          approved_places?: number | null
+          authoritative_identifier?: string | null
+          canonical_name?: string
+          category?: string
+          coordinate_method?: string
+          created_at?: string
+          emergency_department?: boolean | null
+          evidence_confidence?: string
+          facility_type?: string | null
+          hospital_type?: string | null
+          id?: string
+          location?: unknown
+          operational_status?: string | null
+          postcode?: string | null
+          provider?: string | null
+          raw_id?: string
+          source_date?: string
+          source_id?: string
+          state?: string | null
+          suburb?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "healthcare_anchors_raw_id_fkey"
+            columns: ["raw_id"]
+            isOneToOne: true
+            referencedRelation: "healthcare_anchor_raw"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "healthcare_anchors_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "healthcare_anchor_sources"
             referencedColumns: ["id"]
           },
         ]
@@ -1299,6 +1709,53 @@ export type Database = {
           },
         ]
       }
+      organisation_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string | null
+          organisation_id: string
+          role: string
+          token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          organisation_id: string
+          role?: string
+          token?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          organisation_id?: string
+          role?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organisation_invitations_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organisation_members: {
         Row: {
           joined_at: string
@@ -1534,6 +1991,54 @@ export type Database = {
           },
         ]
       }
+      pharmacy_demographic_context: {
+        Row: {
+          assignment_method: string
+          calculated_at: string
+          context: Json
+          coverage_quality: string
+          geographic_resolution: string
+          pharmacy_id: string
+          reference_year: number | null
+          sa2_code_2021: string | null
+        }
+        Insert: {
+          assignment_method?: string
+          calculated_at?: string
+          context?: Json
+          coverage_quality: string
+          geographic_resolution?: string
+          pharmacy_id: string
+          reference_year?: number | null
+          sa2_code_2021?: string | null
+        }
+        Update: {
+          assignment_method?: string
+          calculated_at?: string
+          context?: Json
+          coverage_quality?: string
+          geographic_resolution?: string
+          pharmacy_id?: string
+          reference_year?: number | null
+          sa2_code_2021?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_demographic_context_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: true
+            referencedRelation: "pharmacy_premises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_demographic_context_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: true
+            referencedRelation: "pharmacy_premises_geo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pharmacy_dispensing_potential: {
         Row: {
           calculated_at: string
@@ -1541,6 +2046,7 @@ export type Database = {
           evidence_confidence: string
           experimental_scripts_day_equivalent: number | null
           explanation: Json
+          healthcare_anchor_evidence: Json | null
           method_id: string
           missing_inputs: string[]
           peer_group: string | null
@@ -1560,6 +2066,7 @@ export type Database = {
           evidence_confidence: string
           experimental_scripts_day_equivalent?: number | null
           explanation: Json
+          healthcare_anchor_evidence?: Json | null
           method_id: string
           missing_inputs?: string[]
           peer_group?: string | null
@@ -1579,6 +2086,7 @@ export type Database = {
           evidence_confidence?: string
           experimental_scripts_day_equivalent?: number | null
           explanation?: Json
+          healthcare_anchor_evidence?: Json | null
           method_id?: string
           missing_inputs?: string[]
           peer_group?: string | null
@@ -2631,6 +3139,43 @@ export type Database = {
       }
     }
     Views: {
+      dispensing_potential_model_comparison: {
+        Row: {
+          changed_assumptions: Json | null
+          changed_inputs: Json | null
+          main_reason: string | null
+          new_confidence: string | null
+          new_percentile: number | null
+          new_range_high: number | null
+          new_range_low: number | null
+          new_score: number | null
+          new_version: string | null
+          old_confidence: string | null
+          old_percentile: number | null
+          old_range_high: number | null
+          old_range_low: number | null
+          old_score: number | null
+          old_version: string | null
+          pharmacy_id: string | null
+          score_change: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_dispensing_potential_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_dispensing_potential_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises_geo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       geography_columns: {
         Row: {
           coord_dimension: number | null
@@ -2865,6 +3410,13 @@ export type Database = {
         Returns: unknown
       }
       _st_within: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      accept_organisation_invitation: {
+        Args: { _token: string }
+        Returns: {
+          organisation_id: string
+          organisation_name: string
+        }[]
+      }
       add_pharmacy_to_pipeline: {
         Args: {
           p_asking_price?: number
@@ -2918,6 +3470,14 @@ export type Database = {
             }
             Returns: string
           }
+      calibration_observation_warnings: {
+        Args: { target_organisation_id: string }
+        Returns: {
+          inconsistent_inclusion_count: number
+          observation_id: string
+          overlap_count: number
+        }[]
+      }
       candidate_external_summary: {
         Args: { p_lat: number; p_lng: number }
         Returns: Json
@@ -2985,6 +3545,49 @@ export type Database = {
       }
       candidate_site_analysis: {
         Args: { p_lat: number; p_lng: number; p_radius_m?: number }
+        Returns: Json
+      }
+      catchment_population: {
+        Args: { _location: unknown; _radius_m?: number }
+        Returns: number
+      }
+      create_acquisition_business: {
+        Args: {
+          p_asking_price?: number
+          p_broker_or_source?: string
+          p_listing_url?: string
+          p_pipeline_stage?: Database["public"]["Enums"]["pipeline_stage"]
+          p_private_notes?: string
+          p_trading_name: string
+        }
+        Returns: string
+      }
+      create_organisation: {
+        Args: { _name: string }
+        Returns: {
+          id: string
+          name: string
+        }[]
+      }
+      demographic_areas_in_viewport: {
+        Args: {
+          east: number
+          metric: string
+          north: number
+          south: number
+          west: number
+        }
+        Returns: {
+          coverage_status: string
+          geometry: Json
+          reference_year: number
+          sa2_code_2021: string
+          sa2_name_2021: string
+          value: number
+        }[]
+      }
+      demographic_context_at_point: {
+        Args: { candidate_lat: number; candidate_lng: number }
         Returns: Json
       }
       disablelongtransactions: { Args: never; Returns: string }
@@ -3177,6 +3780,36 @@ export type Database = {
         }
         Returns: boolean
       }
+      healthcare_anchors_in_viewport: {
+        Args: {
+          categories?: string[]
+          east: number
+          north: number
+          south: number
+          west: number
+        }
+        Returns: {
+          address: string
+          approved_places: number
+          category: string
+          emergency_department: boolean
+          evidence_confidence: string
+          facility_type: string
+          hospital_type: string
+          id: string
+          lat: number
+          lng: number
+          name: string
+          operational_status: string
+          provider: string
+          source_date: string
+          suburb: string
+        }[]
+      }
+      healthcare_demand_at_point: {
+        Args: { p_lat: number; p_lng: number }
+        Returns: Json
+      }
       import_external_location_batch: {
         Args: {
           p_category: string
@@ -3279,6 +3912,9 @@ export type Database = {
       postgis_wagyu_version: { Args: never; Returns: string }
       public_data_freshness: { Args: never; Returns: Json }
       refresh_dispensing_potential_v1: { Args: never; Returns: number }
+      refresh_dispensing_potential_v1_1: { Args: never; Returns: number }
+      refresh_dispensing_potential_v1_2: { Args: never; Returns: number }
+      refresh_pharmacy_demographic_context: { Args: never; Returns: number }
       scenario_evidence_at_point: {
         Args: { p_lat: number; p_lng: number; p_radius_m: number }
         Returns: Json
@@ -3882,6 +4518,22 @@ export type Database = {
         Returns: unknown
       }
       statewide_location_search: {
+        Args: { p_limit?: number; p_query: string }
+        Returns: {
+          is_private: boolean
+          lat: number
+          lng: number
+          relevance: number
+          result_address: string
+          result_id: string
+          result_name: string
+          result_postcode: string
+          result_suburb: string
+          result_type: string
+          source_confidence: string
+        }[]
+      }
+      statewide_location_search_without_healthcare: {
         Args: { p_limit?: number; p_query: string }
         Returns: {
           is_private: boolean

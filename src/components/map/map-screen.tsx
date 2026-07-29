@@ -1,6 +1,6 @@
 import { ClientOnly, Link, useNavigate } from "@tanstack/react-router";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchPharmacyViewport } from "@/lib/premises-public";
 import { TopBar, type Mode } from "@/components/map/top-bar";
@@ -35,6 +35,13 @@ import {
   fetchMapDispensingPotentials,
   type MapDispensingPotential,
 } from "@/lib/dispensing-potential";
+import {
+  DEMOGRAPHIC_LABELS,
+  fetchDemographicViewport,
+  fetchDemographicsAtPoint,
+  type DemographicMetric,
+} from "@/lib/demographic-intelligence";
+import { fetchHealthcareAnchors, fetchHealthcareDemand } from "@/lib/healthcare-anchors";
 
 const MapView = lazy(() =>
   import("@/components/map/map-view").then((m) => ({ default: m.MapView })),
@@ -58,6 +65,7 @@ type MapScreenProps = {
 
 export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScreenProps) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user } = useSession();
   const authed = !!user;
 
@@ -76,6 +84,12 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
     populationDensity: publicMapState?.layers?.includes("density") ?? false,
     populationGrowth: publicMapState?.layers?.includes("growth") ?? false,
     dispensingPotential: publicMapState?.layers?.includes("potential") ?? false,
+    age65: publicMapState?.layers?.includes("age65") ?? false,
+    age75: publicMapState?.layers?.includes("age75") ?? false,
+    needAssistance: publicMapState?.layers?.includes("assistance") ?? false,
+    seifaDisadvantage: publicMapState?.layers?.includes("disadvantage") ?? false,
+    noVehicle: publicMapState?.layers?.includes("no-vehicle") ?? false,
+    agedCare: publicMapState?.layers?.includes("aged-care") ?? false,
   }));
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [flyTo, setFlyTo] = useState<{ lat: number; lng: number; zoom?: number } | null>(() =>
@@ -140,6 +154,18 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
     enabled: candidateMode && candidatePoint != null,
     staleTime: 24 * 60 * 60 * 1000,
   });
+  const candidateDemographicsQ = useQuery({
+    queryKey: ["candidate-official-demographics", candidatePoint?.lat, candidatePoint?.lng],
+    queryFn: () => fetchDemographicsAtPoint(candidatePoint!.lat, candidatePoint!.lng),
+    enabled: candidateMode && candidatePoint != null,
+    staleTime: 24 * 60 * 60 * 1000,
+  });
+  const candidateHealthcareQ = useQuery({
+    queryKey: ["candidate-healthcare-demand", candidatePoint?.lat, candidatePoint?.lng],
+    queryFn: () => fetchHealthcareDemand(candidatePoint!.lat, candidatePoint!.lng),
+    enabled: candidateMode && candidatePoint != null,
+    staleTime: 24 * 60 * 60 * 1000,
+  });
   const populationMetric: PopulationMetric | null = layers.populationGrowth
     ? "growth"
     : layers.populationDensity
@@ -151,11 +177,34 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
     enabled: populationMetric != null,
     staleTime: 24 * 60 * 60 * 1000,
   });
+  const demographicMetric: DemographicMetric | null = layers.age65
+    ? "age65"
+    : layers.age75
+      ? "age75"
+      : layers.needAssistance
+        ? "assistance"
+        : layers.seifaDisadvantage
+          ? "disadvantage"
+          : layers.noVehicle
+            ? "no_vehicle"
+            : null;
+  const demographicQ = useQuery({
+    queryKey: ["official-demographic-viewport", demographicMetric, ...viewportKey],
+    queryFn: ({ signal }) => fetchDemographicViewport(viewport!, demographicMetric!, signal),
+    enabled: viewport != null && demographicMetric != null,
+    staleTime: 24 * 60 * 60 * 1000,
+  });
+  const healthcareAnchorsQ = useQuery({
+    queryKey: ["healthcare-anchor-viewport", ...viewportKey],
+    queryFn: ({ signal }) => fetchHealthcareAnchors(viewport!, signal),
+    enabled: viewport != null && layers.agedCare,
+    staleTime: 24 * 60 * 60 * 1000,
+  });
 
   const all = useMemo(() => pharmacyResult?.items ?? [], [pharmacyResult]);
   const visiblePremisesIds = useMemo(() => all.map((point) => point.id), [all]);
   const pipelineQ = useQuery({
-    queryKey: ["private-pipeline-map-statuses", visiblePremisesIds],
+    queryKey: ["private-pipeline-map-statuses", user?.id ?? null, pharmacyRequestKey],
     queryFn: () => fetchPharmacyPipelineStatuses(visiblePremisesIds),
     enabled: authed && visiblePremisesIds.length > 0,
     staleTime: 60 * 1000,
@@ -164,14 +213,12 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
     ? (pipelineQ.data ?? EMPTY_PIPELINE_STATUSES)
     : EMPTY_PIPELINE_STATUSES;
   const dispensingPotentialQ = useQuery({
-    queryKey: ["map-dispensing-potential", visiblePremisesIds],
+    queryKey: ["map-dispensing-potential", pharmacyRequestKey],
     queryFn: () => fetchMapDispensingPotentials(visiblePremisesIds),
-    enabled: layers.dispensingPotential && visiblePremisesIds.length > 0,
+    enabled: visiblePremisesIds.length > 0,
     staleTime: 5 * 60 * 1000,
   });
-  const dispensingPotentials = layers.dispensingPotential
-    ? (dispensingPotentialQ.data ?? EMPTY_DISPENSING_POTENTIALS)
-    : EMPTY_DISPENSING_POTENTIALS;
+  const dispensingPotentials = dispensingPotentialQ.data ?? EMPTY_DISPENSING_POTENTIALS;
 
   useEffect(() => {
     setSelectedId(selectedPremisesId);
@@ -207,6 +254,10 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
 
   async function handleAccount() {
     if (authed) {
+      // Private pipeline data lives in the query cache under keys that carry no
+      // tenant identity, so it must be dropped before the next sign-in.
+      await queryClient.cancelQueries();
+      queryClient.clear();
       await supabase.auth.signOut();
     } else {
       requireAuth("Sign in to access saved opportunities and private notes.");
@@ -286,6 +337,11 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
       return;
     }
     if (result.lat == null || result.lng == null) return;
+    if (result.result_type === "aged_care") {
+      setLayers((current) => ({ ...current, agedCare: true }));
+      setFlyTo({ lat: result.lat, lng: result.lng, zoom: 15 });
+      return;
+    }
     if (result.result_type === "pharmacy") {
       showPremisesOnMap(result.result_id, result.lat, result.lng);
       return;
@@ -323,6 +379,12 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
       layers.populationDensity ? "density" : null,
       layers.populationGrowth ? "growth" : null,
       layers.dispensingPotential ? "potential" : null,
+      layers.age65 ? "age65" : null,
+      layers.age75 ? "age75" : null,
+      layers.needAssistance ? "assistance" : null,
+      layers.seifaDisadvantage ? "disadvantage" : null,
+      layers.noVehicle ? "no-vehicle" : null,
+      layers.agedCare ? "aged-care" : null,
     ].filter(Boolean);
     if (publicLayers.length) search.set("layers", publicLayers.join(","));
     if (layers.dispensingPotential && potentialFilter !== "all") {
@@ -339,7 +401,6 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
             premises={filtered}
             selectedId={selectedId}
             onSelect={openPremises}
-            savedIds={new Set()}
             flyTo={flyTo}
             externalPoints={externalPoints}
             selectedExternal={selectedExternal}
@@ -364,6 +425,9 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
             }
             population={populationQ.data ?? null}
             populationMetric={populationMetric}
+            demographics={demographicQ.data ?? null}
+            demographicMetric={demographicMetric}
+            healthcareAnchors={layers.agedCare ? (healthcareAnchorsQ.data ?? []) : []}
             pipelineStatuses={pipelineStatuses}
             dispensingPotentials={dispensingPotentials}
           />
@@ -399,8 +463,11 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
         error={premisesQ.isError ? "Pharmacy records could not be loaded for this area." : null}
         coverageNote={pharmacyResult?.coverageNote ?? null}
         totalCount={pharmacyResult?.totalCount ?? 0}
+        truncated={pharmacyResult?.truncated ?? false}
+        hasViewport={viewport != null}
         metrics={pharmacyResult?.metrics ?? null}
         onSelect={openPremises}
+        dispensingPotentials={dispensingPotentials}
       />
 
       <LayerMenu
@@ -410,6 +477,17 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
         onLayers={(next) => {
           if (next.populationDensity && !layers.populationDensity) next.populationGrowth = false;
           if (next.populationGrowth && !layers.populationGrowth) next.populationDensity = false;
+          const demographicKeys: Array<keyof LayerState> = [
+            "age65",
+            "age75",
+            "needAssistance",
+            "seifaDisadvantage",
+            "noVehicle",
+          ];
+          const newlyEnabled = demographicKeys.find((key) => next[key] && !layers[key]);
+          if (newlyEnabled) {
+            for (const key of demographicKeys) if (key !== newlyEnabled) next[key] = false;
+          }
           setLayers(next);
         }}
       />
@@ -512,6 +590,13 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
       {populationMetric && (
         <PopulationLegend metric={populationMetric} loading={populationQ.isFetching} />
       )}
+      {demographicMetric && (
+        <ViewportNotice topClass="top-36">
+          {DEMOGRAPHIC_LABELS[demographicMetric]} · ABS 2021 SA2 average
+          {demographicQ.isFetching ? " · loading…" : ""}
+          {demographicQ.isError ? " · source temporarily unavailable" : ""}
+        </ViewportNotice>
+      )}
       {layers.supermarkets && supermarketQ.isSuccess && supermarketQ.data.items.length === 0 && (
         <ViewportNotice topClass="top-28">
           No supermarket records in this view · {supermarketQ.data.coverageNote}
@@ -531,13 +616,24 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
           onRadius={setCandidateRadiusM}
           analysis={candidateAnalysisQ.data ?? null}
           population={candidatePopulationQ.data ?? null}
-          loading={candidateAnalysisQ.isLoading || candidatePopulationQ.isLoading}
+          demographics={candidateDemographicsQ.data ?? null}
+          healthcare={candidateHealthcareQ.data ?? null}
+          loading={
+            candidateAnalysisQ.isLoading ||
+            candidatePopulationQ.isLoading ||
+            candidateDemographicsQ.isLoading ||
+            candidateHealthcareQ.isLoading
+          }
           error={
             candidateAnalysisQ.isError
               ? candidateAnalysisQ.error.message
               : candidatePopulationQ.isError
                 ? candidatePopulationQ.error.message
-                : null
+                : candidateDemographicsQ.isError
+                  ? candidateDemographicsQ.error.message
+                  : candidateHealthcareQ.isError
+                    ? candidateHealthcareQ.error.message
+                    : null
           }
           onClose={() => setCandidatePoint(null)}
         />

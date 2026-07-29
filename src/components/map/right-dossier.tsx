@@ -14,6 +14,7 @@ import {
   savePharmacyNotes,
   upsertPharmacyProfile,
 } from "@/lib/pharmacy-profiles.public";
+import { IM_SIGNED_URL_TTL_SECONDS } from "@/lib/storage-constants";
 import {
   addPharmacyToPipeline,
   fetchPharmacyPipelineStatus,
@@ -24,9 +25,12 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   fetchCalibrationSummary,
   fetchDispensingPotential,
+  fetchDispensingPotentialComparison,
   potentialBand,
   saveCalibrationObservation,
 } from "@/lib/dispensing-potential";
+import { fetchPharmacyDemographics } from "@/lib/demographic-intelligence";
+import { fetchHealthcareDemand } from "@/lib/healthcare-anchors";
 
 const STATUS_OPTIONS: Array<{ value: PharmacyStatus; label: string }> = [
   { value: "active", label: "Active" },
@@ -88,10 +92,15 @@ export function RightDossier({
         )}
         {dossier && (
           <>
-            <section>
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Verification
-              </h3>
+            <PharmacyIntelligence
+              premisesId={premisesId}
+              lat={dossier.lat}
+              lng={dossier.lng}
+              authed={authed}
+            />
+
+            <section className="mt-5">
+              <SectionLabel>Verification &amp; regulatory status</SectionLabel>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 <VerificationBadge
                   status={dossier.vpa_registration_status}
@@ -111,10 +120,8 @@ export function RightDossier({
               </div>
             </section>
 
-            <section className="mt-4">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Overview
-              </h3>
+            <section className="mt-5">
+              <SectionLabel>Contact &amp; provenance</SectionLabel>
               <div className="mt-2 space-y-1.5 text-xs text-muted-foreground">
                 {dossier.phone && (
                   <div>
@@ -140,55 +147,23 @@ export function RightDossier({
                     {dossier.lat.toFixed(5)}, {dossier.lng.toFixed(5)}
                   </span>
                 </div>
-              </div>
-            </section>
-
-            <section className="mt-4">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Source
-              </h3>
-              <div className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
                 <div>
+                  Source{" "}
                   <span className="text-foreground">{dossier.source_name ?? "Manual entry"}</span>
-                  {dossier.source_confidence && ` · confidence: ${dossier.source_confidence}`}
+                  {dossier.source_confidence && ` · ${dossier.source_confidence} confidence`}
+                  {dossier.geocode_method &&
+                    ` · geocoded by ${formatGeocodeMethod(dossier.geocode_method)}`}
+                  {dossier.source_fetched_at &&
+                    ` · fetched ${new Date(dossier.source_fetched_at).toLocaleDateString()}`}
                 </div>
-                {dossier.geocode_method && (
-                  <div>
-                    Geocode method{" "}
-                    <span className="text-foreground">
-                      {formatGeocodeMethod(dossier.geocode_method)}
-                    </span>
-                  </div>
-                )}
                 {(dossier.source_confidence === "approximate" ||
                   dossier.geocode_method === "suburb_centroid") && (
                   <div className="text-amber">
                     Approximate map point only. Street-front location still needs confirmation.
                   </div>
                 )}
-                {dossier.source_fetched_at && (
-                  <div>Fetched {new Date(dossier.source_fetched_at).toLocaleDateString()}</div>
-                )}
               </div>
             </section>
-
-            <section className="mt-4">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Nearby market signals
-              </h3>
-              <div className="mt-2 space-y-1.5 text-xs text-muted-foreground">
-                <div className="rounded-md border border-dashed border-border px-2.5 py-1.5">
-                  Medical centres — no source coverage for this area
-                </div>
-                <div className="rounded-md border border-dashed border-border px-2.5 py-1.5">
-                  Supermarkets — no source coverage for this area
-                </div>
-                <div className="rounded-md border border-dashed border-border px-2.5 py-1.5">
-                  Local population — no source coverage for this area
-                </div>
-              </div>
-            </section>
-            <DispensingPotentialSection premisesId={premisesId} authed={authed} />
 
             <PrivateWorkspace authed={authed} premisesId={premisesId} />
           </>
@@ -214,137 +189,451 @@ export function RightDossier({
   );
 }
 
-function DispensingPotentialSection({
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <h3 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+      {children}
+    </h3>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Insight synthesis: turn the three sourced datasets into short, plain-English
+// statements. Each is directional (support / limit / neutral) so the reader
+// can scan what helps vs. what constrains the estimate. Everything is
+// conditional on the underlying value actually being present — a missing input
+// produces no insight rather than a fabricated zero.
+// ---------------------------------------------------------------------------
+type InsightTone = "support" | "limit" | "neutral";
+interface Insight {
+  tone: InsightTone;
+  text: string;
+}
+
+const AGE65_STATE_MIDPOINT = 18; // model reference (gdp assumption age65_percent_centre)
+
+function num(value: unknown): number | null {
+  if (value == null) return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+function buildInsights(p: any, demo: any, healthcare: any): Insight[] {
+  const out: Insight[] = [];
+  const raw = p?.raw_metrics ?? {};
+
+  const population = num(raw.catchment_population_2km) ?? num(raw.surrounding_population_sa2_2024);
+  if (population != null) {
+    out.push({
+      tone: "neutral",
+      text: `~${Math.round(population).toLocaleString("en-AU")} people in the surrounding catchment`,
+    });
+  }
+
+  const age65 = num(demo?.age_65_plus_percent);
+  if (age65 != null) {
+    const delta = age65 - AGE65_STATE_MIDPOINT;
+    out.push({
+      tone: delta >= 2 ? "support" : delta <= -2 ? "limit" : "neutral",
+      text:
+        `${age65.toFixed(1)}% aged 65+ ` +
+        (delta >= 2
+          ? `(older than the ~${AGE65_STATE_MIDPOINT}% state midpoint — higher script demand)`
+          : delta <= -2
+            ? `(younger than the ~${AGE65_STATE_MIDPOINT}% state midpoint)`
+            : `(around the state midpoint)`),
+    });
+  }
+
+  const assist = num(demo?.need_assistance_percent);
+  if (assist != null && assist >= 6) {
+    out.push({
+      tone: "support",
+      text: `${assist.toFixed(1)}% report a core-activity need for assistance`,
+    });
+  }
+
+  const competitors = num(raw.pharmacies_2km);
+  const nearest = num(raw.nearest_competing_pharmacy_m);
+  if (competitors != null) {
+    out.push({
+      tone: competitors <= 2 ? "support" : competitors >= 6 ? "limit" : "neutral",
+      text:
+        `${competitors} competing ${competitors === 1 ? "pharmacy" : "pharmacies"} within 2 km` +
+        (nearest != null ? ` · nearest ${Math.round(nearest)} m` : ""),
+    });
+  }
+
+  const places =
+    num(healthcare?.approved_places_2km) ??
+    num(raw?.official_healthcare_anchor_context?.approved_places_2km);
+  const agedCare = num(healthcare?.aged_care_2km);
+  if (places != null && places > 0) {
+    out.push({
+      tone: "support",
+      text: `${Math.round(places).toLocaleString("en-AU")} residential aged-care places within 2 km`,
+    });
+  } else if (agedCare != null && agedCare > 0) {
+    out.push({
+      tone: "support",
+      text: `${agedCare} aged-care ${agedCare === 1 ? "facility" : "facilities"} within 2 km`,
+    });
+  }
+
+  const seifa = num(demo?.seifa_irsd_state_percentile);
+  if (seifa != null) {
+    out.push({
+      tone: "neutral",
+      text:
+        seifa < 20
+          ? `SEIFA ${Math.round(seifa)}th percentile — high relative disadvantage`
+          : seifa > 80
+            ? `SEIFA ${Math.round(seifa)}th percentile — high relative advantage`
+            : `SEIFA ${Math.round(seifa)}th percentile disadvantage index`,
+    });
+  }
+
+  const growth = num(raw.population_growth_2023_2024_percent);
+  if (growth != null) {
+    out.push({
+      tone: growth >= 1.5 ? "support" : growth < 0 ? "limit" : "neutral",
+      text: `${growth >= 0 ? "+" : ""}${growth.toFixed(1)}% annual population growth`,
+    });
+  }
+
+  return out;
+}
+
+const TONE_STYLE: Record<InsightTone, { dot: string; text: string }> = {
+  support: { dot: "bg-teal", text: "text-foreground" },
+  limit: { dot: "bg-amber", text: "text-foreground" },
+  neutral: { dot: "bg-muted-foreground/50", text: "text-muted-foreground" },
+};
+
+// ---------------------------------------------------------------------------
+// The unified intelligence block: estimated-scripts hero, synthesized
+// insights, an at-a-glance stat row, and the full evidence breakdown behind a
+// disclosure. Reuses the same query keys as the previous separate sections, so
+// React Query serves each dataset from a single shared fetch.
+// ---------------------------------------------------------------------------
+function PharmacyIntelligence({
   premisesId,
+  lat,
+  lng,
   authed,
 }: {
   premisesId: string;
+  lat: number;
+  lng: number;
   authed: boolean;
 }) {
   const potential = useQuery({
     queryKey: ["dispensing-potential", premisesId],
     queryFn: () => fetchDispensingPotential(premisesId),
   });
+  const demographics = useQuery({
+    queryKey: ["pharmacy-official-demographics", premisesId],
+    queryFn: () => fetchPharmacyDemographics(premisesId),
+    staleTime: 24 * 60 * 60 * 1000,
+  });
+  const healthcare = useQuery({
+    queryKey: ["pharmacy-healthcare-demand", lat, lng],
+    queryFn: () => fetchHealthcareDemand(lat, lng),
+    staleTime: 24 * 60 * 60 * 1000,
+  });
   const calibration = useQuery({
     queryKey: ["dispensing-calibration", premisesId],
     queryFn: () => fetchCalibrationSummary(premisesId),
     enabled: authed,
   });
+  const comparison = useQuery({
+    queryKey: ["dispensing-potential-model-comparison", premisesId],
+    queryFn: () => fetchDispensingPotentialComparison(premisesId),
+  });
+
   const p = potential.data as any;
-  const metrics = p?.raw_metrics ?? {},
-    components = p?.component_scores ?? {};
+  const demo = demographics.data as any;
+  const hc = healthcare.data as any;
+  const raw = p?.raw_metrics ?? {};
+  const components = p?.component_scores ?? {};
+  const central = num(p?.experimental_scripts_day_equivalent);
+  const low = num(p?.theoretical_scripts_day_low);
+  const high = num(p?.theoretical_scripts_day_high);
+  const confidence = (p?.evidence_confidence as string | undefined) ?? null;
+  const insights = useMemo(() => (p ? buildInsights(p, demo, hc) : []), [p, demo, hc]);
+
   const actual = calibration.data?.observations?.[0];
   const sample = calibration.data?.sampleSize ?? 0;
-  const ratio =
-    actual && p?.experimental_scripts_day_equivalent
-      ? Number(actual.observed_scripts_per_day) / Number(p.experimental_scripts_day_equivalent)
-      : null;
+  const ratio = actual && central ? Number(actual.observed_scripts_per_day) / central : null;
+
   return (
-    <section className="mt-4 rounded-lg border border-border p-3">
-      <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        Geographic Dispensing Potential
-      </h3>
-      {!p ? (
-        <p className="mt-2 text-xs text-muted-foreground">
-          Relative rating is awaiting the next server-side refresh.
+    <section>
+      {/* Estimated daily scripts hero */}
+      <div className="rounded-xl border border-border bg-gradient-to-b from-muted/60 to-card p-4">
+        <div className="flex items-center justify-between">
+          <SectionLabel>Estimated daily scripts</SectionLabel>
+          {confidence && <ConfidenceBadge confidence={confidence} />}
+        </div>
+        {potential.isLoading ? (
+          <div className="mt-3 h-9 w-24 animate-pulse rounded bg-muted" />
+        ) : central != null ? (
+          <>
+            <div className="mt-1 flex items-baseline gap-2">
+              <span className="text-4xl font-semibold tabular-nums tracking-tight">
+                {Math.round(central).toLocaleString("en-AU")}
+              </span>
+              <span className="text-sm text-muted-foreground">scripts/day</span>
+            </div>
+            {low != null && high != null && (
+              <div className="mt-1 text-xs text-muted-foreground">
+                Modelled range{" "}
+                <span className="font-medium tabular-nums text-foreground">
+                  {Math.round(low).toLocaleString("en-AU")}–
+                  {Math.round(high).toLocaleString("en-AU")}
+                </span>{" "}
+                per day
+              </div>
+            )}
+            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+              <span className="font-medium">{potentialBand(p.victorian_percentile)}</span>
+              {p.victorian_percentile != null && (
+                <span className="text-muted-foreground">
+                  {Math.round(p.victorian_percentile)}th percentile statewide
+                </span>
+              )}
+              {p.peer_percentile != null && (
+                <span className="text-muted-foreground">
+                  {Math.round(p.peer_percentile)}th among {p.peer_group}
+                </span>
+              )}
+            </div>
+          </>
+        ) : (
+          <div className="mt-2 text-sm text-muted-foreground">
+            Not enough sourced evidence to estimate daily scripts here.
+          </div>
+        )}
+        <p className="mt-3 border-t border-border/60 pt-2 text-[11px] leading-relaxed text-muted-foreground">
+          Geographic estimate from catchment population, nearby competition and local anchors.
+          Experimental and not calibrated to actual dispensing — real volume varies with hours,
+          service mix, institutional supply and operations.
         </p>
-      ) : (
-        <>
-          <div className="mt-2 flex items-center justify-between">
-            <b>{potentialBand(p.victorian_percentile)}</b>
-            <span className="text-xs">
-              {p.victorian_percentile == null
-                ? "Victorian percentile unavailable"
-                : `${p.victorian_percentile}th Victorian percentile`}
-            </span>
-          </div>
-          <div className="mt-1 text-xs text-muted-foreground">
-            {p.peer_percentile == null
-              ? "Metropolitan or regional peer percentile unavailable"
-              : `${p.peer_percentile}th ${p.peer_group} peer percentile`}
-          </div>
-          <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
-            <Metric label="Demand pressure" value={components.demand_pressure} />
-            <Metric label="Competitive position" value={components.competitive_position} />
-            <Metric label="Healthcare anchors" value={components.healthcare_anchors} />
-            <Metric label="Retail anchors" value={components.retail_anchors} />
-            <Metric label="Growth outlook" value={components.growth_outlook} />
-            <Metric label="Evidence confidence" value={p.evidence_confidence} />
-          </div>
-          <div className="mt-2 rounded bg-muted p-2 text-xs">
-            <b>Experimental scripts/day equivalent</b>
-            <div>
-              {p.experimental_scripts_day_equivalent ??
-                "Not calibrated against enough known pharmacies"}
-            </div>
-            <div>
-              Theoretical scripts/day range:{" "}
-              {p.theoretical_scripts_day_low == null
-                ? "Not yet available"
-                : `${p.theoretical_scripts_day_low}–${p.theoretical_scripts_day_high}`}
-            </div>
-            <div>
-              Calibration sample size: {sample} ·{" "}
-              {sample < 10
-                ? "relative model only; very low calibration confidence"
-                : sample < 30
-                  ? "experimental model; low confidence"
-                  : "validation required before moderate confidence"}
-            </div>
-          </div>
-          <details className="mt-2 text-xs">
-            <summary className="cursor-pointer font-medium">Explain this rating</summary>
-            <div className="mt-2">
-              Model: {p.dispensing_potential_methods?.version} · calculated{" "}
-              {new Date(p.calculated_at).toLocaleString()}
-            </div>
-            <div>
-              Raw metrics:{" "}
-              <pre className="whitespace-pre-wrap">{JSON.stringify(metrics, null, 2)}</pre>
-            </div>
-            <div>Missing inputs: {(p.missing_inputs ?? []).join(", ") || "None recorded"}</div>
-            <div>Warnings: {(p.warnings ?? []).join("; ")}</div>
-            <div>
-              Actual dispensing may differ materially because of hours, service mix, institutional
-              supply, reputation, access and operations.
-            </div>
-          </details>
-          {actual && (
-            <div className="mt-2 rounded border p-2 text-xs">
-              <b>Actual versus theoretical performance</b>
-              <div>Actual scripts/day: {actual.observed_scripts_per_day}</div>
-              <div>
-                Actual-to-theoretical ratio:{" "}
-                {ratio == null ? "Insufficient evidence" : ratio.toFixed(2)}
-              </div>
-              <div>
-                {ratio == null
-                  ? "Insufficient evidence"
-                  : ratio < 0.8
-                    ? "Materially below geographic potential"
-                    : ratio > 1.2
-                      ? "Materially above geographic potential"
-                      : "Broadly aligned with geographic potential"}{" "}
-                — this does not establish operational quality.
-              </div>
-            </div>
-          )}
-          {authed && (
-            <CalibrationForm pharmacyId={premisesId} onSaved={() => calibration.refetch()} />
-          )}
-        </>
+      </div>
+
+      {/* Key insights */}
+      {insights.length > 0 && (
+        <div className="mt-4">
+          <SectionLabel>Key insights</SectionLabel>
+          <ul className="mt-2 space-y-1.5">
+            {insights.map((insight, i) => (
+              <li key={i} className="flex items-start gap-2 text-xs">
+                <span
+                  className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${TONE_STYLE[insight.tone].dot}`}
+                  aria-hidden="true"
+                />
+                <span className={TONE_STYLE[insight.tone].text}>{insight.text}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
+
+      {/* At a glance */}
+      {p && (
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <StatTile label="Demand pressure" value={num(components.demand_pressure)} suffix="/100" />
+          <StatTile
+            label="Competition"
+            value={num(components.competitive_position)}
+            suffix="/100"
+          />
+          <StatTile
+            label="Healthcare anchors"
+            value={num(components.healthcare_anchors)}
+            suffix="/100"
+          />
+          <StatTile label="Growth outlook" value={num(components.growth_outlook)} suffix="/100" />
+        </div>
+      )}
+
+      {/* Full evidence breakdown */}
+      {p && (
+        <details className="group mt-4 rounded-lg border border-border">
+          <summary className="cursor-pointer list-none px-3 py-2 text-xs font-medium marker:content-none">
+            <span className="text-muted-foreground group-open:hidden">
+              Show full evidence breakdown ▸
+            </span>
+            <span className="hidden text-muted-foreground group-open:inline">
+              Hide full evidence breakdown ▾
+            </span>
+          </summary>
+          <div className="space-y-4 border-t border-border p-3 text-xs">
+            <DemographicDetail demo={demo} loading={demographics.isLoading} />
+            <HealthcareDetail hc={hc} loading={healthcare.isLoading} />
+            <ModelDetail p={p} raw={raw} comparison={comparison.data} />
+            {actual && (
+              <div className="rounded border border-border p-2">
+                <b>Actual vs. estimated</b>
+                <div className="mt-1 text-muted-foreground">
+                  Recorded {actual.observed_scripts_per_day}/day ·{" "}
+                  {ratio == null
+                    ? "ratio unavailable"
+                    : ratio < 0.8
+                      ? `${ratio.toFixed(2)}× — materially below estimate`
+                      : ratio > 1.2
+                        ? `${ratio.toFixed(2)}× — materially above estimate`
+                        : `${ratio.toFixed(2)}× — broadly aligned`}
+                </div>
+                <div className="mt-1 text-[11px] text-muted-foreground">
+                  A gap to the geographic estimate does not establish operational quality.
+                </div>
+              </div>
+            )}
+            <div className="text-muted-foreground">
+              Calibration sample: {sample} verified {sample === 1 ? "observation" : "observations"}{" "}
+              · {sample < 10 ? "relative screen only" : "below validation threshold"}
+            </div>
+          </div>
+        </details>
+      )}
+
+      {authed && <CalibrationForm pharmacyId={premisesId} onSaved={() => calibration.refetch()} />}
     </section>
   );
 }
-function Metric({ label, value }: { label: string; value: any }) {
+
+function ConfidenceBadge({ confidence }: { confidence: string }) {
+  const styles: Record<string, string> = {
+    high: "bg-teal/15 text-teal border-teal/30",
+    medium: "border-border bg-muted text-muted-foreground",
+    low: "bg-amber/15 text-amber border-amber/30",
+  };
+  const cls = styles[confidence] ?? styles.medium;
   return (
-    <div className="rounded border p-2">
-      <span className="text-muted-foreground">{label}</span>
-      <div className="font-semibold">{value == null ? "Unknown" : String(value)}</div>
+    <span
+      className={`rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ${cls}`}
+    >
+      {confidence} confidence
+    </span>
+  );
+}
+
+function StatTile({
+  label,
+  value,
+  suffix = "",
+}: {
+  label: string;
+  value: number | null;
+  suffix?: string;
+}) {
+  return (
+    <div className="rounded-lg border border-border bg-card px-3 py-2">
+      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="mt-0.5 font-semibold tabular-nums">
+        {value == null ? (
+          <span className="text-muted-foreground">—</span>
+        ) : (
+          <>
+            {Math.round(value)}
+            <span className="text-xs font-normal text-muted-foreground">{suffix}</span>
+          </>
+        )}
+      </div>
     </div>
   );
 }
+
+function DemographicDetail({ demo, loading }: { demo: any; loading: boolean }) {
+  const display = (value: number | null | undefined, suffix = "") =>
+    value == null ? "—" : `${Number(value).toLocaleString("en-AU")}${suffix}`;
+  if (loading) return <div className="text-muted-foreground">Loading ABS area evidence…</div>;
+  if (!demo || demo.coverage_status === "unavailable")
+    return (
+      <div>
+        <b>Demographics</b>
+        <div className="mt-1 text-muted-foreground">
+          No official ABS coverage for this coordinate.
+        </div>
+      </div>
+    );
+  return (
+    <div>
+      <b>Demographics — {demo.sa2_name_2021 ?? "matched SA2"}</b>
+      <div className="mt-1.5 grid grid-cols-2 gap-1 text-muted-foreground">
+        <div>Population: {display(demo.census_total_population)}</div>
+        <div>Age 65+: {display(demo.age_65_plus_percent, "%")}</div>
+        <div>Age 75+: {display(demo.age_75_plus_percent, "%")}</div>
+        <div>Under five: {display(demo.under_five_percent, "%")}</div>
+        <div>Need assistance: {display(demo.need_assistance_percent, "%")}</div>
+        <div>No vehicle: {display(demo.no_vehicle_dwellings_percent, "%")}</div>
+        <div>SEIFA percentile: {display(demo.seifa_irsd_state_percentile)}</div>
+        <div>Coverage: {demo.coverage_status}</div>
+      </div>
+      <p className="mt-1.5 text-[11px] text-muted-foreground">
+        ABS 2021 SA2 average by point-in-polygon. Not a precise catchment; suppressed values stay
+        unavailable, never zero.
+      </p>
+    </div>
+  );
+}
+
+function HealthcareDetail({ hc, loading }: { hc: any; loading: boolean }) {
+  if (loading) return <div className="text-muted-foreground">Loading healthcare evidence…</div>;
+  if (!hc)
+    return (
+      <div>
+        <b>Healthcare anchors</b>
+        <div className="mt-1 text-muted-foreground">Healthcare evidence unavailable.</div>
+      </div>
+    );
+  return (
+    <div>
+      <b>Healthcare-demand anchors</b>
+      <div className="mt-1.5 grid grid-cols-2 gap-1 text-muted-foreground">
+        <div>Aged care ≤ 1 km: {hc.aged_care_1km}</div>
+        <div>Aged care ≤ 2 km: {hc.aged_care_2km}</div>
+        <div>Places ≤ 2 km: {hc.approved_places_2km ?? "—"}</div>
+        <div>Anchor index: {hc.weighted_healthcare_anchor_index}</div>
+      </div>
+      <p className="mt-1.5 text-[11px] text-muted-foreground">
+        Official aged-care places at 30 June 2025. Statewide hospital coverage is unavailable and is
+        not treated as zero.
+      </p>
+    </div>
+  );
+}
+
+function ModelDetail({ p, raw, comparison }: { p: any; raw: any; comparison: any }) {
+  return (
+    <div>
+      <b>Model &amp; assumptions</b>
+      <div className="mt-1 text-muted-foreground">
+        {p.dispensing_potential_methods?.version ?? "model version unavailable"} · calculated{" "}
+        {p.calculated_at ? new Date(p.calculated_at).toLocaleDateString() : "—"}
+      </div>
+      {(p.missing_inputs ?? []).length > 0 && (
+        <div className="mt-1 text-muted-foreground">
+          Missing inputs: {(p.missing_inputs ?? []).join(", ")}
+        </div>
+      )}
+      {comparison && (
+        <div className="mt-1.5 text-muted-foreground">
+          {comparison.old_version} → {comparison.new_version}: score {comparison.old_score ?? "—"} →{" "}
+          {comparison.new_score ?? "—"} ({comparison.score_change ?? "?"} change).{" "}
+          {comparison.main_reason}
+        </div>
+      )}
+      <details className="mt-1.5">
+        <summary className="cursor-pointer text-muted-foreground">Raw metrics</summary>
+        <pre className="mt-1 whitespace-pre-wrap text-[10px] text-muted-foreground">
+          {JSON.stringify(raw, null, 2)}
+        </pre>
+      </details>
+    </div>
+  );
+}
+
 function CalibrationForm({ pharmacyId, onSaved }: { pharmacyId: string; onSaved: () => void }) {
   const [open, setOpen] = useState(false),
     [value, setValue] = useState(""),
@@ -352,6 +641,7 @@ function CalibrationForm({ pharmacyId, onSaved }: { pharmacyId: string; onSaved:
     [end, setEnd] = useState(""),
     [days, setDays] = useState("6"),
     [source, setSource] = useState(""),
+    [sourceReference, setSourceReference] = useState(""),
     [notes, setNotes] = useState(""),
     [confidence, setConfidence] = useState<"low" | "medium" | "high">("medium"),
     [privateIncluded, setPrivateIncluded] = useState(false),
@@ -371,6 +661,7 @@ function CalibrationForm({ pharmacyId, onSaved }: { pharmacyId: string; onSaved:
         includes_daa_volume: daaIncluded,
         includes_institutional_supply: institutionalIncluded,
         source_type: source,
+        source: sourceReference,
         source_document_or_note: notes || null,
         confidence,
       });
@@ -417,6 +708,12 @@ function CalibrationForm({ pharmacyId, onSaved }: { pharmacyId: string; onSaved:
             placeholder="Source type"
             value={source}
             onChange={(e) => setSource(e.target.value)}
+          />
+          <input
+            className="input col-span-2"
+            placeholder="Source / provenance"
+            value={sourceReference}
+            onChange={(e) => setSourceReference(e.target.value)}
           />
           <select
             className="input"
@@ -614,13 +911,22 @@ function PrivateWorkspace({ authed, premisesId }: { authed: boolean; premisesId:
           .upload(storagePath, file, { upsert: false });
         if (upload.error) throw upload.error;
 
-        await registerImAttachment({
-          premises_id: premisesId,
-          storage_path: storagePath,
-          file_name: file.name,
-          mime_type: file.type || null,
-          size_bytes: file.size,
-        });
+        // If the metadata row fails (RLS check, expired token, network) the
+        // object is already stored. Without this compensation it becomes an
+        // orphaned confidential document: invisible to the UI and to the audit
+        // trail, but still readable by any organisation member.
+        try {
+          await registerImAttachment({
+            premises_id: premisesId,
+            storage_path: storagePath,
+            file_name: file.name,
+            mime_type: file.type || null,
+            size_bytes: file.size,
+          });
+        } catch (registrationError) {
+          await supabase.storage.from("information-memorandums").remove([storagePath]);
+          throw registrationError;
+        }
       }
       toast.success("Attachment uploaded");
       await loadProfile();
@@ -637,7 +943,7 @@ function PrivateWorkspace({ authed, premisesId }: { authed: boolean; premisesId:
         .from("information-memorandums")
         .createSignedUrl(
           storagePath,
-          60 * 30,
+          IM_SIGNED_URL_TTL_SECONDS,
           inline ? { download: false } : { download: fileName },
         );
       if (error) throw error;

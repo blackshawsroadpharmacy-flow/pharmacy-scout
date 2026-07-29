@@ -1,10 +1,11 @@
-import { createFileRoute, useNavigate, Link, useSearch } from "@tanstack/react-router";
+import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
 import { DisclaimerFooter } from "@/components/disclaimer-footer";
+import { safeSameOriginPath } from "@/lib/auth-redirect";
 
 const searchSchema = z.object({
   redirect: z.string().optional(),
@@ -29,7 +30,6 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
-  const navigate = useNavigate();
   const { redirect } = useSearch({ from: "/auth" });
   const [mode, setMode] = useState<"sign_in" | "sign_up">("sign_in");
   const [email, setEmail] = useState("");
@@ -56,7 +56,7 @@ function AuthPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       }
-      navigate({ to: redirect ?? "/app", replace: true });
+      window.location.assign(safeSameOriginPath(redirect));
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -75,7 +75,7 @@ function AuthPage() {
         return;
       }
       if (result.redirected) return;
-      navigate({ to: redirect ?? "/app", replace: true });
+      window.location.assign(safeSameOriginPath(redirect));
     } finally {
       setLoading(false);
     }
@@ -85,7 +85,11 @@ function AuthPage() {
     <div className="flex min-h-screen flex-col bg-background">
       <div className="flex flex-1 items-center justify-center px-4 py-12">
         <div className="w-full max-w-md rounded-xl border border-border bg-card p-8 shadow-sm">
-          <Link to="/" className="text-xs font-medium text-muted-foreground hover:text-foreground">
+          <Link
+            to="/"
+            search={{}}
+            className="text-xs font-medium text-muted-foreground hover:text-foreground"
+          >
             ← Chemist Care
           </Link>
           <h1 className="mt-3 text-2xl font-semibold tracking-tight">
