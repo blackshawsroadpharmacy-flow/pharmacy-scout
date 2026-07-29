@@ -4146,6 +4146,236 @@ export type Database = {
         }
         Relationships: []
       }
+      vpa_alert_watches: {
+        Row: {
+          closure_reopening: boolean
+          created_at: string
+          created_by: string
+          id: string
+          licensee_changes: boolean
+          mismatch_review: boolean
+          nearby_new_premises: boolean
+          organisation_id: string
+          premises_id: string
+          registration_changes: boolean
+          registration_date_approaching: boolean
+        }
+        Insert: {
+          closure_reopening?: boolean
+          created_at?: string
+          created_by: string
+          id?: string
+          licensee_changes?: boolean
+          mismatch_review?: boolean
+          nearby_new_premises?: boolean
+          organisation_id: string
+          premises_id: string
+          registration_changes?: boolean
+          registration_date_approaching?: boolean
+        }
+        Update: {
+          closure_reopening?: boolean
+          created_at?: string
+          created_by?: string
+          id?: string
+          licensee_changes?: boolean
+          mismatch_review?: boolean
+          nearby_new_premises?: boolean
+          organisation_id?: string
+          premises_id?: string
+          registration_changes?: boolean
+          registration_date_approaching?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vpa_alert_watches_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vpa_alert_watches_premises_id_fkey"
+            columns: ["premises_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vpa_alert_watches_premises_id_fkey"
+            columns: ["premises_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises_geo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vpa_alert_watches_premises_id_fkey"
+            columns: ["premises_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises_vpa_lifecycle"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vpa_gdp_staging_comparisons: {
+        Row: {
+          after_snapshot: Json
+          before_snapshot: Json
+          change_explanations: string[]
+          created_at: string
+          evidence_coverage: Json
+          human_approval_status: string
+          id: string
+          model_version: string
+          premises_id: string
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          run_id: string
+        }
+        Insert: {
+          after_snapshot: Json
+          before_snapshot: Json
+          change_explanations?: string[]
+          created_at?: string
+          evidence_coverage?: Json
+          human_approval_status?: string
+          id?: string
+          model_version: string
+          premises_id: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          run_id: string
+        }
+        Update: {
+          after_snapshot?: Json
+          before_snapshot?: Json
+          change_explanations?: string[]
+          created_at?: string
+          evidence_coverage?: Json
+          human_approval_status?: string
+          id?: string
+          model_version?: string
+          premises_id?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          run_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vpa_gdp_staging_comparisons_premises_id_fkey"
+            columns: ["premises_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vpa_gdp_staging_comparisons_premises_id_fkey"
+            columns: ["premises_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises_geo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vpa_gdp_staging_comparisons_premises_id_fkey"
+            columns: ["premises_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises_vpa_lifecycle"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vpa_gdp_staging_comparisons_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_vpa_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vpa_private_alerts: {
+        Row: {
+          alert_type: string
+          body: string
+          change_event_id: string | null
+          created_at: string
+          id: string
+          organisation_id: string
+          premises_id: string
+          read_at: string | null
+          source_run_id: string | null
+          title: string
+        }
+        Insert: {
+          alert_type: string
+          body: string
+          change_event_id?: string | null
+          created_at?: string
+          id?: string
+          organisation_id: string
+          premises_id: string
+          read_at?: string | null
+          source_run_id?: string | null
+          title: string
+        }
+        Update: {
+          alert_type?: string
+          body?: string
+          change_event_id?: string | null
+          created_at?: string
+          id?: string
+          organisation_id?: string
+          premises_id?: string
+          read_at?: string | null
+          source_run_id?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vpa_private_alerts_change_event_id_fkey"
+            columns: ["change_event_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_vpa_change_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vpa_private_alerts_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vpa_private_alerts_premises_id_fkey"
+            columns: ["premises_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vpa_private_alerts_premises_id_fkey"
+            columns: ["premises_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises_geo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vpa_private_alerts_premises_id_fkey"
+            columns: ["premises_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises_vpa_lifecycle"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vpa_private_alerts_source_run_id_fkey"
+            columns: ["source_run_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_vpa_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vpa_published_licensee_relationships: {
         Row: {
           created_at: string
@@ -5946,6 +6176,7 @@ export type Database = {
         }
         Returns: string
       }
+      vpa_has_prior_baseline: { Args: { p_run_id: string }; Returns: boolean }
       vpa_registry_search: {
         Args: { p_limit?: number; p_offset?: number; p_query: string }
         Returns: {
