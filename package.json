@@ -13,6 +13,7 @@
     "import:download": "node scripts/download-vic-pharmacies-source.mjs",
     "import:push": "node scripts/push-vic-pharmacies-to-supabase.mjs",
     "import:external": "node scripts/import-external-locations.mjs",
+    "scrape:vpa": "node scripts/scrape-vpa-register.mjs",
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "node --test tests/*.test.mjs"
