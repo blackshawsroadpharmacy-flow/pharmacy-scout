@@ -324,7 +324,7 @@ RETURNS JSONB LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$
     'latest_medical_centre_import',(SELECT max(fetched_at) FROM public.medical_centres),
     'abs_reference_period','2024 ERP; 2023–24 annual growth',
     'abs_demographic_reference_period','2021 Census and SEIFA; distinct from ERP',
-    'abs_demographic_retrieved_at',(SELECT max(retrieved_at)
+    'abs_demographic_retrieved_at',(SELECT max(fetched_at)
       FROM public.dispensing_demographic_sources WHERE reference_year=2021),
     'abs_demographic_coverage_areas',(SELECT count(*) FROM public.demographic_area_profiles),
     'schema_version','20260729143000'
