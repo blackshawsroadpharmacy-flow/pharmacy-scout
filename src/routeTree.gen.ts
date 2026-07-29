@@ -24,6 +24,7 @@ import { Route as AppRadarRouteImport } from './routes/app.radar'
 import { Route as AppScenariosRouteImport } from './routes/app.scenarios'
 import { Route as AppSecurityRouteImport } from './routes/app.security'
 import { Route as PharmacyIdRouteImport } from './routes/pharmacy.$id'
+import { Route as ApiVpaRefreshRouteImport } from './routes/api.vpa.refresh'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -100,6 +101,11 @@ const PharmacyIdRoute = PharmacyIdRouteImport.update({
   path: '/pharmacy/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiVpaRefreshRoute = ApiVpaRefreshRouteImport.update({
+  id: '/api/vpa/refresh',
+  path: '/api/vpa/refresh',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -117,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/app/security': typeof AppSecurityRoute
   '/pharmacy/$id': typeof PharmacyIdRoute
   '/app/': typeof AppIndexRoute
+  '/api/vpa/refresh': typeof ApiVpaRefreshRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -133,6 +140,7 @@ export interface FileRoutesByTo {
   '/app/security': typeof AppSecurityRoute
   '/pharmacy/$id': typeof PharmacyIdRoute
   '/app': typeof AppIndexRoute
+  '/api/vpa/refresh': typeof ApiVpaRefreshRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -151,6 +159,7 @@ export interface FileRoutesById {
   '/app/security': typeof AppSecurityRoute
   '/pharmacy/$id': typeof PharmacyIdRoute
   '/app/': typeof AppIndexRoute
+  '/api/vpa/refresh': typeof ApiVpaRefreshRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -170,6 +179,7 @@ export interface FileRouteTypes {
     | '/app/security'
     | '/pharmacy/$id'
     | '/app/'
+    | '/api/vpa/refresh'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -186,6 +196,7 @@ export interface FileRouteTypes {
     | '/app/security'
     | '/pharmacy/$id'
     | '/app'
+    | '/api/vpa/refresh'
   id:
     | '__root__'
     | '/'
@@ -203,6 +214,7 @@ export interface FileRouteTypes {
     | '/app/security'
     | '/pharmacy/$id'
     | '/app/'
+    | '/api/vpa/refresh'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -213,6 +225,7 @@ export interface RootRouteChildren {
   BuildDotjsonRoute: typeof BuildDotjsonRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   PharmacyIdRoute: typeof PharmacyIdRoute
+  ApiVpaRefreshRoute: typeof ApiVpaRefreshRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -322,6 +335,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PharmacyIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/vpa/refresh': {
+      id: '/api/vpa/refresh'
+      path: '/api/vpa/refresh'
+      fullPath: '/api/vpa/refresh'
+      preLoaderRoute: typeof ApiVpaRefreshRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -357,6 +377,7 @@ const rootRouteChildren: RootRouteChildren = {
   BuildDotjsonRoute: BuildDotjsonRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   PharmacyIdRoute: PharmacyIdRoute,
+  ApiVpaRefreshRoute: ApiVpaRefreshRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
