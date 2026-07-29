@@ -1,8 +1,10 @@
 BEGIN;
-SELECT plan(26);
+SELECT plan(28);
 
 SELECT has_table('public', 'pharmacy_vpa_staged_premises', 'run-scoped premises staging exists');
 SELECT has_table('public', 'pharmacy_vpa_staged_licensees', 'run-scoped licensee staging exists');
+SELECT has_table('public', 'pharmacy_vpa_raw_source_rows',
+  'every source row has an immutable run-scoped ledger');
 SELECT has_table('public', 'pharmacy_vpa_match_candidates', 'ranked match candidates exist');
 SELECT has_table('public', 'pharmacy_vpa_review_queue', 'ambiguous matches have a review queue');
 SELECT has_table('public', 'pharmacy_vpa_quarantine', 'invalid source rows can be quarantined');
@@ -23,6 +25,11 @@ SELECT policies_are(
   'public', 'pharmacy_vpa_staged_premises',
   ARRAY['pharmacy_vpa_staged_premises_admin'],
   'staged premises are admin-only'
+);
+SELECT policies_are(
+  'public', 'pharmacy_vpa_raw_source_rows',
+  ARRAY['pharmacy_vpa_raw_source_rows_admin'],
+  'raw source evidence is admin-only'
 );
 SELECT policies_are(
   'public', 'pharmacy_vpa_review_queue',
@@ -129,7 +136,7 @@ INSERT INTO public.pharmacy_premises (
   '00000000-0000-0000-0000-000000000501', 'Existing Trading Name',
   '2 Existing Road', 'Melbourne', '3000',
   ST_SetSRID(ST_MakePoint(144.95, -37.81), 4326)::geography,
-  'imported', 'verified', '0399999999', 'https://example.test', 'private legacy note'
+  'manual', 'verified', '0399999999', 'https://example.test', 'private legacy note'
 );
 INSERT INTO public.pharmacy_vpa_runs (
   id, status, triggered_by, source_file_name, source_file_hash,
