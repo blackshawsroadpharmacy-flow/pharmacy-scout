@@ -5,7 +5,7 @@ SELECT has_table('public','pharmacy_demographic_context','pharmacy demographic c
 SELECT is((SELECT count(*) FROM public.demographic_area_profiles),522::bigint,'all seeded Victorian SA2 profiles imported');
 SELECT is(
   (SELECT count(*) FROM public.dispensing_demographic_sources
-    WHERE reference_year=2021 AND licence_name='Creative Commons Attribution 4.0 International'),
+    WHERE reference_year=2021 AND licence='Creative Commons Attribution 4.0 International'),
   2::bigint,'both official sources preserve licence and reference year'
 );
 SELECT is(
