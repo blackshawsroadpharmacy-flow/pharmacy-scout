@@ -491,13 +491,57 @@ export type Database = {
           },
         ]
       }
+      dispensing_potential_assumptions: {
+        Row: {
+          assumption_key: string
+          assumption_value: Json
+          id: string
+          implemented_at: string
+          implemented_by: string
+          method_id: string
+          rationale: string
+          unit: string | null
+        }
+        Insert: {
+          assumption_key: string
+          assumption_value: Json
+          id?: string
+          implemented_at: string
+          implemented_by: string
+          method_id: string
+          rationale: string
+          unit?: string | null
+        }
+        Update: {
+          assumption_key?: string
+          assumption_value?: Json
+          id?: string
+          implemented_at?: string
+          implemented_by?: string
+          method_id?: string
+          rationale?: string
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispensing_potential_assumptions_method_id_fkey"
+            columns: ["method_id"]
+            isOneToOne: false
+            referencedRelation: "dispensing_potential_methods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dispensing_potential_methods: {
         Row: {
           active: boolean
           created_at: string
           id: string
+          implemented_at: string | null
+          implemented_by: string | null
           label: string
           minimum_calibration_observations: number
+          rationale: string | null
           validation_requirements: Json
           version: string
           weights: Json
@@ -506,8 +550,11 @@ export type Database = {
           active?: boolean
           created_at?: string
           id?: string
+          implemented_at?: string | null
+          implemented_by?: string | null
           label: string
           minimum_calibration_observations?: number
+          rationale?: string | null
           validation_requirements: Json
           version: string
           weights: Json
@@ -516,8 +563,11 @@ export type Database = {
           active?: boolean
           created_at?: string
           id?: string
+          implemented_at?: string | null
+          implemented_by?: string | null
           label?: string
           minimum_calibration_observations?: number
+          rationale?: string | null
           validation_requirements?: Json
           version?: string
           weights?: Json
@@ -3042,6 +3092,43 @@ export type Database = {
       }
     }
     Views: {
+      dispensing_potential_model_comparison: {
+        Row: {
+          changed_assumptions: Json | null
+          changed_inputs: Json | null
+          main_reason: string | null
+          new_confidence: string | null
+          new_percentile: number | null
+          new_range_high: number | null
+          new_range_low: number | null
+          new_score: number | null
+          new_version: string | null
+          old_confidence: string | null
+          old_percentile: number | null
+          old_range_high: number | null
+          old_range_low: number | null
+          old_score: number | null
+          old_version: string | null
+          pharmacy_id: string | null
+          score_change: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_dispensing_potential_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_dispensing_potential_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises_geo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       geography_columns: {
         Row: {
           coord_dimension: number | null
@@ -3749,6 +3836,7 @@ export type Database = {
       postgis_wagyu_version: { Args: never; Returns: string }
       public_data_freshness: { Args: never; Returns: Json }
       refresh_dispensing_potential_v1: { Args: never; Returns: number }
+      refresh_dispensing_potential_v1_1: { Args: never; Returns: number }
       refresh_pharmacy_demographic_context: { Args: never; Returns: number }
       scenario_evidence_at_point: {
         Args: { p_lat: number; p_lng: number; p_radius_m: number }

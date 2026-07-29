@@ -31,13 +31,15 @@ export const getOpportunityRadar = createServerFn({ method: "GET" })
       relocation,
       sources,
       freshness,
+      comparisons,
     ] = await Promise.all([
       supabase
         .from("pharmacy_dispensing_potential")
         .select(
-          "*, pharmacy_premises!inner(id,name,address,suburb,lat,lng), dispensing_potential_methods(version)",
+          "*, pharmacy_premises!inner(id,name,address,suburb,lat,lng), dispensing_potential_methods!inner(version,active)",
         )
         .order("victorian_percentile", { ascending: false })
+        .eq("dispensing_potential_methods.active", true)
         .limit(250),
       supabase
         .from("opportunities")
@@ -67,6 +69,7 @@ export const getOpportunityRadar = createServerFn({ method: "GET" })
         .select("source_name,fetched_at,coverage_description,confidence")
         .order("source_name"),
       supabase.rpc("public_data_freshness"),
+      supabase.from("dispensing_potential_model_comparison").select("*"),
     ]);
     for (const result of [
       potential,
@@ -77,6 +80,7 @@ export const getOpportunityRadar = createServerFn({ method: "GET" })
       relocation,
       sources,
       freshness,
+      comparisons,
     ]) {
       if (result.error) throw new Error(result.error.message);
     }
@@ -137,6 +141,7 @@ export const getOpportunityRadar = createServerFn({ method: "GET" })
         competition: number(components, "competitive_position"),
         healthcare: number(components, "healthcare_anchors"),
         missing_inputs: row.missing_inputs ?? [],
+        raw_metrics: raw,
       };
     });
     const sort = (score: (row: any) => number) =>
@@ -198,6 +203,37 @@ export const getOpportunityRadar = createServerFn({ method: "GET" })
         metropolitan: rows.filter((row: any) => row.peer_group === "metropolitan").slice(0, 20),
         regional: rows.filter((row: any) => row.peer_group === "regional").slice(0, 20),
         acquisition_below_potential: acquisitionRows,
+        ageing_population_demand: sort(
+          (row) =>
+            number(row.raw_metrics?.official_demographic_context, "age_65_plus_percent") ?? -1,
+        ),
+        aged_care_anchors: sort(
+          (row) =>
+            number(row.raw_metrics?.official_healthcare_anchor_context, "approved_places_2km") ??
+            -1,
+        ),
+        healthcare_demand: sort((row) => row.healthcare ?? -1),
+        high_confidence_strong_potential: rows
+          .filter((row: any) => row.evidence_confidence === "high")
+          .slice(0, 20),
+        low_demographic_resolution: rows
+          .filter(
+            (row: any) =>
+              number(row.raw_metrics, "demographic_coverage_percentage") != null &&
+              number(row.raw_metrics, "demographic_coverage_percentage")! < 100,
+          )
+          .slice(0, 20),
+        largest_model_change: [...(comparisons.data ?? [])]
+          .sort(
+            (a: any, b: any) =>
+              Math.abs(Number(b.score_change ?? 0)) - Math.abs(Number(a.score_change ?? 0)),
+          )
+          .slice(0, 20)
+          .map((change: any) => ({
+            ...(rows.find((row: any) => row.pharmacy_id === change.pharmacy_id) ?? {}),
+            score_change: change.score_change,
+            principal_reason: change.main_reason,
+          })),
       },
       comparison_pool: [
         ...rows.slice(0, 20).map((row: any) => ({
