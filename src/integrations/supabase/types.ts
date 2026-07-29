@@ -4146,6 +4146,115 @@ export type Database = {
         }
         Relationships: []
       }
+      vpa_published_licensee_relationships: {
+        Row: {
+          created_at: string
+          currently_observed: boolean
+          first_observed_at: string
+          id: string
+          last_observed_at: string
+          premises_id: string
+          premises_licensee_id: string
+          published_licensee_id: string
+        }
+        Insert: {
+          created_at?: string
+          currently_observed?: boolean
+          first_observed_at: string
+          id?: string
+          last_observed_at: string
+          premises_id: string
+          premises_licensee_id: string
+          published_licensee_id: string
+        }
+        Update: {
+          created_at?: string
+          currently_observed?: boolean
+          first_observed_at?: string
+          id?: string
+          last_observed_at?: string
+          premises_id?: string
+          premises_licensee_id?: string
+          published_licensee_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vpa_published_licensee_relationships_premises_id_fkey"
+            columns: ["premises_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vpa_published_licensee_relationships_premises_id_fkey"
+            columns: ["premises_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises_geo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vpa_published_licensee_relationships_premises_id_fkey"
+            columns: ["premises_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises_vpa_lifecycle"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vpa_published_licensee_relationships_premises_licensee_id_fkey"
+            columns: ["premises_licensee_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises_licensees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vpa_published_licensee_relationships_published_licensee_id_fkey"
+            columns: ["published_licensee_id"]
+            isOneToOne: false
+            referencedRelation: "vpa_published_licensee_networks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vpa_published_licensee_relationships_published_licensee_id_fkey"
+            columns: ["published_licensee_id"]
+            isOneToOne: false
+            referencedRelation: "vpa_published_licensees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vpa_published_licensees: {
+        Row: {
+          created_at: string
+          first_observed_at: string
+          id: string
+          last_observed_at: string
+          normalised_comparison_name: string
+          possible_duplicate_review_status: string
+          published_display_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          first_observed_at: string
+          id?: string
+          last_observed_at: string
+          normalised_comparison_name: string
+          possible_duplicate_review_status?: string
+          published_display_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          first_observed_at?: string
+          id?: string
+          last_observed_at?: string
+          normalised_comparison_name?: string
+          possible_duplicate_review_status?: string
+          published_display_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       dispensing_potential_model_comparison: {
@@ -4259,10 +4368,25 @@ export type Database = {
           source_id: string | null
           suburb: string | null
           updated_at: string | null
+          vpa_first_observed_at: string | null
+          vpa_geocode_status: string | null
+          vpa_last_observed_at: string | null
+          vpa_match_confidence: number | null
+          vpa_match_status: string | null
+          vpa_official_full_address: string | null
+          vpa_official_name: string | null
+          vpa_pbs_match_state: string | null
+          vpa_premises_conditions_raw: string | null
+          vpa_registered_until: string | null
           vpa_registration_checked_at: string | null
           vpa_registration_status:
             | Database["public"]["Enums"]["verification_status"]
             | null
+          vpa_registration_status_normalised: string | null
+          vpa_registration_status_raw: string | null
+          vpa_review_status: string | null
+          vpa_snapshot_reference_date: string | null
+          vpa_source_verification_status: string | null
           website: string | null
         }
         Insert: {
@@ -4289,10 +4413,25 @@ export type Database = {
           source_id?: string | null
           suburb?: string | null
           updated_at?: string | null
+          vpa_first_observed_at?: string | null
+          vpa_geocode_status?: string | null
+          vpa_last_observed_at?: string | null
+          vpa_match_confidence?: number | null
+          vpa_match_status?: string | null
+          vpa_official_full_address?: string | null
+          vpa_official_name?: string | null
+          vpa_pbs_match_state?: string | null
+          vpa_premises_conditions_raw?: string | null
+          vpa_registered_until?: string | null
           vpa_registration_checked_at?: string | null
           vpa_registration_status?:
             | Database["public"]["Enums"]["verification_status"]
             | null
+          vpa_registration_status_normalised?: string | null
+          vpa_registration_status_raw?: string | null
+          vpa_review_status?: string | null
+          vpa_snapshot_reference_date?: string | null
+          vpa_source_verification_status?: string | null
           website?: string | null
         }
         Update: {
@@ -4319,10 +4458,25 @@ export type Database = {
           source_id?: string | null
           suburb?: string | null
           updated_at?: string | null
+          vpa_first_observed_at?: string | null
+          vpa_geocode_status?: string | null
+          vpa_last_observed_at?: string | null
+          vpa_match_confidence?: number | null
+          vpa_match_status?: string | null
+          vpa_official_full_address?: string | null
+          vpa_official_name?: string | null
+          vpa_pbs_match_state?: string | null
+          vpa_premises_conditions_raw?: string | null
+          vpa_registered_until?: string | null
           vpa_registration_checked_at?: string | null
           vpa_registration_status?:
             | Database["public"]["Enums"]["verification_status"]
             | null
+          vpa_registration_status_normalised?: string | null
+          vpa_registration_status_raw?: string | null
+          vpa_review_status?: string | null
+          vpa_snapshot_reference_date?: string | null
+          vpa_source_verification_status?: string | null
           website?: string | null
         }
         Relationships: [
@@ -4530,6 +4684,21 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      vpa_published_licensee_networks: {
+        Row: {
+          active_premises_ids: string[] | null
+          current_premises_count: number | null
+          first_observed_at: string | null
+          historical_premises_count: number | null
+          id: string | null
+          last_observed_at: string | null
+          normalised_comparison_name: string | null
+          possible_duplicate_review_status: string | null
+          published_display_name: string | null
+          suburbs: string[] | null
+        }
+        Relationships: []
       }
     }
     Functions: {
@@ -5036,6 +5205,10 @@ export type Database = {
       }
       is_org_member: { Args: { _org: string }; Returns: boolean }
       longtransactionsenabled: { Args: never; Returns: boolean }
+      normalise_vpa_published_name: {
+        Args: { p_name: string }
+        Returns: string
+      }
       organisation_security_status: { Args: never; Returns: Json }
       pharmacy_pipeline_status: {
         Args: { p_premises_id: string }
@@ -5772,6 +5945,21 @@ export type Database = {
           table_name: string
         }
         Returns: string
+      }
+      vpa_registry_search: {
+        Args: { p_limit?: number; p_offset?: number; p_query: string }
+        Returns: {
+          lat: number
+          lng: number
+          relevance: number
+          result_address: string
+          result_id: string
+          result_name: string
+          result_postcode: string
+          result_suburb: string
+          result_type: string
+          source_confidence: string
+        }[]
       }
     }
     Enums: {
