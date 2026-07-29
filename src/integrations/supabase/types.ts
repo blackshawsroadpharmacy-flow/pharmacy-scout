@@ -2361,6 +2361,8 @@ export type Database = {
           vpa_match_confidence: number | null
           vpa_match_method: string | null
           vpa_match_status: string
+          vpa_official_full_address: string | null
+          vpa_official_name: string | null
           vpa_premises_conditions_raw: string | null
           vpa_record_key: string | null
           vpa_registered_until: string | null
@@ -2406,6 +2408,8 @@ export type Database = {
           vpa_match_confidence?: number | null
           vpa_match_method?: string | null
           vpa_match_status?: string
+          vpa_official_full_address?: string | null
+          vpa_official_name?: string | null
           vpa_premises_conditions_raw?: string | null
           vpa_record_key?: string | null
           vpa_registered_until?: string | null
@@ -2451,6 +2455,8 @@ export type Database = {
           vpa_match_confidence?: number | null
           vpa_match_method?: string | null
           vpa_match_status?: string
+          vpa_official_full_address?: string | null
+          vpa_official_name?: string | null
           vpa_premises_conditions_raw?: string | null
           vpa_record_key?: string | null
           vpa_registered_until?: string | null
@@ -2667,53 +2673,594 @@ export type Database = {
           },
         ]
       }
+      pharmacy_vpa_change_events: {
+        Row: {
+          baseline_only: boolean
+          created_at: string
+          event_type: string
+          field_name: string | null
+          id: string
+          new_value: Json | null
+          old_value: Json | null
+          premises_id: string
+          run_id: string
+        }
+        Insert: {
+          baseline_only?: boolean
+          created_at?: string
+          event_type: string
+          field_name?: string | null
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          premises_id: string
+          run_id: string
+        }
+        Update: {
+          baseline_only?: boolean
+          created_at?: string
+          event_type?: string
+          field_name?: string | null
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          premises_id?: string
+          run_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_vpa_change_events_premises_id_fkey"
+            columns: ["premises_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_vpa_change_events_premises_id_fkey"
+            columns: ["premises_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises_geo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_vpa_change_events_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_vpa_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pharmacy_vpa_match_candidates: {
+        Row: {
+          canonical_premises_id: string
+          conflicting_factors: Json
+          created_at: string
+          id: string
+          matching_factors: Json
+          rank: number
+          run_id: string
+          score: number
+          staged_premises_id: string
+        }
+        Insert: {
+          canonical_premises_id: string
+          conflicting_factors?: Json
+          created_at?: string
+          id?: string
+          matching_factors?: Json
+          rank: number
+          run_id: string
+          score: number
+          staged_premises_id: string
+        }
+        Update: {
+          canonical_premises_id?: string
+          conflicting_factors?: Json
+          created_at?: string
+          id?: string
+          matching_factors?: Json
+          rank?: number
+          run_id?: string
+          score?: number
+          staged_premises_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_vpa_match_candidates_canonical_premises_id_fkey"
+            columns: ["canonical_premises_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_vpa_match_candidates_canonical_premises_id_fkey"
+            columns: ["canonical_premises_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises_geo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_vpa_match_candidates_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_vpa_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_vpa_match_candidates_staged_premises_id_fkey"
+            columns: ["staged_premises_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_vpa_staged_premises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pharmacy_vpa_promotion_audit: {
+        Row: {
+          canonical_rows_inserted: number
+          canonical_rows_updated: number
+          id: string
+          licensee_rows_no_longer_observed: number
+          licensee_rows_upserted: number
+          promoted_at: string
+          promoted_by: string
+          result: Json
+          run_id: string
+          source_file_hash: string
+          source_freshness_updated: boolean
+        }
+        Insert: {
+          canonical_rows_inserted?: number
+          canonical_rows_updated?: number
+          id?: string
+          licensee_rows_no_longer_observed?: number
+          licensee_rows_upserted?: number
+          promoted_at?: string
+          promoted_by: string
+          result?: Json
+          run_id: string
+          source_file_hash: string
+          source_freshness_updated?: boolean
+        }
+        Update: {
+          canonical_rows_inserted?: number
+          canonical_rows_updated?: number
+          id?: string
+          licensee_rows_no_longer_observed?: number
+          licensee_rows_upserted?: number
+          promoted_at?: string
+          promoted_by?: string
+          result?: Json
+          run_id?: string
+          source_file_hash?: string
+          source_freshness_updated?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_vpa_promotion_audit_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: true
+            referencedRelation: "pharmacy_vpa_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pharmacy_vpa_quarantine: {
+        Row: {
+          created_at: string
+          id: string
+          reason_code: string
+          reason_detail: string | null
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          run_id: string
+          source_payload: Json
+          source_record_key: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reason_code: string
+          reason_detail?: string | null
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          run_id: string
+          source_payload: Json
+          source_record_key?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reason_code?: string
+          reason_detail?: string | null
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          run_id?: string
+          source_payload?: Json
+          source_record_key?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_vpa_quarantine_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_vpa_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pharmacy_vpa_review_queue: {
+        Row: {
+          created_at: string
+          decision: string | null
+          id: string
+          review_note: string | null
+          reviewed_at: string | null
+          reviewer: string | null
+          run_id: string
+          selected_canonical_premises_id: string | null
+          staged_premises_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          decision?: string | null
+          id?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewer?: string | null
+          run_id: string
+          selected_canonical_premises_id?: string | null
+          staged_premises_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          decision?: string | null
+          id?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewer?: string | null
+          run_id?: string
+          selected_canonical_premises_id?: string | null
+          staged_premises_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_vpa_review_queue_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_vpa_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_vpa_review_queue_selected_canonical_premises_id_fkey"
+            columns: ["selected_canonical_premises_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_vpa_review_queue_selected_canonical_premises_id_fkey"
+            columns: ["selected_canonical_premises_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises_geo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_vpa_review_queue_staged_premises_id_fkey"
+            columns: ["staged_premises_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_vpa_staged_premises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pharmacy_vpa_runs: {
         Row: {
+          ambiguous_match_count: number
+          cap_warning_count: number
           duration_ms: number | null
           error_message: string | null
+          exact_match_count: number
           finished_at: string | null
+          high_confidence_match_count: number
           id: string
+          imported_at: string | null
+          licensee_count: number
           licensees_upserted: number
+          parser_error_count: number
           postcodes_queried: number
           postcodes_with_cap_warning: number
           premises_added: number
+          premises_count: number
           premises_removed: number
           premises_updated: number
+          promoted_at: string | null
+          promoted_by: string | null
+          proposed_closed_count: number
+          proposed_new_count: number
+          proposed_reopening_count: number
+          quarantined_count: number
+          source_file_hash: string | null
+          source_file_name: string | null
+          source_reference_date: string | null
+          source_row_count: number
+          source_scraped_at: string | null
           started_at: string
           status: string
           triggered_by: string | null
+          unresolved_geocode_count: number
+          validation_error_count: number
+          validation_summary: Json
         }
         Insert: {
+          ambiguous_match_count?: number
+          cap_warning_count?: number
           duration_ms?: number | null
           error_message?: string | null
+          exact_match_count?: number
           finished_at?: string | null
+          high_confidence_match_count?: number
           id?: string
+          imported_at?: string | null
+          licensee_count?: number
           licensees_upserted?: number
+          parser_error_count?: number
           postcodes_queried?: number
           postcodes_with_cap_warning?: number
           premises_added?: number
+          premises_count?: number
           premises_removed?: number
           premises_updated?: number
+          promoted_at?: string | null
+          promoted_by?: string | null
+          proposed_closed_count?: number
+          proposed_new_count?: number
+          proposed_reopening_count?: number
+          quarantined_count?: number
+          source_file_hash?: string | null
+          source_file_name?: string | null
+          source_reference_date?: string | null
+          source_row_count?: number
+          source_scraped_at?: string | null
           started_at?: string
           status?: string
           triggered_by?: string | null
+          unresolved_geocode_count?: number
+          validation_error_count?: number
+          validation_summary?: Json
         }
         Update: {
+          ambiguous_match_count?: number
+          cap_warning_count?: number
           duration_ms?: number | null
           error_message?: string | null
+          exact_match_count?: number
           finished_at?: string | null
+          high_confidence_match_count?: number
           id?: string
+          imported_at?: string | null
+          licensee_count?: number
           licensees_upserted?: number
+          parser_error_count?: number
           postcodes_queried?: number
           postcodes_with_cap_warning?: number
           premises_added?: number
+          premises_count?: number
           premises_removed?: number
           premises_updated?: number
+          promoted_at?: string | null
+          promoted_by?: string | null
+          proposed_closed_count?: number
+          proposed_new_count?: number
+          proposed_reopening_count?: number
+          quarantined_count?: number
+          source_file_hash?: string | null
+          source_file_name?: string | null
+          source_reference_date?: string | null
+          source_row_count?: number
+          source_scraped_at?: string | null
           started_at?: string
           status?: string
           triggered_by?: string | null
+          unresolved_geocode_count?: number
+          validation_error_count?: number
+          validation_summary?: Json
         }
         Relationships: []
+      }
+      pharmacy_vpa_staged_licensees: {
+        Row: {
+          created_at: string
+          currently_observed: boolean
+          id: string
+          licence_conditions_raw: string | null
+          licence_status_raw: string | null
+          licensed_until: string | null
+          published_name: string
+          review_status: string
+          run_id: string
+          source_row_fingerprint: string
+          staged_premises_id: string
+        }
+        Insert: {
+          created_at?: string
+          currently_observed?: boolean
+          id?: string
+          licence_conditions_raw?: string | null
+          licence_status_raw?: string | null
+          licensed_until?: string | null
+          published_name: string
+          review_status?: string
+          run_id: string
+          source_row_fingerprint: string
+          staged_premises_id: string
+        }
+        Update: {
+          created_at?: string
+          currently_observed?: boolean
+          id?: string
+          licence_conditions_raw?: string | null
+          licence_status_raw?: string | null
+          licensed_until?: string | null
+          published_name?: string
+          review_status?: string
+          run_id?: string
+          source_row_fingerprint?: string
+          staged_premises_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_vpa_staged_licensees_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_vpa_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_vpa_staged_licensees_staged_premises_id_fkey"
+            columns: ["staged_premises_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_vpa_staged_premises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pharmacy_vpa_staged_premises: {
+        Row: {
+          algorithm_version: string
+          candidate_ids: string[]
+          created_at: string
+          disposition: string
+          full_address: string
+          geocode_result_id: string | null
+          geocode_state: string
+          id: string
+          match_conflicts: Json
+          match_factors: Json
+          match_score: number | null
+          official_name: string
+          postcode: string
+          premises_conditions_raw: string | null
+          promotion_approved: boolean
+          proposed_canonical_premises_id: string | null
+          proposed_lat: number | null
+          proposed_lng: number | null
+          registered_until: string | null
+          registration_status_normalised: string
+          registration_status_raw: string
+          review_note: string | null
+          review_status: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          run_id: string
+          source_record_key: string
+          source_row_fingerprint: string
+          source_scraped_at: string
+          source_url: string
+          state: string
+          street_address: string
+          suburb: string
+        }
+        Insert: {
+          algorithm_version: string
+          candidate_ids?: string[]
+          created_at?: string
+          disposition: string
+          full_address: string
+          geocode_result_id?: string | null
+          geocode_state?: string
+          id?: string
+          match_conflicts?: Json
+          match_factors?: Json
+          match_score?: number | null
+          official_name: string
+          postcode: string
+          premises_conditions_raw?: string | null
+          promotion_approved?: boolean
+          proposed_canonical_premises_id?: string | null
+          proposed_lat?: number | null
+          proposed_lng?: number | null
+          registered_until?: string | null
+          registration_status_normalised: string
+          registration_status_raw: string
+          review_note?: string | null
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          run_id: string
+          source_record_key: string
+          source_row_fingerprint: string
+          source_scraped_at: string
+          source_url: string
+          state?: string
+          street_address: string
+          suburb: string
+        }
+        Update: {
+          algorithm_version?: string
+          candidate_ids?: string[]
+          created_at?: string
+          disposition?: string
+          full_address?: string
+          geocode_result_id?: string | null
+          geocode_state?: string
+          id?: string
+          match_conflicts?: Json
+          match_factors?: Json
+          match_score?: number | null
+          official_name?: string
+          postcode?: string
+          premises_conditions_raw?: string | null
+          promotion_approved?: boolean
+          proposed_canonical_premises_id?: string | null
+          proposed_lat?: number | null
+          proposed_lng?: number | null
+          registered_until?: string | null
+          registration_status_normalised?: string
+          registration_status_raw?: string
+          review_note?: string | null
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          run_id?: string
+          source_record_key?: string
+          source_row_fingerprint?: string
+          source_scraped_at?: string
+          source_url?: string
+          state?: string
+          street_address?: string
+          suburb?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_vpa_staged_premises_proposed_canonical_premises_i_fkey"
+            columns: ["proposed_canonical_premises_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_vpa_staged_premises_proposed_canonical_premises_i_fkey"
+            columns: ["proposed_canonical_premises_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises_geo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_vpa_staged_premises_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_vpa_runs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -4127,6 +4674,7 @@ export type Database = {
       }
       postgis_version: { Args: never; Returns: string }
       postgis_wagyu_version: { Args: never; Returns: string }
+      promote_vpa_import_run: { Args: { p_run_id: string }; Returns: Json }
       public_data_freshness: { Args: never; Returns: Json }
       refresh_dispensing_potential_v1: { Args: never; Returns: number }
       refresh_dispensing_potential_v1_1: { Args: never; Returns: number }
@@ -4996,3 +5544,4 @@ export const Constants = {
     },
   },
 } as const
+
