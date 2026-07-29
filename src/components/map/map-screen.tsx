@@ -346,6 +346,10 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
       showPremisesOnMap(result.result_id, result.lat, result.lng);
       return;
     }
+    if (result.result_type === "vpa_pharmacy") {
+      showPremisesOnMap(result.result_id, result.lat, result.lng);
+      return;
+    }
     const category = result.result_type === "supermarket" ? "supermarkets" : "medical_centres";
     setSelectedId(null);
     setSelectedExternal({ category, id: result.result_id });

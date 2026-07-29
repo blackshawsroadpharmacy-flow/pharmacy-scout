@@ -209,13 +209,16 @@ BEGIN
         OR lower(COALESCE(p.postcode, '')) = q
       )
     UNION ALL
-    SELECT
-      'registered_licensee', l.id, l.published_display_name,
-      'Published VPA registered licensee'::text, NULL::text, NULL::text,
-      NULL::double precision, NULL::double precision,
-      'authoritative_source'::text,
+    SELECT DISTINCT
+      'vpa_pharmacy', p.id, COALESCE(p.vpa_official_name, p.name),
+      COALESCE(p.vpa_official_full_address, p.address), p.suburb, p.postcode,
+      ST_Y(p.location::geometry), ST_X(p.location::geometry),
+      p.vpa_source_verification_status,
       similarity(l.normalised_comparison_name, public.normalise_vpa_published_name(q))
     FROM public.vpa_published_licensees l
+    JOIN public.vpa_published_licensee_relationships r
+      ON r.published_licensee_id = l.id AND r.currently_observed
+    JOIN public.pharmacy_premises p ON p.id = r.premises_id
     WHERE l.normalised_comparison_name % public.normalise_vpa_published_name(q)
   )
   SELECT * FROM matches
