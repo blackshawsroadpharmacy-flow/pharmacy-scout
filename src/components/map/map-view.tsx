@@ -65,8 +65,7 @@ function clusterIcon(cluster: { getChildCount: () => number }) {
   });
 }
 
-function kindFor(p: PremisesMapPoint, savedIds: Set<string>): Kind {
-  if (savedIds.has(p.id)) return "saved";
+function kindFor(p: PremisesMapPoint): Kind {
   if (p.vpa_registration_status === "verified") return "verified";
   if (p.vpa_registration_status === "matched" || p.vpa_registration_status === "conflict")
     return "partial";
@@ -158,7 +157,6 @@ export function MapView({
   premises,
   selectedId,
   onSelect,
-  savedIds,
   flyTo,
   onMapClick,
   externalPoints = [],
@@ -179,7 +177,6 @@ export function MapView({
   premises: PremisesMapPoint[];
   selectedId: string | null;
   onSelect: (id: string) => void;
-  savedIds: Set<string>;
   flyTo: { lat: number; lng: number; zoom?: number } | null;
   onMapClick?: (lat: number, lng: number) => void;
   externalPoints?: ExternalMapPoint[];
@@ -201,7 +198,7 @@ export function MapView({
   const markers = useMemo(
     () =>
       premises.map((p) => {
-        const kind = kindFor(p, savedIds);
+        const kind = kindFor(p);
         const selected = p.id === selectedId;
         const approximate = isApproximate(p);
         const pipelineStage = pipelineStatuses.get(p.id)?.pipeline_stage ?? null;
@@ -237,9 +234,9 @@ export function MapView({
           });
           iconCache.current.set(key, icon);
         }
-        return { p, icon };
+        return { p, icon, potential };
       }),
-    [premises, selectedId, savedIds, pipelineStatuses, dispensingPotentials],
+    [premises, selectedId, pipelineStatuses, dispensingPotentials],
   );
 
   return (
@@ -380,12 +377,20 @@ export function MapView({
         iconCreateFunction={clusterIcon}
         showCoverageOnHover={false}
       >
-        {markers.map(({ p, icon }) => (
+        {markers.map(({ p, icon, potential }) => (
           <Marker
             key={p.id}
             position={[p.lat, p.lng]}
             icon={icon}
-            title={`${p.name} — Pharmacy`}
+            title={[
+              `${p.name} — Pharmacy`,
+              potential?.experimental_scripts_day_equivalent == null
+                ? null
+                : `Experimental estimate: ${Math.round(potential.experimental_scripts_day_equivalent).toLocaleString("en-AU")}/day`,
+              potential?.top_insight ?? null,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
             eventHandlers={{ click: () => onSelect(p.id) }}
           />
         ))}
