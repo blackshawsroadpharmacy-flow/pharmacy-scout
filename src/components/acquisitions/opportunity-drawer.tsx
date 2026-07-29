@@ -6,6 +6,7 @@ import { Download, ExternalLink, Map, Paperclip, Trash2, X } from "lucide-react"
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getCurrentOrganisationId } from "@/lib/pharmacy-profiles.public";
+import { IM_SIGNED_URL_TTL_SECONDS } from "@/lib/storage-constants";
 import {
   addOpportunityItem,
   deleteOpportunityDocument,
@@ -216,7 +217,9 @@ export function OpportunityDrawer({
   async function openDocument(doc: any) {
     const result = await supabase.storage
       .from("information-memorandums")
-      .createSignedUrl(doc.storage_path, 300, { download: doc.file_name });
+      .createSignedUrl(doc.storage_path, IM_SIGNED_URL_TTL_SECONDS, {
+        download: doc.file_name,
+      });
     if (result.error) return toast.error(result.error.message);
     window.open(result.data.signedUrl, "_blank", "noopener,noreferrer");
   }

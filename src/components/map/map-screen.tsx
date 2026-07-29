@@ -204,7 +204,7 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
   const all = useMemo(() => pharmacyResult?.items ?? [], [pharmacyResult]);
   const visiblePremisesIds = useMemo(() => all.map((point) => point.id), [all]);
   const pipelineQ = useQuery({
-    queryKey: ["private-pipeline-map-statuses", user?.id ?? null, visiblePremisesIds],
+    queryKey: ["private-pipeline-map-statuses", user?.id ?? null, pharmacyRequestKey],
     queryFn: () => fetchPharmacyPipelineStatuses(visiblePremisesIds),
     enabled: authed && visiblePremisesIds.length > 0,
     staleTime: 60 * 1000,
@@ -213,14 +213,12 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
     ? (pipelineQ.data ?? EMPTY_PIPELINE_STATUSES)
     : EMPTY_PIPELINE_STATUSES;
   const dispensingPotentialQ = useQuery({
-    queryKey: ["map-dispensing-potential", visiblePremisesIds],
+    queryKey: ["map-dispensing-potential", pharmacyRequestKey],
     queryFn: () => fetchMapDispensingPotentials(visiblePremisesIds),
-    enabled: layers.dispensingPotential && visiblePremisesIds.length > 0,
+    enabled: visiblePremisesIds.length > 0,
     staleTime: 5 * 60 * 1000,
   });
-  const dispensingPotentials = layers.dispensingPotential
-    ? (dispensingPotentialQ.data ?? EMPTY_DISPENSING_POTENTIALS)
-    : EMPTY_DISPENSING_POTENTIALS;
+  const dispensingPotentials = dispensingPotentialQ.data ?? EMPTY_DISPENSING_POTENTIALS;
 
   useEffect(() => {
     setSelectedId(selectedPremisesId);
@@ -403,7 +401,6 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
             premises={filtered}
             selectedId={selectedId}
             onSelect={openPremises}
-            savedIds={new Set()}
             flyTo={flyTo}
             externalPoints={externalPoints}
             selectedExternal={selectedExternal}
@@ -470,6 +467,7 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
         hasViewport={viewport != null}
         metrics={pharmacyResult?.metrics ?? null}
         onSelect={openPremises}
+        dispensingPotentials={dispensingPotentials}
       />
 
       <LayerMenu

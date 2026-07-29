@@ -14,6 +14,7 @@ import {
   savePharmacyNotes,
   upsertPharmacyProfile,
 } from "@/lib/pharmacy-profiles.public";
+import { IM_SIGNED_URL_TTL_SECONDS } from "@/lib/storage-constants";
 import {
   addPharmacyToPipeline,
   fetchPharmacyPipelineStatus,
@@ -942,7 +943,7 @@ function PrivateWorkspace({ authed, premisesId }: { authed: boolean; premisesId:
         .from("information-memorandums")
         .createSignedUrl(
           storagePath,
-          60 * 30,
+          IM_SIGNED_URL_TTL_SECONDS,
           inline ? { download: false } : { download: fileName },
         );
       if (error) throw error;

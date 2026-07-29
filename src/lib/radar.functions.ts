@@ -7,7 +7,7 @@ async function currentOrganisation(supabase: any, userId: string) {
     .from("profiles")
     .select("current_organisation_id")
     .eq("id", userId)
-    .single();
+    .maybeSingle();
   if (error || !data?.current_organisation_id) throw new Error("No organisation selected.");
   return data.current_organisation_id as string;
 }

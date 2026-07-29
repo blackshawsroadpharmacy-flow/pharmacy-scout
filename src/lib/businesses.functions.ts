@@ -64,31 +64,20 @@ export const createBusiness = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => createSchema.parse(input))
   .handler(async ({ data, context }) => {
-    const org = await requireCurrentOrg(context.supabase, context.userId);
-    const { data: biz, error } = await context.supabase
-      .from("pharmacy_businesses")
-      .insert({
-        organisation_id: org,
-        trading_name: data.trading_name,
-        broker_or_source: data.broker_or_source ?? null,
-        asking_price: data.asking_price ?? null,
-        listing_url: data.listing_url ?? null,
-        private_notes: data.private_notes ?? null,
-        created_by: context.userId,
-      })
-      .select("id")
-      .single();
+    await requireCurrentOrg(context.supabase, context.userId);
+    const { data: businessId, error } = await context.supabase.rpc(
+      "create_acquisition_business" as never,
+      {
+        p_trading_name: data.trading_name,
+        p_broker_or_source: data.broker_or_source ?? null,
+        p_asking_price: data.asking_price ?? null,
+        p_listing_url: data.listing_url ?? null,
+        p_private_notes: data.private_notes ?? null,
+        p_pipeline_stage: data.pipeline_stage,
+      } as never,
+    );
     if (error) throw new Error(error.message);
-    const { error: oppErr } = await context.supabase.from("opportunities").insert({
-      organisation_id: org,
-      type: "acquisition",
-      title: data.trading_name,
-      business_id: biz.id,
-      pipeline_stage: data.pipeline_stage,
-      created_by: context.userId,
-    });
-    if (oppErr) throw new Error(oppErr.message);
-    return { id: biz.id };
+    return { id: businessId as string };
   });
 
 export const moveOpportunity = createServerFn({ method: "POST" })
@@ -102,10 +91,12 @@ export const moveOpportunity = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
+    const org = await requireCurrentOrg(context.supabase, context.userId);
     const { error } = await context.supabase
       .from("opportunities")
       .update({ pipeline_stage: data.pipeline_stage })
-      .eq("id", data.opportunity_id);
+      .eq("id", data.opportunity_id)
+      .eq("organisation_id", org);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -121,10 +112,12 @@ export const updateBusinessNotes = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
+    const org = await requireCurrentOrg(context.supabase, context.userId);
     const { error } = await context.supabase
       .from("pharmacy_businesses")
       .update({ private_notes: data.private_notes })
-      .eq("id", data.business_id);
+      .eq("id", data.business_id)
+      .eq("organisation_id", org);
     if (error) throw new Error(error.message);
     return { ok: true };
   });

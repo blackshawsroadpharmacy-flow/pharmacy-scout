@@ -19,19 +19,36 @@ export interface MapDispensingPotential {
   pharmacy_id: string;
   victorian_percentile: number | null;
   evidence_confidence: string;
+  experimental_scripts_day_equivalent: number | null;
+  top_insight: string | null;
 }
 export async function fetchMapDispensingPotentials(pharmacyIds: string[]) {
   if (pharmacyIds.length === 0) return new Map<string, MapDispensingPotential>();
   const { data, error } = await supabase
     .from("pharmacy_dispensing_potential")
     .select(
-      "pharmacy_id,victorian_percentile,evidence_confidence,dispensing_potential_methods!inner(active)",
+      "pharmacy_id,victorian_percentile,evidence_confidence,experimental_scripts_day_equivalent,explanation,dispensing_potential_methods!inner(active)",
     )
     .in("pharmacy_id", pharmacyIds.slice(0, 500))
     .eq("dispensing_potential_methods.active", true);
   if (!error && data) {
     const active = data.filter((row: any) => row.dispensing_potential_methods?.active);
-    return new Map(active.map((row: MapDispensingPotential) => [row.pharmacy_id, row]));
+    return new Map(
+      active.map((row: any) => [
+        row.pharmacy_id,
+        {
+          pharmacy_id: row.pharmacy_id,
+          victorian_percentile: row.victorian_percentile,
+          evidence_confidence: row.evidence_confidence,
+          experimental_scripts_day_equivalent: row.experimental_scripts_day_equivalent,
+          top_insight:
+            Array.isArray(row.explanation?.positive_factors) &&
+            typeof row.explanation.positive_factors[0] === "string"
+              ? row.explanation.positive_factors[0]
+              : null,
+        },
+      ]),
+    );
   }
   if (error) throw new Error(error.message);
   return new Map();

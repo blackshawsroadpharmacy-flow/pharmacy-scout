@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { PremisesMapPoint, ViewportMetrics } from "@/lib/premises-public";
 import type { Mode } from "./top-bar";
+import type { MapDispensingPotential } from "@/lib/dispensing-potential";
 
 export interface Filters {
   missingData: boolean;
@@ -29,6 +30,7 @@ export function LeftPanel({
   hasViewport,
   metrics,
   onSelect,
+  dispensingPotentials,
 }: {
   open: boolean;
   onToggle: () => void;
@@ -46,6 +48,7 @@ export function LeftPanel({
   hasViewport: boolean;
   metrics: ViewportMetrics | null;
   onSelect: (id: string) => void;
+  dispensingPotentials: Map<string, MapDispensingPotential>;
 }) {
   return (
     <aside
@@ -89,6 +92,7 @@ export function LeftPanel({
               hasViewport={hasViewport}
               metrics={metrics}
               onSelect={onSelect}
+              dispensingPotentials={dispensingPotentials}
             />
           )}
           {mode === "acquisition" && (
@@ -130,6 +134,7 @@ function ExploreBody({
   hasViewport,
   metrics,
   onSelect,
+  dispensingPotentials,
 }: {
   filters: Filters;
   onFilters: (f: Filters) => void;
@@ -144,6 +149,7 @@ function ExploreBody({
   hasViewport: boolean;
   metrics: ViewportMetrics | null;
   onSelect: (id: string) => void;
+  dispensingPotentials: Map<string, MapDispensingPotential>;
 }) {
   const total = totalCount;
   const approximateRows = filtered.filter(
@@ -229,6 +235,20 @@ function ExploreBody({
                   {p.address}
                   {p.suburb ? `, ${p.suburb}` : ""}
                 </div>
+                {dispensingPotentials.get(p.id)?.experimental_scripts_day_equivalent != null && (
+                  <div className="mt-1 text-[11px] text-foreground">
+                    Experimental estimate:{" "}
+                    {Math.round(
+                      dispensingPotentials.get(p.id)!.experimental_scripts_day_equivalent!,
+                    ).toLocaleString("en-AU")}
+                    /day
+                  </div>
+                )}
+                {dispensingPotentials.get(p.id)?.top_insight && (
+                  <div className="mt-0.5 line-clamp-2 text-[10px] text-muted-foreground">
+                    {dispensingPotentials.get(p.id)!.top_insight}
+                  </div>
+                )}
               </button>
             </li>
           ))}

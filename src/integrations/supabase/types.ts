@@ -3551,6 +3551,17 @@ export type Database = {
         Args: { _location: unknown; _radius_m?: number }
         Returns: number
       }
+      create_acquisition_business: {
+        Args: {
+          p_asking_price?: number
+          p_broker_or_source?: string
+          p_listing_url?: string
+          p_pipeline_stage?: Database["public"]["Enums"]["pipeline_stage"]
+          p_private_notes?: string
+          p_trading_name: string
+        }
+        Returns: string
+      }
       create_organisation: {
         Args: { _name: string }
         Returns: {
@@ -4507,6 +4518,22 @@ export type Database = {
         Returns: unknown
       }
       statewide_location_search: {
+        Args: { p_limit?: number; p_query: string }
+        Returns: {
+          is_private: boolean
+          lat: number
+          lng: number
+          relevance: number
+          result_address: string
+          result_id: string
+          result_name: string
+          result_postcode: string
+          result_suburb: string
+          result_type: string
+          source_confidence: string
+        }[]
+      }
+      statewide_location_search_without_healthcare: {
         Args: { p_limit?: number; p_query: string }
         Returns: {
           is_private: boolean

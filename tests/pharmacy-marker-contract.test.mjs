@@ -30,7 +30,8 @@ test("pharmacy clusters use fixed-size red P swarms with mathematically centred 
   assert.match(mapSource, /pharmacy-cluster__p[^>]+aria-hidden="true">P/);
   assert.doesNotMatch(mapSource, /className: "marker-cluster-navy"/);
   assert.match(mapSource, /iconCreateFunction=\{clusterIcon\}/);
-  assert.match(mapSource, /title=\{`\$\{p\.name\} — Pharmacy`\}/);
+  assert.match(mapSource, /`\$\{p\.name\} — Pharmacy`/);
+  assert.match(mapSource, /Experimental estimate:/);
 
   assert.match(
     styles,

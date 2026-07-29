@@ -11,6 +11,10 @@ const map = readFileSync("src/components/map/map-screen.tsx", "utf8");
 const dossier = readFileSync("src/components/map/right-dossier.tsx", "utf8");
 const candidate = readFileSync("src/components/map/candidate-analysis-panel.tsx", "utf8");
 const search = readFileSync("src/lib/statewide-search.ts", "utf8");
+const followupMigration = readFileSync(
+  "supabase/migrations/20260730090000_audit_followup_search_and_atomic_acquisitions.sql",
+  "utf8",
+);
 
 test("WP22 imports authoritative aged-care anchors with complete provenance", () => {
   assert.match(migration, /Aged care service list: 30 June 2025/);
@@ -39,7 +43,8 @@ test("distances, counts and published places are server-side at required radii",
 
 test("WP22 integrates map, search, dossier, candidate, scenarios and GDP evidence", () => {
   assert.match(map, /fetchHealthcareAnchors/);
-  assert.match(search, /healthcare_anchors/);
+  assert.match(search, /statewide_location_search/);
+  assert.match(followupMigration, /FROM public\.healthcare_anchors/);
   assert.match(dossier, /Healthcare-demand anchors/);
   assert.match(candidate, /Healthcare-demand anchors/);
   assert.match(migration, /'healthcare_demand'/);

@@ -6,6 +6,7 @@ import test from "node:test";
 const root = process.cwd();
 const dossier = fs.readFileSync(path.join(root, "src/components/map/right-dossier.tsx"), "utf8");
 const profiles = fs.readFileSync(path.join(root, "src/lib/pharmacy-profiles.public.ts"), "utf8");
+const storageConstants = fs.readFileSync(path.join(root, "src/lib/storage-constants.ts"), "utf8");
 const migration = fs.readFileSync(
   path.join(root, "supabase/migrations/20260728173000_harden_commercial_security.sql"),
   "utf8",
@@ -21,7 +22,8 @@ test("attachments use organisation paths, bounded file validation and signed URL
   assert.match(dossier, /`\$\{organisationId\}\/\$\{premisesId\}\//);
   assert.match(dossier, /validateCommercialFile\(file\)/);
   assert.match(dossier, /\.createSignedUrl\(/);
-  assert.match(dossier, /60 \* 30/);
+  assert.match(dossier, /IM_SIGNED_URL_TTL_SECONDS/);
+  assert.match(storageConstants, /30 \* 60/);
   assert.doesNotMatch(dossier, /getPublicUrl/);
   assert.match(migration, /file_size_limit = 26214400/);
   assert.match(migration, /allowed_mime_types/);
