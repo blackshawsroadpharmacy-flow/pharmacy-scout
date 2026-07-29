@@ -62,14 +62,20 @@ Merge and review in this order:
    Depends on the already-merged but unapplied `20260730100000` migration.
 2. PR #34 — staged audit, matching, raw-row ledger, and atomic promotion  
    <https://github.com/blackshawsroadpharmacy-flow/pharmacy-scout/pull/34>  
+   Reviewed implementation head: `172753259e07`  
    Migrations: `20260730120000` then `20260730121000`.
 3. PR #35 — lifecycle and geocode evidence  
    <https://github.com/blackshawsroadpharmacy-flow/pharmacy-scout/pull/35>  
+   Reviewed implementation head: `9dd7f674cca7`  
    Migration: `20260730130000`.
 4. PR #36 — dossier, published-licensee entities, and bounded registry search  
    <https://github.com/blackshawsroadpharmacy-flow/pharmacy-scout/pull/36>  
+   Reviewed implementation head: `aa9d84ed3e87`  
    Migration: `20260730140000`.
 5. PR #37 — baseline-aware change events, private alerts, and GDP review evidence  
+   <https://github.com/blackshawsroadpharmacy-flow/pharmacy-scout/pull/37>  
+   Reviewed implementation head before this handoff-only documentation amendment:
+   `cc19f256920f`  
    Migration: `20260730150000`.
 
 Each PR is stacked on the preceding branch. RLS, `SECURITY DEFINER`, admin writes,
