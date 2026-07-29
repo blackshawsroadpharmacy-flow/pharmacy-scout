@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { DisclaimerFooter } from "./disclaimer-footer";
+import { UpdatePharmacyButton } from "./UpdatePharmacyButton";
 
 const NAV = [
   { to: "/app", label: "Opportunity Map", icon: Map, exact: true },
@@ -79,6 +80,7 @@ export function AppShell({
               );
             })}
           </nav>
+          <UpdatePharmacyButton />
         </div>
         <div className="border-t border-sidebar-border px-3 py-3">
           {currentOrgName ? (
