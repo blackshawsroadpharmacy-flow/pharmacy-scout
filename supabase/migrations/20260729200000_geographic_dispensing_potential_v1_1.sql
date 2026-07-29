@@ -205,4 +205,10 @@ JOIN public.dispensing_potential_methods old_method ON old_method.id=old.method_
 WHERE new_method.version='gdp-v1.1.0' AND old_method.version='gdp-v1.0.0';
 GRANT SELECT ON public.dispensing_potential_model_comparison TO anon,authenticated;
 
-SELECT public.refresh_dispensing_potential_v1_1();
+DO $$
+BEGIN
+  PERFORM public.refresh_dispensing_potential_v1_1();
+EXCEPTION WHEN OTHERS THEN
+  RAISE EXCEPTION 'GDP v1.1 refresh failed: %', SQLERRM;
+END;
+$$;
