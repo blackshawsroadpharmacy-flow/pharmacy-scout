@@ -1,7 +1,12 @@
 # Update Pharmacy
 
-Authenticated administrators can refresh the Victorian Pharmacy Authority (VPA) public register
-from the **Update Pharmacy** control in the application shell.
+> **Maintenance containment:** the refresh is disabled server-side unless
+> `VPA_REFRESH_ENABLED=true` is explicitly configured in the server runtime. The administrator
+> control remains visible but disabled while staging, matching and transactional promotion are
+> under review.
+
+Authenticated administrators will eventually refresh the Victorian Pharmacy Authority (VPA)
+public register from the **Update Pharmacy** control in the application shell.
 
 ## Data flow
 
@@ -10,15 +15,21 @@ from the **Update Pharmacy** control in the application shell.
 runs query the VPA register server-side by Victorian postcode and stream progress to the browser as
 server-sent events in the POST response. The browser never calls the VPA endpoint directly.
 
-The refresh preserves local fields such as phone, website, coordinates, profiles and notes. It
-matches premises with a SHA-1 natural key derived from canonicalised name, street, suburb and
-postcode. Premises absent from a later register are marked `unverified`; they are never hard
-deleted.
+The containment layer rejects incomplete postcode coverage, capped responses, reported
+fetch/parsing errors, materially undersized snapshots and duplicate source keys before canonical
+data changes. Missing source rows and licensees are soft-marked as no longer observed; they are
+never hard deleted. Full staged and transactional promotion is planned separately.
 
 ## Schema
 
-- `pharmacy_premises.vpa_record_key` is the stable VPA natural key.
-- `pharmacy_premises.proprietor_names` is the current denormalised proprietor list.
+- `pharmacy_premises.vpa_record_key` is a stable VPA source identity, not the sole canonical
+  matching method.
+- `pharmacy_premises.published_licensee_names` contains exact VPA-published registered licensee
+  names. It does not establish beneficial ownership, proprietorship or control.
+- `pharmacy_premises.proprietor_names` is deprecated compatibility data and must not be used by
+  new code.
+- Raw and normalised registration status, registration date, premises conditions, match state,
+  observation dates and the successful source run are stored separately.
 - `pharmacy_premises.vpa_last_synced_at` records register reconciliation time.
 - `pharmacy_premises_licensees` retains current licensee details and VPA provenance.
 - `pharmacy_vpa_runs` records each admin-triggered run and its summary.
@@ -36,5 +47,6 @@ npm run refresh:vpa:from-cache -- data/source/.vpa-cache/<run>
 node --test tests/vpa-register-parse.test.mjs
 ```
 
-The live scraper writes CSV and JSON outputs under `data/source/` by default. Review postcode
-errors and any 50-record cap warnings before treating a run as complete.
+The live scraper writes CSV and JSON outputs under `data/source/` by default. Parser output is not
+permission to promote canonical data. Any postcode error, result-cap warning, incomplete coverage,
+invalid snapshot or duplicate source identity causes the server refresh to fail closed.

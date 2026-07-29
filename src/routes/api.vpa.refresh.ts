@@ -3,13 +3,19 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import seedSnapshot from "../../data/source/vpa-register-2026-07-29-live.records.json";
 import { fetchLiveVpaRegister } from "@/lib/vpa-live-fetch.server";
-import { authorizeVpaAdmin, runVpaRefresh } from "@/lib/vpa-refresh.server";
+import {
+  authorizeVpaAdmin,
+  runVpaRefresh,
+  vpaRefreshDisabledResponse,
+} from "@/lib/vpa-refresh.server";
 import { recordsToVpaCsv, type VpaRecord } from "@/lib/vpa-refresh";
 
 export const Route = createFileRoute("/api/vpa/refresh")({
   server: {
     handlers: {
       POST: async ({ request }: { request: Request }) => {
+        const disabled = vpaRefreshDisabledResponse();
+        if (disabled) return disabled;
         const auth = await authenticateAdminRequest(request);
         if (auth instanceof Response) return auth;
 

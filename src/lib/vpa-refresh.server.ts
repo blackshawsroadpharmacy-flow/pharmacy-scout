@@ -1,6 +1,7 @@
 import {
   prepareVpaRefresh,
   staleVpaPremises,
+  validateVpaRefreshCoverage,
   type ExistingPremises,
   type VpaRecord,
 } from "./vpa-refresh";
@@ -19,6 +20,22 @@ export type VpaRefreshSummary = {
   postcodes_queried: number;
   errors: string[];
 };
+
+export function isVpaRefreshEnabled(environment: NodeJS.ProcessEnv = process.env): boolean {
+  return environment.VPA_REFRESH_ENABLED === "true";
+}
+
+export function vpaRefreshDisabledResponse(
+  environment: NodeJS.ProcessEnv = process.env,
+): Response | null {
+  if (isVpaRefreshEnabled(environment)) return null;
+  return Response.json(
+    {
+      error: "VPA refresh is temporarily disabled pending registration data-quality review.",
+    },
+    { status: 503 },
+  );
+}
 
 export async function authorizeVpaAdmin(
   supabase: SupabaseClient<Database>,
@@ -51,7 +68,7 @@ export async function runVpaRefresh(input: {
 
   const { data: source, error: sourceError } = await supabase
     .from("source_records")
-    .select("id")
+    .select("id,row_count")
     .eq("source_key", "vpa_public_register")
     .single();
   if (sourceError || !source) throw new Error(sourceError?.message ?? "VPA source is missing");
@@ -64,6 +81,17 @@ export async function runVpaRefresh(input: {
   if (runError || !run) throw new Error(runError?.message ?? "Could not create VPA run");
 
   try {
+    const coverageFailures = validateVpaRefreshCoverage({
+      records: input.records,
+      postcodesQueried: input.postcodesQueried,
+      capWarnings: input.capWarnings,
+      errors: input.errors,
+      baselineCount: source.row_count,
+    });
+    if (coverageFailures.length) {
+      throw new Error(`VPA refresh coverage validation failed: ${coverageFailures.join(" ")}`);
+    }
+
     const { data: existingData, error: existingError } = await supabase
       .from("pharmacy_premises")
       .select("id,name,address,suburb,postcode,vpa_record_key");
@@ -71,6 +99,12 @@ export async function runVpaRefresh(input: {
     const existing = (existingData ?? []) as unknown as ExistingPremises[];
     const prepared = prepareVpaRefresh(input.records, existing, source.id, syncedAt);
     const stale = staleVpaPremises(existing, prepared.currentKeys);
+    for (const premises of prepared.premises) {
+      premises.vpa_last_successful_run_id = run.id;
+    }
+    for (const licensee of prepared.licensees) {
+      licensee.source_run_id = run.id;
+    }
 
     input.emit({ phase: "upserting", premises_added: 0, premises_updated: 0 });
     for (let offset = 0; offset < prepared.premises.length; offset += 200) {
@@ -92,9 +126,7 @@ export async function runVpaRefresh(input: {
         const { error } = await supabase
           .from("pharmacy_premises")
           .update({
-            vpa_registration_status: "unverified",
-            vpa_registration_checked_at: syncedAt,
-            vpa_last_synced_at: syncedAt,
+            vpa_currently_observed: false,
           })
           .in("id", ids);
         if (error) throw new Error(error.message);
@@ -103,7 +135,7 @@ export async function runVpaRefresh(input: {
 
     const { error: clearError } = await supabase
       .from("pharmacy_premises_licensees")
-      .delete()
+      .update({ currently_observed: false })
       .eq("vpa_source_id", source.id);
     if (clearError) throw new Error(clearError.message);
 

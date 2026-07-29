@@ -1,11 +1,65 @@
 BEGIN;
-SELECT plan(11);
+SELECT plan(20);
 
 SELECT has_column(
   'public',
   'pharmacy_premises',
   'vpa_record_key',
   'pharmacy premises has a stable VPA record key'
+);
+SELECT has_column(
+  'public',
+  'pharmacy_premises',
+  'published_licensee_names',
+  'VPA-published names use neutral registered-licensee terminology'
+);
+SELECT has_column(
+  'public',
+  'pharmacy_premises',
+  'vpa_registration_status_raw',
+  'raw VPA registration status is preserved'
+);
+SELECT has_column(
+  'public',
+  'pharmacy_premises',
+  'vpa_registration_status_normalised',
+  'normalised VPA registration status is stored separately'
+);
+SELECT has_column(
+  'public',
+  'pharmacy_premises',
+  'vpa_registered_until',
+  'published registration date is preserved'
+);
+SELECT has_column(
+  'public',
+  'pharmacy_premises',
+  'vpa_premises_conditions_raw',
+  'raw premises conditions are preserved'
+);
+SELECT has_column(
+  'public',
+  'pharmacy_premises',
+  'vpa_currently_observed',
+  'source observation state is separate from registration status'
+);
+SELECT has_column(
+  'public',
+  'pharmacy_premises_licensees',
+  'currently_observed',
+  'licensee observation state is reversible'
+);
+SELECT has_column(
+  'public',
+  'pharmacy_premises_licensees',
+  'first_observed_at',
+  'licensee first observation is retained'
+);
+SELECT col_is_fk(
+  'public',
+  'pharmacy_premises',
+  'vpa_last_successful_run_id',
+  'canonical VPA state identifies its successful source run'
 );
 SELECT has_column(
   'public',

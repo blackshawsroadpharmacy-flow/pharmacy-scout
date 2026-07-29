@@ -1,11 +1,17 @@
 import { describe, expect, it } from "vitest";
 import snapshot from "../data/source/vpa-register-2026-07-29-live.records.json";
-import { authorizeVpaAdmin } from "../src/lib/vpa-refresh.server";
+import {
+  authorizeVpaAdmin,
+  isVpaRefreshEnabled,
+  vpaRefreshDisabledResponse,
+} from "../src/lib/vpa-refresh.server";
 import { authenticateAdminRequest } from "../src/routes/api.vpa.refresh";
 import {
   canonicalPremisesKey,
+  normaliseVpaRegistrationStatus,
   prepareVpaRefresh,
   staleVpaPremises,
+  validateVpaRefreshCoverage,
   type ExistingPremises,
   type VpaRecord,
 } from "../src/lib/vpa-refresh";
@@ -79,9 +85,79 @@ describe("VPA refresh planner", () => {
     expect(second.premisesUpdated).toBe(1606);
     expect(second.premises.map((row) => row.id)).toEqual(prepared.premises.map((row) => row.id));
   });
+
+  it("keeps source registration status separate from source verification", () => {
+    const records = snapshot.records as VpaRecord[];
+    const prepared = prepareVpaRefresh(
+      records,
+      [],
+      "10000000-0000-4000-8000-000000000001",
+      "2026-07-29T13:34:38.613Z",
+    );
+    const closed = prepared.premises.find(
+      (row) => row.vpa_registration_status_normalised === "closed",
+    );
+    expect(closed?.vpa_registration_status_raw).toBe("Closed");
+    expect(closed?.vpa_source_verification_status).toBe("authoritative_source");
+    expect(closed).not.toHaveProperty("vpa_registration_status", "verified");
+    expect(prepared.premises[0]).toHaveProperty("published_licensee_names");
+    expect(prepared.premises[0]).not.toHaveProperty("proprietor_names");
+  });
+
+  it.each([
+    ["Active", "active"],
+    ["Closed", "closed"],
+    ["Suspended", "suspended"],
+    ["Unexpected source value", "review_required"],
+    [undefined, "unknown"],
+  ])("normalises only explicit registration states: %s", (raw, expected) => {
+    expect(normaliseVpaRegistrationStatus(raw)).toBe(expected);
+  });
+
+  it("rejects incomplete, capped, errored, undersized and duplicate snapshots", () => {
+    const records = (snapshot.records as VpaRecord[]).slice(0, 100);
+    const duplicate = [...records, records[0]];
+    const failures = validateVpaRefreshCoverage({
+      records: duplicate,
+      postcodesQueried: 999,
+      capWarnings: 1,
+      errors: ["postcode 3999 failed"],
+      baselineCount: 1606,
+    });
+    expect(failures).toHaveLength(5);
+    expect(failures.join(" ")).toContain("Expected 1000");
+    expect(failures.join(" ")).toContain("result cap");
+    expect(failures.join(" ")).toContain("errors");
+    expect(failures.join(" ")).toContain("safe minimum");
+    expect(failures.join(" ")).toContain("duplicate VPA source keys");
+  });
+
+  it("accepts the complete supplied baseline", () => {
+    expect(
+      validateVpaRefreshCoverage({
+        records: snapshot.records as VpaRecord[],
+        postcodesQueried: 1000,
+        capWarnings: 0,
+        errors: [],
+        baselineCount: null,
+      }),
+    ).toEqual([]);
+  });
 });
 
 describe("VPA admin gate", () => {
+  it("fails closed unless the server-only enable flag is exactly true", async () => {
+    expect(isVpaRefreshEnabled({})).toBe(false);
+    expect(isVpaRefreshEnabled({ VPA_REFRESH_ENABLED: "false" })).toBe(false);
+    expect(isVpaRefreshEnabled({ VPA_REFRESH_ENABLED: "true" })).toBe(true);
+    const response = vpaRefreshDisabledResponse({});
+    expect(response?.status).toBe(503);
+    await expect(response?.json()).resolves.toMatchObject({
+      error: expect.stringContaining("temporarily disabled"),
+    });
+    expect(vpaRefreshDisabledResponse({ VPA_REFRESH_ENABLED: "true" })).toBeNull();
+  });
+
   it("rejects a refresh request without an authenticated session", async () => {
     const response = await authenticateAdminRequest(
       new Request("https://example.test/api/vpa/refresh", { method: "POST" }),

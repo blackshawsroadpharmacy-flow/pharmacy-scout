@@ -2348,15 +2348,31 @@ export type Database = {
           premises_source: Database["public"]["Enums"]["premises_source_type"]
           proprietor_names: string[] | null
           public_door_location: unknown
+          published_licensee_names: string[] | null
           source_confidence: string | null
           source_id: string | null
           suburb: string | null
           updated_at: string
+          vpa_currently_observed: boolean
+          vpa_first_observed_at: string | null
+          vpa_last_observed_at: string | null
+          vpa_last_successful_run_id: string | null
           vpa_last_synced_at: string | null
+          vpa_match_confidence: number | null
+          vpa_match_method: string | null
+          vpa_match_status: string
+          vpa_premises_conditions_raw: string | null
           vpa_record_key: string | null
+          vpa_registered_until: string | null
           vpa_registration_checked_at: string | null
           vpa_registration_status: Database["public"]["Enums"]["verification_status"]
+          vpa_registration_status_normalised: string
+          vpa_registration_status_raw: string | null
+          vpa_review_status: string
+          vpa_snapshot_reference_date: string | null
           vpa_source_id: string | null
+          vpa_source_row_fingerprint: string | null
+          vpa_source_verification_status: string
           website: string | null
         }
         Insert: {
@@ -2377,15 +2393,31 @@ export type Database = {
           premises_source: Database["public"]["Enums"]["premises_source_type"]
           proprietor_names?: string[] | null
           public_door_location?: unknown
+          published_licensee_names?: string[] | null
           source_confidence?: string | null
           source_id?: string | null
           suburb?: string | null
           updated_at?: string
+          vpa_currently_observed?: boolean
+          vpa_first_observed_at?: string | null
+          vpa_last_observed_at?: string | null
+          vpa_last_successful_run_id?: string | null
           vpa_last_synced_at?: string | null
+          vpa_match_confidence?: number | null
+          vpa_match_method?: string | null
+          vpa_match_status?: string
+          vpa_premises_conditions_raw?: string | null
           vpa_record_key?: string | null
+          vpa_registered_until?: string | null
           vpa_registration_checked_at?: string | null
           vpa_registration_status?: Database["public"]["Enums"]["verification_status"]
+          vpa_registration_status_normalised?: string
+          vpa_registration_status_raw?: string | null
+          vpa_review_status?: string
+          vpa_snapshot_reference_date?: string | null
           vpa_source_id?: string | null
+          vpa_source_row_fingerprint?: string | null
+          vpa_source_verification_status?: string
           website?: string | null
         }
         Update: {
@@ -2406,15 +2438,31 @@ export type Database = {
           premises_source?: Database["public"]["Enums"]["premises_source_type"]
           proprietor_names?: string[] | null
           public_door_location?: unknown
+          published_licensee_names?: string[] | null
           source_confidence?: string | null
           source_id?: string | null
           suburb?: string | null
           updated_at?: string
+          vpa_currently_observed?: boolean
+          vpa_first_observed_at?: string | null
+          vpa_last_observed_at?: string | null
+          vpa_last_successful_run_id?: string | null
           vpa_last_synced_at?: string | null
+          vpa_match_confidence?: number | null
+          vpa_match_method?: string | null
+          vpa_match_status?: string
+          vpa_premises_conditions_raw?: string | null
           vpa_record_key?: string | null
+          vpa_registered_until?: string | null
           vpa_registration_checked_at?: string | null
           vpa_registration_status?: Database["public"]["Enums"]["verification_status"]
+          vpa_registration_status_normalised?: string
+          vpa_registration_status_raw?: string | null
+          vpa_review_status?: string
+          vpa_snapshot_reference_date?: string | null
           vpa_source_id?: string | null
+          vpa_source_row_fingerprint?: string | null
+          vpa_source_verification_status?: string
           website?: string | null
         }
         Relationships: [
@@ -2423,6 +2471,13 @@ export type Database = {
             columns: ["source_id"]
             isOneToOne: false
             referencedRelation: "source_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_premises_vpa_last_successful_run_fkey"
+            columns: ["vpa_last_successful_run_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_vpa_runs"
             referencedColumns: ["id"]
           },
           {
@@ -2437,13 +2492,18 @@ export type Database = {
       pharmacy_premises_licensees: {
         Row: {
           conditions: string | null
+          currently_observed: boolean
+          first_observed_at: string | null
           id: string
           last_seen_at: string
           license_status: string | null
           licensed_until: string | null
           licensee_name: string
           premises_id: string
+          review_status: string
           source_id: string | null
+          source_row_fingerprint: string | null
+          source_run_id: string | null
           vpa_postcode: string | null
           vpa_premises_name: string
           vpa_record_key: string
@@ -2453,13 +2513,18 @@ export type Database = {
         }
         Insert: {
           conditions?: string | null
+          currently_observed?: boolean
+          first_observed_at?: string | null
           id?: string
           last_seen_at?: string
           license_status?: string | null
           licensed_until?: string | null
           licensee_name: string
           premises_id: string
+          review_status?: string
           source_id?: string | null
+          source_row_fingerprint?: string | null
+          source_run_id?: string | null
           vpa_postcode?: string | null
           vpa_premises_name: string
           vpa_record_key: string
@@ -2469,13 +2534,18 @@ export type Database = {
         }
         Update: {
           conditions?: string | null
+          currently_observed?: boolean
+          first_observed_at?: string | null
           id?: string
           last_seen_at?: string
           license_status?: string | null
           licensed_until?: string | null
           licensee_name?: string
           premises_id?: string
+          review_status?: string
           source_id?: string | null
+          source_row_fingerprint?: string | null
+          source_run_id?: string | null
           vpa_postcode?: string | null
           vpa_premises_name?: string
           vpa_record_key?: string
@@ -2503,6 +2573,13 @@ export type Database = {
             columns: ["source_id"]
             isOneToOne: false
             referencedRelation: "source_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_premises_licensees_source_run_id_fkey"
+            columns: ["source_run_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_vpa_runs"
             referencedColumns: ["id"]
           },
           {

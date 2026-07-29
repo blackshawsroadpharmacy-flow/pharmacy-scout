@@ -39,6 +39,56 @@ export type PreparedVpaRefresh = {
   premisesUpdated: number;
 };
 
+export type VpaRegistrationStatus =
+  "active" | "closed" | "inactive" | "suspended" | "cancelled" | "unknown" | "review_required";
+
+export type VpaCoverageInput = {
+  records: VpaRecord[];
+  postcodesQueried: number;
+  capWarnings: number;
+  errors: string[];
+  baselineCount?: number | null;
+};
+
+export function normaliseVpaRegistrationStatus(raw?: string): VpaRegistrationStatus {
+  const status = raw?.trim().toLowerCase();
+  if (!status) return "unknown";
+  if (status === "active") return "active";
+  if (status === "closed") return "closed";
+  if (status === "inactive") return "inactive";
+  if (status === "suspended") return "suspended";
+  if (status === "cancelled" || status === "canceled") return "cancelled";
+  return "review_required";
+}
+
+export function validateVpaRefreshCoverage(input: VpaCoverageInput): string[] {
+  const reasons: string[] = [];
+  if (input.postcodesQueried !== 1000) {
+    reasons.push(`Expected 1000 postcode requests; completed ${input.postcodesQueried}.`);
+  }
+  if (input.capWarnings > 0) {
+    reasons.push(`${input.capWarnings} postcode responses reached the source result cap.`);
+  }
+  if (input.errors.length > 0) {
+    reasons.push(`${input.errors.length} postcode or parsing errors were reported.`);
+  }
+  const minimumCount = Math.max(
+    1400,
+    input.baselineCount ? Math.floor(input.baselineCount * 0.9) : 0,
+  );
+  if (input.records.length < minimumCount) {
+    reasons.push(
+      `Premises count ${input.records.length} is below the safe minimum ${minimumCount}.`,
+    );
+  }
+  const keys = input.records.map(recordKey);
+  const duplicateCount = keys.length - new Set(keys).size;
+  if (duplicateCount > 0) {
+    reasons.push(`${duplicateCount} duplicate VPA source keys were detected.`);
+  }
+  return reasons;
+}
+
 export function canonicalPremisesKey(input: {
   name: string;
   street: string;
@@ -81,9 +131,12 @@ export function prepareVpaRefresh(
     const key = recordKey(record);
     const prior = existingByKey.get(key);
     const premisesId = prior?.id ?? crypto.randomUUID();
-    const proprietorNames = (record.licensees ?? [])
+    const publishedLicenseeNames = (record.licensees ?? [])
       .map((licensee) => licensee.name.trim())
       .filter(Boolean);
+    const rawStatus = record.registration_status?.trim() || null;
+    const normalisedStatus = normaliseVpaRegistrationStatus(record.registration_status);
+    const conditions = joinConditions(record.conditions);
 
     currentKeys.push(key);
     if (prior) premisesUpdated += 1;
@@ -96,8 +149,17 @@ export function prepareVpaRefresh(
       suburb: address.suburb || null,
       postcode: address.postcode || null,
       vpa_record_key: key,
-      proprietor_names: proprietorNames.length ? proprietorNames : null,
-      vpa_registration_status: "verified",
+      published_licensee_names: publishedLicenseeNames.length ? publishedLicenseeNames : null,
+      vpa_match_status: prior ? "exact_match" : "unmatched_new_premises",
+      vpa_source_verification_status: "authoritative_source",
+      vpa_registration_status_raw: rawStatus,
+      vpa_registration_status_normalised: normalisedStatus,
+      vpa_registered_until: toIsoDate(record.registered_until),
+      vpa_premises_conditions_raw: conditions,
+      vpa_first_observed_at: syncedAt,
+      vpa_last_observed_at: syncedAt,
+      vpa_snapshot_reference_date: syncedAt.slice(0, 10),
+      vpa_currently_observed: true,
       vpa_registration_checked_at: syncedAt,
       vpa_source_id: sourceId,
       premises_source: "vpa_register",
@@ -124,6 +186,9 @@ export function prepareVpaRefresh(
         vpa_suburb: address.suburb || null,
         vpa_postcode: address.postcode || null,
         last_seen_at: syncedAt,
+        first_observed_at: syncedAt,
+        currently_observed: true,
+        review_status: "unreviewed",
       });
     }
   }
