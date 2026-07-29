@@ -1,17 +1,23 @@
 BEGIN;
 SELECT plan(13);
 
-SELECT has_column('public', 'pharmacy_premises', 'vpa_closed_first_observed_at');
-SELECT has_column('public', 'pharmacy_premises', 'vpa_reopened_last_observed_at');
-SELECT has_column('public', 'pharmacy_premises', 'vpa_geocode_status');
-SELECT has_column('public', 'pharmacy_premises', 'vpa_pbs_match_state');
-SELECT has_table('public', 'pharmacy_vpa_geocode_results');
+SELECT has_column('public', 'pharmacy_premises', 'vpa_closed_first_observed_at',
+  'closed-state observation timestamp exists');
+SELECT has_column('public', 'pharmacy_premises', 'vpa_reopened_last_observed_at',
+  'reopening observation timestamp exists');
+SELECT has_column('public', 'pharmacy_premises', 'vpa_geocode_status',
+  'explicit geocode state exists');
+SELECT has_column('public', 'pharmacy_premises', 'vpa_pbs_match_state',
+  'VPA and PBS identity states are separate');
+SELECT has_table('public', 'pharmacy_vpa_geocode_results',
+  'geocode evidence is retained');
 SELECT policies_are(
   'public', 'pharmacy_vpa_geocode_results',
   ARRAY['pharmacy_vpa_geocode_results_admin'],
   'geocode evidence is restricted to administrators'
 );
-SELECT has_view('public', 'pharmacy_premises_vpa_lifecycle');
+SELECT has_view('public', 'pharmacy_premises_vpa_lifecycle',
+  'active and historical lifecycle view exists');
 SELECT view_owner_is('public', 'pharmacy_premises_vpa_lifecycle', CURRENT_USER);
 SELECT function_lang_is(
   'public', 'pharmacy_points_in_viewport',
