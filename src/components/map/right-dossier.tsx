@@ -27,6 +27,7 @@ import {
   potentialBand,
   saveCalibrationObservation,
 } from "@/lib/dispensing-potential";
+import { fetchPharmacyDemographics } from "@/lib/demographic-intelligence";
 
 const STATUS_OPTIONS: Array<{ value: PharmacyStatus; label: string }> = [
   { value: "active", label: "Active" },
@@ -189,6 +190,7 @@ export function RightDossier({
               </div>
             </section>
             <DispensingPotentialSection premisesId={premisesId} authed={authed} />
+            <OfficialDemographicsSection premisesId={premisesId} />
 
             <PrivateWorkspace authed={authed} premisesId={premisesId} />
           </>
@@ -211,6 +213,52 @@ export function RightDossier({
         </div>
       </div>
     </aside>
+  );
+}
+
+function OfficialDemographicsSection({ premisesId }: { premisesId: string }) {
+  const query = useQuery({
+    queryKey: ["pharmacy-official-demographics", premisesId],
+    queryFn: () => fetchPharmacyDemographics(premisesId),
+    staleTime: 24 * 60 * 60 * 1000,
+  });
+  const data = query.data;
+  const display = (value: number | null | undefined, suffix = "") =>
+    value == null ? "Unavailable" : `${Number(value).toLocaleString("en-AU")}${suffix}`;
+  return (
+    <section className="mt-4">
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Official demographic context
+      </h3>
+      {query.isLoading ? (
+        <p className="mt-2 text-xs text-muted-foreground">Loading ABS area evidence…</p>
+      ) : data?.coverage_status !== "unavailable" ? (
+        <div className="mt-2 rounded-md border border-border p-3 text-xs">
+          <div className="font-medium">
+            {data?.sa2_name_2021 ?? "Matched Statistical Area Level 2"}
+          </div>
+          <div className="mt-2 grid grid-cols-2 gap-1.5 text-muted-foreground">
+            <div>Census population: {display(data?.census_total_population)}</div>
+            <div>Age 65+: {display(data?.age_65_plus_percent, "%")}</div>
+            <div>Age 75+: {display(data?.age_75_plus_percent, "%")}</div>
+            <div>Under five: {display(data?.under_five_percent, "%")}</div>
+            <div>Need assistance: {display(data?.need_assistance_percent, "%")}</div>
+            <div>No vehicle: {display(data?.no_vehicle_dwellings_percent, "%")}</div>
+            <div>SEIFA IRSD percentile: {display(data?.seifa_irsd_state_percentile)}</div>
+            <div>Coverage: {data?.coverage_status ?? "unavailable"}</div>
+          </div>
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            ABS 2021 SA2 average assigned by point-in-polygon. Census population is not ERP and this
+            is not a precise pharmacy catchment estimate. Missing and suppressed values remain
+            unavailable, never zero.
+          </p>
+        </div>
+      ) : (
+        <p className="mt-2 text-xs text-muted-foreground">
+          No official demographic coverage is available for this coordinate.
+        </p>
+      )}
+    </section>
   );
 }
 

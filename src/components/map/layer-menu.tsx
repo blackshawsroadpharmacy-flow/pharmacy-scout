@@ -7,6 +7,11 @@ export interface LayerState {
   populationDensity: boolean;
   populationGrowth: boolean;
   dispensingPotential: boolean;
+  age65: boolean;
+  age75: boolean;
+  needAssistance: boolean;
+  seifaDisadvantage: boolean;
+  noVehicle: boolean;
 }
 
 export const DEFAULT_LAYERS: LayerState = {
@@ -16,6 +21,11 @@ export const DEFAULT_LAYERS: LayerState = {
   populationDensity: false,
   populationGrowth: false,
   dispensingPotential: false,
+  age65: false,
+  age75: false,
+  needAssistance: false,
+  seifaDisadvantage: false,
+  noVehicle: false,
 };
 
 export const ACTIVE_LAYERS: Array<{
@@ -49,12 +59,28 @@ export const ACTIVE_LAYERS: Array<{
     label: "Geographic Dispensing Potential",
     dataSource: "Server-side model gdp-v1.0.0",
   },
+  { key: "age65", label: "Residents aged 65+ (ABS 2021)", dataSource: "ABS Census 2021 GCP" },
+  { key: "age75", label: "Residents aged 75+ (ABS 2021)", dataSource: "ABS Census 2021 GCP" },
+  {
+    key: "needAssistance",
+    label: "Core activity need for assistance",
+    dataSource: "ABS Census 2021 GCP",
+  },
+  {
+    key: "seifaDisadvantage",
+    label: "SEIFA disadvantage percentile",
+    dataSource: "ABS SEIFA 2021",
+  },
+  {
+    key: "noVehicle",
+    label: "Dwellings with no motor vehicle",
+    dataSource: "ABS Census 2021 GCP",
+  },
 ];
 
 const PLACEHOLDERS = [
   "Hospitals",
   "Shopping centres",
-  "Residents aged 65+",
   "Parking",
   "Planning & development activity",
 ];

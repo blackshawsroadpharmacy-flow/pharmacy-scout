@@ -27,6 +27,11 @@ test("every visible layer toggle declares a data source and changes rendered dat
       "populationDensity",
       "populationGrowth",
       "dispensingPotential",
+      "age65",
+      "age75",
+      "needAssistance",
+      "seifaDisadvantage",
+      "noVehicle",
     ],
   );
   for (const entry of entries) {
