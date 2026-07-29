@@ -1,8 +1,10 @@
 BEGIN;
-SELECT plan(26);
+SELECT plan(28);
 
 SELECT has_table('public', 'pharmacy_vpa_staged_premises', 'run-scoped premises staging exists');
 SELECT has_table('public', 'pharmacy_vpa_staged_licensees', 'run-scoped licensee staging exists');
+SELECT has_table('public', 'pharmacy_vpa_raw_source_rows',
+  'every source row has an immutable run-scoped ledger');
 SELECT has_table('public', 'pharmacy_vpa_match_candidates', 'ranked match candidates exist');
 SELECT has_table('public', 'pharmacy_vpa_review_queue', 'ambiguous matches have a review queue');
 SELECT has_table('public', 'pharmacy_vpa_quarantine', 'invalid source rows can be quarantined');
@@ -23,6 +25,11 @@ SELECT policies_are(
   'public', 'pharmacy_vpa_staged_premises',
   ARRAY['pharmacy_vpa_staged_premises_admin'],
   'staged premises are admin-only'
+);
+SELECT policies_are(
+  'public', 'pharmacy_vpa_raw_source_rows',
+  ARRAY['pharmacy_vpa_raw_source_rows_admin'],
+  'raw source evidence is admin-only'
 );
 SELECT policies_are(
   'public', 'pharmacy_vpa_review_queue',

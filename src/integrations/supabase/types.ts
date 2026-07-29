@@ -2893,6 +2893,47 @@ export type Database = {
           },
         ]
       }
+      pharmacy_vpa_raw_source_rows: {
+        Row: {
+          created_at: string
+          id: string
+          parse_error: string | null
+          parse_status: string
+          run_id: string
+          source_payload: Json
+          source_row_fingerprint: string
+          source_row_number: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          parse_error?: string | null
+          parse_status?: string
+          run_id: string
+          source_payload: Json
+          source_row_fingerprint: string
+          source_row_number: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          parse_error?: string | null
+          parse_status?: string
+          run_id?: string
+          source_payload?: Json
+          source_row_fingerprint?: string
+          source_row_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_vpa_raw_source_rows_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_vpa_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pharmacy_vpa_review_queue: {
         Row: {
           created_at: string
