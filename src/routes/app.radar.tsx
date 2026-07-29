@@ -8,6 +8,7 @@ import { AppShell } from "@/components/app-shell";
 import { getMyProfile, listMyOrgs } from "@/lib/orgs.functions";
 import { getOpportunityRadar } from "@/lib/radar.functions";
 import { addPharmacyToPipeline } from "@/lib/pharmacy-pipeline";
+import { pharmacyIntelligenceSummary } from "@/lib/pharmacy-intelligence-summary";
 
 export const Route = createFileRoute("/app/radar")({
   head: () => ({
@@ -96,76 +97,90 @@ function RadarPage() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((row: RadarRow, index: number) => (
-                <tr key={row.pharmacy_id ?? `row-${index}`} className="border-t align-top">
-                  <td className="p-3 font-semibold">#{index + 1}</td>
-                  <td className="py-3 pr-3">
-                    <b>{row.name ?? "Unknown pharmacy"}</b>
-                    <div>{row.suburb ?? row.address ?? "Location unavailable"}</div>
-                  </td>
-                  <td className="py-3 pr-3">
-                    <b>{row.score ?? "Unknown"}</b>
-                    <div>
-                      {row.theoretical_low == null
-                        ? "No theoretical range"
-                        : `Experimental theoretical range ${row.theoretical_low}–${row.theoretical_high}/day`}
-                    </div>
-                  </td>
-                  <td className="py-3 pr-3">
-                    {row.evidence_confidence}
-                    <div>
-                      {(row.missing_inputs ?? []).length
-                        ? `${(row.missing_inputs ?? []).length} missing inputs`
-                        : "No missing inputs recorded"}
-                    </div>
-                  </td>
-                  <td className="py-3 pr-3">{row.principal_reason}</td>
-                  <td className="py-3 pr-3">{row.limiting_factor}</td>
-                  <td className="py-3 pr-3">
-                    <div>
-                      Nearest competitor:{" "}
-                      {row.nearest_competitor_m == null
-                        ? "Unknown"
-                        : `${Math.round(row.nearest_competitor_m)} m`}
-                    </div>
-                    <div>Medical centres (1 km): {row.medical_centres_1km ?? "Unknown"}</div>
-                    <div>
-                      Population growth:{" "}
-                      {row.population_growth == null
-                        ? "Unknown"
-                        : `${row.population_growth.toFixed(1)}%`}
-                    </div>
-                    <div>
-                      Calculated:{" "}
-                      {row.calculated_at
-                        ? new Date(row.calculated_at).toLocaleDateString()
-                        : "Unknown"}
-                    </div>
-                  </td>
-                  <td className="py-3 pr-3">
-                    <Link className="underline" to="/pharmacy/$id" params={{ id: row.pharmacy_id }}>
-                      Open on map
-                    </Link>
-                    <button
-                      className="ml-2 underline"
-                      onClick={() =>
-                        setCompare((current) =>
-                          current.includes(row.pharmacy_id)
-                            ? current.filter((id) => id !== row.pharmacy_id)
-                            : current.length < 4
-                              ? [...current, row.pharmacy_id]
-                              : current,
-                        )
-                      }
-                    >
-                      Compare
-                    </button>
-                    <button className="ml-2 underline" onClick={() => add(row.pharmacy_id)}>
-                      Add to pipeline
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {rows.map((row: RadarRow, index: number) => {
+                const intelligence = pharmacyIntelligenceSummary(row);
+                return (
+                  <tr key={row.pharmacy_id ?? `row-${index}`} className="border-t align-top">
+                    <td className="p-3 font-semibold">#{index + 1}</td>
+                    <td className="py-3 pr-3">
+                      <b>{row.name ?? "Unknown pharmacy"}</b>
+                      <div>{row.suburb ?? row.address ?? "Location unavailable"}</div>
+                    </td>
+                    <td className="py-3 pr-3">
+                      {intelligence.estimateLabel ? (
+                        <b>{intelligence.estimateLabel}</b>
+                      ) : (
+                        <b>Estimate unavailable</b>
+                      )}
+                      <div>Relative score: {row.score ?? "Unknown"}</div>
+                      <div>
+                        {row.theoretical_low == null
+                          ? "No theoretical range"
+                          : `Experimental theoretical range ${row.theoretical_low}–${row.theoretical_high}/day`}
+                      </div>
+                    </td>
+                    <td className="py-3 pr-3">
+                      {row.evidence_confidence}
+                      <div>
+                        {(row.missing_inputs ?? []).length
+                          ? `${(row.missing_inputs ?? []).length} missing inputs`
+                          : "No missing inputs recorded"}
+                      </div>
+                    </td>
+                    <td className="py-3 pr-3">
+                      {intelligence.topInsight ?? "No sourced insight available"}
+                    </td>
+                    <td className="py-3 pr-3">{row.limiting_factor}</td>
+                    <td className="py-3 pr-3">
+                      <div>
+                        Nearest competitor:{" "}
+                        {row.nearest_competitor_m == null
+                          ? "Unknown"
+                          : `${Math.round(row.nearest_competitor_m)} m`}
+                      </div>
+                      <div>Medical centres (1 km): {row.medical_centres_1km ?? "Unknown"}</div>
+                      <div>
+                        Population growth:{" "}
+                        {row.population_growth == null
+                          ? "Unknown"
+                          : `${row.population_growth.toFixed(1)}%`}
+                      </div>
+                      <div>
+                        Calculated:{" "}
+                        {row.calculated_at
+                          ? new Date(row.calculated_at).toLocaleDateString()
+                          : "Unknown"}
+                      </div>
+                    </td>
+                    <td className="py-3 pr-3">
+                      <Link
+                        className="underline"
+                        to="/pharmacy/$id"
+                        params={{ id: row.pharmacy_id }}
+                      >
+                        Open on map
+                      </Link>
+                      <button
+                        className="ml-2 underline"
+                        onClick={() =>
+                          setCompare((current) =>
+                            current.includes(row.pharmacy_id)
+                              ? current.filter((id) => id !== row.pharmacy_id)
+                              : current.length < 4
+                                ? [...current, row.pharmacy_id]
+                                : current,
+                          )
+                        }
+                      >
+                        Compare
+                      </button>
+                      <button className="ml-2 underline" onClick={() => add(row.pharmacy_id)}>
+                        Add to pipeline
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
