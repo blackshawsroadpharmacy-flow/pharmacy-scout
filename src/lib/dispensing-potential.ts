@@ -6,8 +6,9 @@ const supabase = client as any;
 export async function fetchDispensingPotential(pharmacyId: string) {
   const { data, error } = await supabase
     .from("pharmacy_dispensing_potential")
-    .select("*, dispensing_potential_methods(version,label,weights)")
+    .select("*, dispensing_potential_methods!inner(version,label,weights,active)")
     .eq("pharmacy_id", pharmacyId)
+    .eq("dispensing_potential_methods.active", true)
     .order("calculated_at", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -23,10 +24,26 @@ export async function fetchMapDispensingPotentials(pharmacyIds: string[]) {
   if (pharmacyIds.length === 0) return new Map<string, MapDispensingPotential>();
   const { data, error } = await supabase
     .from("pharmacy_dispensing_potential")
-    .select("pharmacy_id,victorian_percentile,evidence_confidence")
-    .in("pharmacy_id", pharmacyIds.slice(0, 500));
+    .select(
+      "pharmacy_id,victorian_percentile,evidence_confidence,dispensing_potential_methods!inner(active)",
+    )
+    .in("pharmacy_id", pharmacyIds.slice(0, 500))
+    .eq("dispensing_potential_methods.active", true);
+  if (!error && data) {
+    const active = data.filter((row: any) => row.dispensing_potential_methods?.active);
+    return new Map(active.map((row: MapDispensingPotential) => [row.pharmacy_id, row]));
+  }
   if (error) throw new Error(error.message);
-  return new Map((data ?? []).map((row: MapDispensingPotential) => [row.pharmacy_id, row]));
+  return new Map();
+}
+export async function fetchDispensingPotentialComparison(pharmacyId: string) {
+  const { data, error } = await supabase
+    .from("dispensing_potential_model_comparison")
+    .select("*")
+    .eq("pharmacy_id", pharmacyId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data;
 }
 export async function fetchCalibrationSummary(pharmacyId: string) {
   const organisationId = await getCurrentOrganisationId();

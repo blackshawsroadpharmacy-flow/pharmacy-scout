@@ -24,6 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   fetchCalibrationSummary,
   fetchDispensingPotential,
+  fetchDispensingPotentialComparison,
   potentialBand,
   saveCalibrationObservation,
 } from "@/lib/dispensing-potential";
@@ -317,6 +318,10 @@ function DispensingPotentialSection({
     queryFn: () => fetchCalibrationSummary(premisesId),
     enabled: authed,
   });
+  const comparison = useQuery({
+    queryKey: ["dispensing-potential-model-comparison", premisesId],
+    queryFn: () => fetchDispensingPotentialComparison(premisesId),
+  });
   const p = potential.data as any;
   const metrics = p?.raw_metrics ?? {},
     components = p?.component_scores ?? {};
@@ -396,6 +401,30 @@ function DispensingPotentialSection({
               supply, reputation, access and operations.
             </div>
           </details>
+          {comparison.data && (
+            <details className="mt-2 rounded border border-border p-2 text-xs">
+              <summary className="cursor-pointer font-medium">Compare model versions</summary>
+              <div className="mt-2 grid grid-cols-2 gap-1">
+                <div>Old: {comparison.data.old_version}</div>
+                <div>New: {comparison.data.new_version}</div>
+                <div>Score: {comparison.data.old_score ?? "Unavailable"}</div>
+                <div>
+                  Score: {comparison.data.new_score ?? "Unavailable"} (
+                  {comparison.data.score_change ?? "unknown"} change)
+                </div>
+                <div>Percentile: {comparison.data.old_percentile ?? "Unavailable"}</div>
+                <div>Percentile: {comparison.data.new_percentile ?? "Unavailable"}</div>
+                <div>Confidence: {comparison.data.old_confidence}</div>
+                <div>Confidence: {comparison.data.new_confidence}</div>
+              </div>
+              <p className="mt-2">{comparison.data.main_reason}</p>
+              <p className="mt-1 text-muted-foreground">
+                More sourced variables do not mean the newer model is validated. It remains
+                assumption-based until genuine calibration and documented validation thresholds are
+                met.
+              </p>
+            </details>
+          )}
           {actual && (
             <div className="mt-2 rounded border p-2 text-xs">
               <b>Actual versus theoretical performance</b>

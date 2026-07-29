@@ -25,6 +25,12 @@ const MODES = {
   metropolitan: "Metropolitan opportunities",
   regional: "Regional opportunities",
   acquisition_below_potential: "Acquisitions below theoretical potential",
+  ageing_population_demand: "Ageing-population demand context",
+  aged_care_anchors: "Aged-care anchor opportunities",
+  healthcare_demand: "Healthcare-demand opportunities",
+  high_confidence_strong_potential: "Strong potential with high confidence",
+  low_demographic_resolution: "Strong potential with low demographic resolution",
+  largest_model_change: "Largest change from GDP v1.0 to v1.1",
 } as const;
 
 function RadarPage() {
