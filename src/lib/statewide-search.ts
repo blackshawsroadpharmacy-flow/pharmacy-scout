@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type StatewideSearchType =
   | "pharmacy"
+  | "vpa_pharmacy"
   | "supermarket"
   | "medical_centre"
   | "aged_care"
@@ -27,6 +28,7 @@ export const STATEWIDE_SEARCH_LIMIT = 24;
 export async function searchStatewideLocations(
   query: string,
   signal?: AbortSignal,
+  includeVpaRegistry = false,
 ): Promise<StatewideSearchResult[]> {
   const normalized = query.trim();
   const containsControlCharacter = [...normalized].some((character) => {
@@ -42,9 +44,31 @@ export async function searchStatewideLocations(
     p_limit: STATEWIDE_SEARCH_LIMIT,
   } as never);
   if (signal) request = request.abortSignal(signal);
-  const { data, error } = await request;
+  const registryRequest = includeVpaRegistry
+    ? supabase.rpc("vpa_registry_search", {
+        p_query: normalized,
+        p_limit: STATEWIDE_SEARCH_LIMIT,
+        p_offset: 0,
+      })
+    : null;
+  if (signal && registryRequest) registryRequest.abortSignal(signal);
+  const [{ data, error }, registryResult] = await Promise.all([request, registryRequest]);
   if (error) throw new Error(error.message);
-  return (data ?? []) as unknown as StatewideSearchResult[];
+  if (registryResult?.error) throw new Error(registryResult.error.message);
+  const combined = [
+    ...((data ?? []) as unknown as StatewideSearchResult[]),
+    ...((registryResult?.data ?? []) as unknown as StatewideSearchResult[]).map((result) => ({
+      ...result,
+      is_private: false,
+    })),
+  ];
+  return [
+    ...new Map(
+      combined.map((result) => [`${result.result_type}:${result.result_id}`, result]),
+    ).values(),
+  ]
+    .sort((left, right) => right.relevance - left.relevance)
+    .slice(0, STATEWIDE_SEARCH_LIMIT);
 }
 
 export interface PublicDataFreshness {
