@@ -2347,17 +2347,17 @@ export type Database = {
           postcode: string | null
           premises_source: Database["public"]["Enums"]["premises_source_type"]
           proprietor_names: string[] | null
-          published_licensee_names: string[] | null
           public_door_location: unknown
+          published_licensee_names: string[] | null
           source_confidence: string | null
           source_id: string | null
           suburb: string | null
           updated_at: string
           vpa_currently_observed: boolean
           vpa_first_observed_at: string | null
-          vpa_last_synced_at: string | null
           vpa_last_observed_at: string | null
           vpa_last_successful_run_id: string | null
+          vpa_last_synced_at: string | null
           vpa_match_confidence: number | null
           vpa_match_method: string | null
           vpa_match_status: string
@@ -2392,17 +2392,17 @@ export type Database = {
           postcode?: string | null
           premises_source: Database["public"]["Enums"]["premises_source_type"]
           proprietor_names?: string[] | null
-          published_licensee_names?: string[] | null
           public_door_location?: unknown
+          published_licensee_names?: string[] | null
           source_confidence?: string | null
           source_id?: string | null
           suburb?: string | null
           updated_at?: string
           vpa_currently_observed?: boolean
           vpa_first_observed_at?: string | null
-          vpa_last_synced_at?: string | null
           vpa_last_observed_at?: string | null
           vpa_last_successful_run_id?: string | null
+          vpa_last_synced_at?: string | null
           vpa_match_confidence?: number | null
           vpa_match_method?: string | null
           vpa_match_status?: string
@@ -2437,17 +2437,17 @@ export type Database = {
           postcode?: string | null
           premises_source?: Database["public"]["Enums"]["premises_source_type"]
           proprietor_names?: string[] | null
-          published_licensee_names?: string[] | null
           public_door_location?: unknown
+          published_licensee_names?: string[] | null
           source_confidence?: string | null
           source_id?: string | null
           suburb?: string | null
           updated_at?: string
           vpa_currently_observed?: boolean
           vpa_first_observed_at?: string | null
-          vpa_last_synced_at?: string | null
           vpa_last_observed_at?: string | null
           vpa_last_successful_run_id?: string | null
+          vpa_last_synced_at?: string | null
           vpa_match_confidence?: number | null
           vpa_match_method?: string | null
           vpa_match_status?: string
@@ -2467,17 +2467,17 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "pharmacy_premises_vpa_last_successful_run_fkey"
-            columns: ["vpa_last_successful_run_id"]
-            isOneToOne: false
-            referencedRelation: "pharmacy_vpa_runs"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "pharmacy_premises_source_id_fkey"
             columns: ["source_id"]
             isOneToOne: false
             referencedRelation: "source_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_premises_vpa_last_successful_run_fkey"
+            columns: ["vpa_last_successful_run_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_vpa_runs"
             referencedColumns: ["id"]
           },
           {
@@ -2555,13 +2555,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "pharmacy_premises_licensees_source_run_id_fkey"
-            columns: ["source_run_id"]
-            isOneToOne: false
-            referencedRelation: "pharmacy_vpa_runs"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "pharmacy_premises_licensees_premises_id_fkey"
             columns: ["premises_id"]
             isOneToOne: false
@@ -2580,6 +2573,13 @@ export type Database = {
             columns: ["source_id"]
             isOneToOne: false
             referencedRelation: "source_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_premises_licensees_source_run_id_fkey"
+            columns: ["source_run_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_vpa_runs"
             referencedColumns: ["id"]
           },
           {
