@@ -207,6 +207,7 @@ GRANT SELECT ON public.dispensing_potential_model_comparison TO anon,authenticat
 
 DO $$
 BEGIN
+  SET LOCAL statement_timeout = '120s';
   PERFORM public.refresh_dispensing_potential_v1_1();
 EXCEPTION WHEN OTHERS THEN
   RAISE EXCEPTION 'GDP v1.1 refresh failed: %', SQLERRM;
