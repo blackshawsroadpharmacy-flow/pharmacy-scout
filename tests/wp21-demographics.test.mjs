@@ -53,7 +53,7 @@ test("spatial assignment and viewport processing remain server-side", () => {
 });
 
 test("demographic evidence reaches dossiers, candidates, scenarios, map, GDP and Radar", () => {
-  assert.match(dossier, /Official demographic context/);
+  assert.match(dossier, /Demographics/);
   assert.match(candidate, /Official demographic context/);
   assert.match(map, /fetchDemographicViewport/);
   assert.match(migration, /official_demographic_context/);
