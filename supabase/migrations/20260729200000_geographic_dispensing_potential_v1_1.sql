@@ -165,13 +165,13 @@ BEGIN
   UPDATE public.pharmacy_dispensing_potential p SET victorian_percentile=r.percentile
   FROM (
     SELECT pharmacy_id,method_id,
-      round(percent_rank() OVER (PARTITION BY method_id ORDER BY relative_score)*100,0) percentile
+      round((percent_rank() OVER (PARTITION BY method_id ORDER BY relative_score)*100)::numeric,0) percentile
     FROM public.pharmacy_dispensing_potential
   ) r WHERE p.pharmacy_id=r.pharmacy_id AND p.method_id=r.method_id;
   UPDATE public.pharmacy_dispensing_potential p SET peer_percentile=r.percentile
   FROM (
     SELECT pharmacy_id,method_id,
-      round(percent_rank() OVER (PARTITION BY method_id,peer_group ORDER BY relative_score)*100,0) percentile
+      round((percent_rank() OVER (PARTITION BY method_id,peer_group ORDER BY relative_score)*100)::numeric,0) percentile
     FROM public.pharmacy_dispensing_potential WHERE peer_group IS NOT NULL
   ) r WHERE p.pharmacy_id=r.pharmacy_id AND p.method_id=r.method_id;
   RETURN affected;
