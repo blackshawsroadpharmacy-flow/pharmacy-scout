@@ -1,9 +1,12 @@
 BEGIN;
 SELECT plan(10);
 
-SELECT has_table('public', 'vpa_published_licensees');
-SELECT has_table('public', 'vpa_published_licensee_relationships');
-SELECT has_view('public', 'vpa_published_licensee_networks');
+SELECT has_table('public', 'vpa_published_licensees',
+  'canonical published-licensee entities exist');
+SELECT has_table('public', 'vpa_published_licensee_relationships',
+  'published-licensee relationships exist');
+SELECT has_view('public', 'vpa_published_licensee_networks',
+  'descriptive licensee networks exist');
 SELECT has_function('public', 'vpa_registry_search', ARRAY['text', 'integer', 'integer']);
 SELECT function_privs_are(
   'public', 'vpa_registry_search', ARRAY['text', 'integer', 'integer'],
