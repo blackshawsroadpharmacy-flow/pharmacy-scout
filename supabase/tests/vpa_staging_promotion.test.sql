@@ -129,7 +129,7 @@ INSERT INTO public.pharmacy_premises (
   '00000000-0000-0000-0000-000000000501', 'Existing Trading Name',
   '2 Existing Road', 'Melbourne', '3000',
   ST_SetSRID(ST_MakePoint(144.95, -37.81), 4326)::geography,
-  'imported', 'verified', '0399999999', 'https://example.test', 'private legacy note'
+  'manual', 'verified', '0399999999', 'https://example.test', 'private legacy note'
 );
 INSERT INTO public.pharmacy_vpa_runs (
   id, status, triggered_by, source_file_name, source_file_hash,
