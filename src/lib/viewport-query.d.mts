@@ -13,7 +13,7 @@ export function normalizeViewportBounds(
 export function viewportRequestKey(
   resource: string,
   bounds: ViewportBoundsLike,
-  filters?: Record<string, unknown>,
+  filters?: object,
 ): string | null;
 export function isCurrentViewportResult(
   expectedKey: string | null,

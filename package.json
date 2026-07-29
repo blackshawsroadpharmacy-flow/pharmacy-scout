@@ -15,6 +15,7 @@
     "import:push": "node scripts/push-vic-pharmacies-to-supabase.mjs",
     "import:external": "node scripts/import-external-locations.mjs",
     "lint": "npm run clean:sidecars && npm run check:sidecars && eslint .",
+    "typecheck": "tsc --noEmit",
     "verify:production": "node scripts/verify-production.mjs",
     "format": "prettier --write .",
     "test": "node --test tests/*.test.mjs",

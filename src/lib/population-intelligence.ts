@@ -57,9 +57,9 @@ export async function fetchVictorianPopulation(
   return body;
 }
 
-export function populationColour(metric: PopulationMetric, value: number | null) {
+export function populationColour(metric: PopulationMetric, value: number | null): string {
   if (value == null || !Number.isFinite(value)) return "#d1d5db";
-  const breaks =
+  const breaks: Array<[number, string]> =
     metric === "growth"
       ? [
           [-1, "#991b1b"],
@@ -76,7 +76,7 @@ export function populationColour(metric: PopulationMetric, value: number | null)
           [5_000, "#1d4ed8"],
         ];
   return (
-    breaks.find(([limit]) => value < (limit as number))?.[1] ??
+    breaks.find(([limit]) => value < limit)?.[1] ??
     (metric === "growth" ? "#166534" : "#172554")
   );
 }

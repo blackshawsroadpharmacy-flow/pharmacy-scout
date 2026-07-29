@@ -85,7 +85,11 @@ function AuthPage() {
     <div className="flex min-h-screen flex-col bg-background">
       <div className="flex flex-1 items-center justify-center px-4 py-12">
         <div className="w-full max-w-md rounded-xl border border-border bg-card p-8 shadow-sm">
-          <Link to="/" className="text-xs font-medium text-muted-foreground hover:text-foreground">
+          <Link
+            to="/"
+            search={{}}
+            className="text-xs font-medium text-muted-foreground hover:text-foreground"
+          >
             ← Chemist Care
           </Link>
           <h1 className="mt-3 text-2xl font-semibold tracking-tight">
