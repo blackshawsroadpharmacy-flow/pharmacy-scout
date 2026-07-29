@@ -2,6 +2,7 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { SECURITY_HEADERS } from "./lib/security-headers";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -44,33 +45,9 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
-const SUPABASE_ORIGIN = "https://gvrwrqcftlaavxarmgfk.supabase.co";
-
 // frame-ancestors is the point of this: /auth is an email+password form and was
 // framable by any origin. The rest is a conservative baseline; 'unsafe-inline'
 // on style-src is required by Tailwind/Leaflet runtime styles.
-const CONTENT_SECURITY_POLICY = [
-  "default-src 'self'",
-  "base-uri 'self'",
-  "object-src 'none'",
-  "frame-ancestors 'none'",
-  "form-action 'self'",
-  "script-src 'self' 'unsafe-inline'",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "font-src 'self' data: https://fonts.gstatic.com",
-  `img-src 'self' data: blob: https://*.tile.openstreetmap.org https://unpkg.com https://storage.googleapis.com ${SUPABASE_ORIGIN}`,
-  `connect-src 'self' ${SUPABASE_ORIGIN} https://*.tile.openstreetmap.org`,
-  "worker-src 'self' blob:",
-].join("; ");
-
-const SECURITY_HEADERS: Record<string, string> = {
-  "content-security-policy": CONTENT_SECURITY_POLICY,
-  "x-frame-options": "DENY",
-  "permissions-policy": "camera=(), microphone=(), geolocation=(self), payment=()",
-  "x-content-type-options": "nosniff",
-  "referrer-policy": "strict-origin-when-cross-origin",
-};
-
 function withSecurityHeaders(response: Response): Response {
   const headers = new Headers(response.headers);
   for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
