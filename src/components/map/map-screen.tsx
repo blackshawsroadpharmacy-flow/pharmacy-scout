@@ -41,6 +41,7 @@ import {
   fetchDemographicsAtPoint,
   type DemographicMetric,
 } from "@/lib/demographic-intelligence";
+import { fetchHealthcareAnchors, fetchHealthcareDemand } from "@/lib/healthcare-anchors";
 
 const MapView = lazy(() =>
   import("@/components/map/map-view").then((m) => ({ default: m.MapView })),
@@ -87,6 +88,7 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
     needAssistance: publicMapState?.layers?.includes("assistance") ?? false,
     seifaDisadvantage: publicMapState?.layers?.includes("disadvantage") ?? false,
     noVehicle: publicMapState?.layers?.includes("no-vehicle") ?? false,
+    agedCare: publicMapState?.layers?.includes("aged-care") ?? false,
   }));
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [flyTo, setFlyTo] = useState<{ lat: number; lng: number; zoom?: number } | null>(() =>
@@ -157,6 +159,12 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
     enabled: candidateMode && candidatePoint != null,
     staleTime: 24 * 60 * 60 * 1000,
   });
+  const candidateHealthcareQ = useQuery({
+    queryKey: ["candidate-healthcare-demand", candidatePoint?.lat, candidatePoint?.lng],
+    queryFn: () => fetchHealthcareDemand(candidatePoint!.lat, candidatePoint!.lng),
+    enabled: candidateMode && candidatePoint != null,
+    staleTime: 24 * 60 * 60 * 1000,
+  });
   const populationMetric: PopulationMetric | null = layers.populationGrowth
     ? "growth"
     : layers.populationDensity
@@ -183,6 +191,12 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
     queryKey: ["official-demographic-viewport", demographicMetric, ...viewportKey],
     queryFn: ({ signal }) => fetchDemographicViewport(viewport!, demographicMetric!, signal),
     enabled: viewport != null && demographicMetric != null,
+    staleTime: 24 * 60 * 60 * 1000,
+  });
+  const healthcareAnchorsQ = useQuery({
+    queryKey: ["healthcare-anchor-viewport", ...viewportKey],
+    queryFn: ({ signal }) => fetchHealthcareAnchors(viewport!, signal),
+    enabled: viewport != null && layers.agedCare,
     staleTime: 24 * 60 * 60 * 1000,
   });
 
@@ -320,6 +334,11 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
       return;
     }
     if (result.lat == null || result.lng == null) return;
+    if (result.result_type === "aged_care") {
+      setLayers((current) => ({ ...current, agedCare: true }));
+      setFlyTo({ lat: result.lat, lng: result.lng, zoom: 15 });
+      return;
+    }
     if (result.result_type === "pharmacy") {
       showPremisesOnMap(result.result_id, result.lat, result.lng);
       return;
@@ -362,6 +381,7 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
       layers.needAssistance ? "assistance" : null,
       layers.seifaDisadvantage ? "disadvantage" : null,
       layers.noVehicle ? "no-vehicle" : null,
+      layers.agedCare ? "aged-care" : null,
     ].filter(Boolean);
     if (publicLayers.length) search.set("layers", publicLayers.join(","));
     if (layers.dispensingPotential && potentialFilter !== "all") {
@@ -405,6 +425,7 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
             populationMetric={populationMetric}
             demographics={demographicQ.data ?? null}
             demographicMetric={demographicMetric}
+            healthcareAnchors={layers.agedCare ? (healthcareAnchorsQ.data ?? []) : []}
             pipelineStatuses={pipelineStatuses}
             dispensingPotentials={dispensingPotentials}
           />
@@ -591,10 +612,12 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
           analysis={candidateAnalysisQ.data ?? null}
           population={candidatePopulationQ.data ?? null}
           demographics={candidateDemographicsQ.data ?? null}
+          healthcare={candidateHealthcareQ.data ?? null}
           loading={
             candidateAnalysisQ.isLoading ||
             candidatePopulationQ.isLoading ||
-            candidateDemographicsQ.isLoading
+            candidateDemographicsQ.isLoading ||
+            candidateHealthcareQ.isLoading
           }
           error={
             candidateAnalysisQ.isError
@@ -603,7 +626,9 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
                 ? candidatePopulationQ.error.message
                 : candidateDemographicsQ.isError
                   ? candidateDemographicsQ.error.message
-                  : null
+                  : candidateHealthcareQ.isError
+                    ? candidateHealthcareQ.error.message
+                    : null
           }
           onClose={() => setCandidatePoint(null)}
         />

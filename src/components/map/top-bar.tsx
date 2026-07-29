@@ -284,6 +284,7 @@ const SEARCH_GROUPS: Array<{ label: string; types: StatewideSearchType[] }> = [
   { label: "Pharmacies", types: ["pharmacy"] },
   { label: "Supermarkets", types: ["supermarket"] },
   { label: "Medical centres", types: ["medical_centre"] },
+  { label: "Residential aged care", types: ["aged_care"] },
   {
     label: "Your private records",
     types: ["acquisition_opportunity", "candidate_site"],

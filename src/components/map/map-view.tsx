@@ -29,6 +29,7 @@ import {
   type DemographicFeatureCollection,
   type DemographicMetric,
 } from "@/lib/demographic-intelligence";
+import type { HealthcareAnchor } from "@/lib/healthcare-anchors";
 
 // Ensure default marker icons resolve under bundlers (used only as fallback).
 import iconRetina from "leaflet/dist/images/marker-icon-2x.png";
@@ -171,6 +172,7 @@ export function MapView({
   populationMetric = null,
   demographics = null,
   demographicMetric = null,
+  healthcareAnchors = [],
   pipelineStatuses = new Map(),
   dispensingPotentials = new Map(),
 }: {
@@ -191,6 +193,7 @@ export function MapView({
   populationMetric?: PopulationMetric | null;
   demographics?: DemographicFeatureCollection | null;
   demographicMetric?: DemographicMetric | null;
+  healthcareAnchors?: HealthcareAnchor[];
   pipelineStatuses?: Map<string, PharmacyPipelineStatus>;
   dispensingPotentials?: Map<string, MapDispensingPotential>;
 }) {
@@ -387,6 +390,21 @@ export function MapView({
           />
         ))}
       </MarkerClusterGroup>
+      {healthcareAnchors.map((anchor) => (
+        <CircleMarker
+          key={`healthcare-${anchor.id}`}
+          center={[anchor.lat, anchor.lng]}
+          radius={7}
+          pathOptions={{ color: "#7c3aed", fillColor: "#ede9fe", fillOpacity: 0.9, weight: 2 }}
+        >
+          <title>
+            {anchor.name} ·{" "}
+            {anchor.approved_places == null
+              ? "Approved places unavailable"
+              : `${anchor.approved_places} published residential places`}
+          </title>
+        </CircleMarker>
+      ))}
       <MarkerClusterGroup
         chunkedLoading
         maxClusterRadius={50}

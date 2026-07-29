@@ -12,6 +12,7 @@ export interface LayerState {
   needAssistance: boolean;
   seifaDisadvantage: boolean;
   noVehicle: boolean;
+  agedCare: boolean;
 }
 
 export const DEFAULT_LAYERS: LayerState = {
@@ -26,6 +27,7 @@ export const DEFAULT_LAYERS: LayerState = {
   needAssistance: false,
   seifaDisadvantage: false,
   noVehicle: false,
+  agedCare: false,
 };
 
 export const ACTIVE_LAYERS: Array<{
@@ -75,6 +77,11 @@ export const ACTIVE_LAYERS: Array<{
     key: "noVehicle",
     label: "Dwellings with no motor vehicle",
     dataSource: "ABS Census 2021 GCP",
+  },
+  {
+    key: "agedCare",
+    label: "Residential aged-care facilities",
+    dataSource: "Australian Government Aged Care Service List, 30 June 2025",
   },
 ];
 
