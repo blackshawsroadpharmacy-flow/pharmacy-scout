@@ -1,6 +1,10 @@
 -- Run-scoped VPA staging, conservative matching review, and atomic promotion.
 -- This migration is intentionally additive. It does not import or promote data.
 
+ALTER TABLE public.pharmacy_premises
+  ADD COLUMN IF NOT EXISTS vpa_official_name text,
+  ADD COLUMN IF NOT EXISTS vpa_official_full_address text;
+
 ALTER TABLE public.pharmacy_vpa_runs
   DROP CONSTRAINT IF EXISTS pharmacy_vpa_runs_status_check;
 ALTER TABLE public.pharmacy_vpa_runs
@@ -271,10 +275,8 @@ BEGIN
 
   WITH changed AS (
     UPDATE public.pharmacy_premises p
-    SET name = s.official_name,
-        address = s.street_address,
-        suburb = s.suburb,
-        postcode = s.postcode,
+    SET vpa_official_name = s.official_name,
+        vpa_official_full_address = s.full_address,
         vpa_record_key = s.source_record_key,
         published_licensee_names = (
           SELECT array_agg(l.published_name ORDER BY l.published_name)
@@ -310,7 +312,8 @@ BEGIN
   WITH inserted AS (
     INSERT INTO public.pharmacy_premises (
       id, name, address, suburb, postcode, location,
-      vpa_record_key, published_licensee_names, vpa_match_status,
+      vpa_record_key, vpa_official_name, vpa_official_full_address,
+      published_licensee_names, vpa_match_status,
       vpa_match_method, vpa_match_confidence, vpa_review_status,
       vpa_source_verification_status, vpa_registration_status_raw,
       vpa_registration_status_normalised, vpa_registered_until,
@@ -322,7 +325,7 @@ BEGIN
     SELECT
       extensions.gen_random_uuid(), s.official_name, s.street_address, s.suburb, s.postcode,
       ST_SetSRID(ST_MakePoint(s.proposed_lng, s.proposed_lat), 4326)::geography,
-      s.source_record_key,
+      s.source_record_key, s.official_name, s.full_address,
       (SELECT array_agg(l.published_name ORDER BY l.published_name)
        FROM public.pharmacy_vpa_staged_licensees l WHERE l.staged_premises_id = s.id),
       s.disposition, s.algorithm_version, s.match_score, s.review_status,
