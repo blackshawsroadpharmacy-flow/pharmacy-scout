@@ -22,10 +22,11 @@ service-role credentials remain server-only and untracked.
 
 ## Source catalogue
 
-| Category        | Source                                      | Dataset/query                                                                                                           | Licence  | Attribution                                          | Status                 |
-| --------------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | -------- | ---------------------------------------------------- | ---------------------- |
-| Supermarkets    | OpenStreetMap contributors via Overpass API | Victorian `shop=supermarket` nodes, ways and relations                                                                  | ODbL 1.0 | © OpenStreetMap contributors; link to copyright page | Approved for discovery |
-| Medical centres | OpenStreetMap contributors via Overpass API | Victorian `amenity=clinic`, `amenity=doctors`, `healthcare=clinic`, `healthcare=centre` and `healthcare=doctor` records | ODbL 1.0 | © OpenStreetMap contributors; link to copyright page | Approved for discovery |
+| Category                         | Source                                      | Dataset/query                                                                                                           | Licence                                        | Attribution                                          | Status                           |
+| -------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- | ---------------------------------------------------- | -------------------------------- |
+| Supermarkets                     | OpenStreetMap contributors via Overpass API | Victorian `shop=supermarket` nodes, ways and relations                                                                  | ODbL 1.0                                       | © OpenStreetMap contributors; link to copyright page | Approved for discovery           |
+| Medical centres                  | OpenStreetMap contributors via Overpass API | Victorian `amenity=clinic`, `amenity=doctors`, `healthcare=clinic`, `healthcare=centre` and `healthcare=doctor` records | ODbL 1.0                                       | © OpenStreetMap contributors; link to copyright page | Approved for discovery           |
+| SA2 population and annual growth | Australian Bureau of Statistics             | `SA2_RP_2024` FeatureServer, Victoria (`2` series codes), 2021 ASGS SA2 boundaries                                      | Creative Commons Attribution 4.0 International | Source: Australian Bureau of Statistics              | Approved for statistical context |
 
 Dataset links:
 
@@ -33,6 +34,16 @@ Dataset links:
 - <https://wiki.openstreetmap.org/wiki/Overpass_API>
 - <https://wiki.openstreetmap.org/wiki/Tag:shop%3Dsupermarket>
 - <https://wiki.openstreetmap.org/wiki/Key:healthcare>
+- <https://geo.abs.gov.au/arcgis/rest/services/Hosted/SA2_RP_2024/FeatureServer/0>
+- <https://www.abs.gov.au/about-us/abs-copyright-and-long-form-copyright-notices>
+- <https://creativecommons.org/licenses/by/4.0/>
+
+The ABS layer uses 2024 Estimated Resident Population, 2023–24 annual change and the published
+2021 ASGS SA2 geometry. It is contextual statistical evidence, not premises-level evidence. The
+application displays the ABS attribution beside its legends. Missing fields remain unknown and are
+rendered as “No source coverage”; SA2 values are never converted to zero. Boundary edition and
+reference periods remain visible in the source description so later demographic imports cannot
+silently mix editions.
 
 OpenStreetMap is used as lawful statewide discovery data, not as proof of floor area, practitioner
 capacity, PBS prescriber count, legal eligibility or regulatory compliance. OSM geometry may be

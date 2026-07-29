@@ -1,9 +1,28 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CircleMarker, MapContainer, Marker, TileLayer, useMap, useMapEvents } from "react-leaflet";
+import {
+  Circle,
+  CircleMarker,
+  GeoJSON,
+  MapContainer,
+  Marker,
+  Polyline,
+  TileLayer,
+  useMap,
+  useMapEvents,
+} from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
-import type { PublicPremises } from "@/lib/premises-public";
+import type { PremisesMapPoint } from "@/lib/premises-public";
 import type { ExternalCategory, ExternalMapPoint, ViewportBounds } from "@/lib/external-locations";
+import {
+  populationColour,
+  populationValue,
+  type PopulationFeatureCollection,
+  type PopulationMetric,
+  type PopulationProperties,
+} from "@/lib/population-intelligence";
+import type { PharmacyPipelineStatus } from "@/lib/pharmacy-pipeline";
+import type { MapDispensingPotential } from "@/lib/dispensing-potential";
 
 // Ensure default marker icons resolve under bundlers (used only as fallback).
 import iconRetina from "leaflet/dist/images/marker-icon-2x.png";
@@ -16,19 +35,30 @@ const VIC_ZOOM = 7;
 
 type Kind = "discovery" | "verified" | "partial" | "saved";
 
-function isApproximate(p: PublicPremises) {
+function isApproximate(p: PremisesMapPoint) {
   return p.source_confidence === "approximate" || p.geocode_method === "suburb_centroid";
 }
 
 function clusterIcon(cluster: { getChildCount: () => number }) {
+  const count = cluster.getChildCount();
+  const tier = count < 10 ? "small" : count < 50 ? "medium" : "large";
+  const swarmBadges = tier === "small" ? 3 : tier === "medium" ? 5 : 7;
+  const size = tier === "small" ? 42 : tier === "medium" ? 50 : 58;
+  const pharmacyBadges = Array.from(
+    { length: swarmBadges },
+    (_, index) =>
+      `<span class="pharmacy-cluster__p pharmacy-cluster__p--${index + 1}" aria-hidden="true">P</span>`,
+  ).join("");
+
   return L.divIcon({
-    html: `<div><span>${cluster.getChildCount()}</span></div>`,
-    className: "marker-cluster-navy",
-    iconSize: L.point(40, 40, true),
+    html: `<div class="pharmacy-cluster pharmacy-cluster--${tier}" role="img" aria-label="${count} pharmacies in this area">${pharmacyBadges}<span class="pharmacy-cluster__count">${count}</span></div>`,
+    className: "pharmacy-cluster-icon",
+    iconSize: L.point(size, size),
+    iconAnchor: L.point(size / 2, size / 2),
   });
 }
 
-function kindFor(p: PublicPremises, savedIds: Set<string>): Kind {
+function kindFor(p: PremisesMapPoint, savedIds: Set<string>): Kind {
   if (savedIds.has(p.id)) return "saved";
   if (p.vpa_registration_status === "verified") return "verified";
   if (p.vpa_registration_status === "matched" || p.vpa_registration_status === "conflict")
@@ -70,7 +100,12 @@ function ClickHandler({ onClick }: { onClick: (lat: number, lng: number) => void
   return null;
 }
 
-function ViewportReporter({ onChange }: { onChange: (bounds: ViewportBounds) => void }) {
+export interface PublicViewportState extends ViewportBounds {
+  lat: number;
+  lng: number;
+  zoom: number;
+}
+function ViewportReporter({ onChange }: { onChange: (bounds: PublicViewportState) => void }) {
   const map = useMapEvents({
     moveend: report,
     zoomend: report,
@@ -80,11 +115,15 @@ function ViewportReporter({ onChange }: { onChange: (bounds: ViewportBounds) => 
     if (timer.current) window.clearTimeout(timer.current);
     timer.current = window.setTimeout(() => {
       const bounds = map.getBounds();
+      const centre = map.getCenter();
       onChange({
         west: bounds.getWest(),
         south: bounds.getSouth(),
         east: bounds.getEast(),
         north: bounds.getNorth(),
+        lat: centre.lat,
+        lng: centre.lng,
+        zoom: map.getZoom(),
       });
     }, 250);
   }
@@ -120,8 +159,14 @@ export function MapView({
   onSelectExternal,
   onViewportChange,
   candidatePoint = null,
+  candidateRadiusM = 1500,
+  candidateNearestPoint = null,
+  population = null,
+  populationMetric = null,
+  pipelineStatuses = new Map(),
+  dispensingPotentials = new Map(),
 }: {
-  premises: PublicPremises[];
+  premises: PremisesMapPoint[];
   selectedId: string | null;
   onSelect: (id: string) => void;
   savedIds: Set<string>;
@@ -130,8 +175,14 @@ export function MapView({
   externalPoints?: ExternalMapPoint[];
   selectedExternal?: { category: ExternalCategory; id: string } | null;
   onSelectExternal?: (point: ExternalMapPoint) => void;
-  onViewportChange?: (bounds: ViewportBounds) => void;
+  onViewportChange?: (bounds: PublicViewportState) => void;
   candidatePoint?: { lat: number; lng: number } | null;
+  candidateRadiusM?: number;
+  candidateNearestPoint?: { lat: number; lng: number } | null;
+  population?: PopulationFeatureCollection | null;
+  populationMetric?: PopulationMetric | null;
+  pipelineStatuses?: Map<string, PharmacyPipelineStatus>;
+  dispensingPotentials?: Map<string, MapDispensingPotential>;
 }) {
   const iconCache = useRef(new Map<string, L.DivIcon>());
   const markers = useMemo(
@@ -140,7 +191,18 @@ export function MapView({
         const kind = kindFor(p, savedIds);
         const selected = p.id === selectedId;
         const approximate = isApproximate(p);
-        const key = `${kind}-${selected ? 1 : 0}-${approximate ? 1 : 0}`;
+        const pipelineStage = pipelineStatuses.get(p.id)?.pipeline_stage ?? null;
+        const potential = dispensingPotentials.get(p.id);
+        const potentialBand =
+          potential?.victorian_percentile == null
+            ? null
+            : potential.victorian_percentile >= 75
+              ? "high"
+              : potential.victorian_percentile >= 40
+                ? "medium"
+                : "low";
+        const lowConfidence = potential?.evidence_confidence === "low";
+        const key = `${kind}-${selected ? 1 : 0}-${approximate ? 1 : 0}-${pipelineStage ?? "none"}-${potentialBand ?? "none"}-${lowConfidence ? 1 : 0}`;
         let icon = iconCache.current.get(key);
         if (!icon) {
           const classes = [
@@ -148,6 +210,9 @@ export function MapView({
             kind,
             approximate ? "approximate" : "",
             selected ? "selected" : "",
+            pipelineStage ? `pipeline-stage-${pipelineStage}` : "",
+            potentialBand ? `potential-${potentialBand}` : "",
+            lowConfidence ? "potential-low-confidence" : "",
           ]
             .filter(Boolean)
             .join(" ");
@@ -161,7 +226,7 @@ export function MapView({
         }
         return { p, icon };
       }),
-    [premises, selectedId, savedIds],
+    [premises, selectedId, savedIds, pipelineStatuses, dispensingPotentials],
   );
 
   return (
@@ -176,20 +241,91 @@ export function MapView({
       zoomControl={false}
     >
       <TileFallback />
+      {population && populationMetric && (
+        <GeoJSON
+          key={populationMetric}
+          data={population as GeoJSON.FeatureCollection}
+          style={(feature) => {
+            const properties = feature?.properties as PopulationProperties;
+            return {
+              color: "#ffffff",
+              weight: 0.65,
+              fillColor: populationColour(
+                populationMetric,
+                populationValue(properties, populationMetric),
+              ),
+              fillOpacity: 0.55,
+            };
+          }}
+          onEachFeature={(feature, layer) => {
+            const properties = feature.properties as PopulationProperties;
+            const value = populationValue(properties, populationMetric);
+            const content = document.createElement("div");
+            const title = document.createElement("strong");
+            title.textContent = properties.sa2_name_2021;
+            const detail = document.createElement("div");
+            detail.textContent =
+              value == null
+                ? "No source coverage for this metric"
+                : populationMetric === "density"
+                  ? `${Number(value).toLocaleString()} people/km² · ${properties.pop_yr2 == null ? "population unavailable" : `${Number(properties.pop_yr2).toLocaleString()} residents`}`
+                  : `${Number(value).toFixed(1)}% growth · ${properties.chg_yr_to_yr_no == null ? "population change unavailable" : `${Number(properties.chg_yr_to_yr_no).toLocaleString()} residents`}`;
+            const source = document.createElement("div");
+            source.textContent = "ABS Estimated Resident Population 2024 · SA2";
+            source.style.opacity = "0.65";
+            content.append(title, detail, source);
+            layer.bindTooltip(content, { sticky: true });
+          }}
+        />
+      )}
       <FlyTo target={flyTo} />
       {onMapClick && <ClickHandler onClick={onMapClick} />}
       {onViewportChange && <ViewportReporter onChange={onViewportChange} />}
       {candidatePoint && (
-        <CircleMarker
-          center={[candidatePoint.lat, candidatePoint.lng]}
-          radius={11}
-          pathOptions={{
-            color: "#7c3aed",
-            fillColor: "#8b5cf6",
-            fillOpacity: 0.35,
-            weight: 3,
-          }}
-        />
+        <>
+          <Circle
+            center={[candidatePoint.lat, candidatePoint.lng]}
+            radius={500}
+            pathOptions={{
+              color: "#0f766e",
+              fillColor: "#14b8a6",
+              fillOpacity: 0.05,
+              weight: 2,
+              dashArray: "5 5",
+            }}
+          />
+          {candidateRadiusM !== 500 && (
+            <Circle
+              center={[candidatePoint.lat, candidatePoint.lng]}
+              radius={candidateRadiusM}
+              pathOptions={{
+                color: "#7c3aed",
+                fillColor: "#8b5cf6",
+                fillOpacity: 0.04,
+                weight: 2,
+              }}
+            />
+          )}
+          <CircleMarker
+            center={[candidatePoint.lat, candidatePoint.lng]}
+            radius={11}
+            pathOptions={{
+              color: "#7c3aed",
+              fillColor: "#8b5cf6",
+              fillOpacity: 0.35,
+              weight: 3,
+            }}
+          />
+          {candidateNearestPoint && (
+            <Polyline
+              positions={[
+                [candidatePoint.lat, candidatePoint.lng],
+                [candidateNearestPoint.lat, candidateNearestPoint.lng],
+              ]}
+              pathOptions={{ color: "#7c3aed", weight: 2, dashArray: "6 5" }}
+            />
+          )}
+        </>
       )}
 
       <MarkerClusterGroup
@@ -204,6 +340,7 @@ export function MapView({
             key={p.id}
             position={[p.lat, p.lng]}
             icon={icon}
+            title={`${p.name} — Pharmacy`}
             eventHandlers={{ click: () => onSelect(p.id) }}
           />
         ))}

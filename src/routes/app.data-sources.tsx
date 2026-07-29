@@ -40,9 +40,9 @@ function DataSourcesPage() {
           <div>
             <h1 className="text-xl font-semibold tracking-tight">Data & Sources</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Every dataset the Opportunity Scout uses, with its regulatory purpose, licence
-              status, coverage and freshness. VPA and PBS records only appear once an admin
-              imports a snapshot.
+              Every dataset the Opportunity Scout uses, with its regulatory purpose, licence status,
+              coverage and freshness. VPA and PBS records only appear once an admin imports a
+              snapshot.
             </p>
           </div>
         </div>
@@ -93,7 +93,9 @@ function DataSourcesPage() {
                     {s.coverage_description ?? "—"}
                   </td>
                   <td className="px-4 py-3 text-sm">
-                    {s.fetched_at ? new Date(s.fetched_at).toLocaleDateString() : (
+                    {s.fetched_at ? (
+                      new Date(s.fetched_at).toLocaleDateString()
+                    ) : (
                       <EvidenceBadge kind="missing">Not loaded</EvidenceBadge>
                     )}
                   </td>

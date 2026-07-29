@@ -1,6 +1,15 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { Map, Briefcase, Database, LogOut, Building2 } from "lucide-react";
+import {
+  Map,
+  Briefcase,
+  Database,
+  LogOut,
+  Building2,
+  ShieldCheck,
+  Waypoints,
+  Radar,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
@@ -9,7 +18,10 @@ import { DisclaimerFooter } from "./disclaimer-footer";
 const NAV = [
   { to: "/app", label: "Opportunity Map", icon: Map, exact: true },
   { to: "/app/acquisitions", label: "Acquisition Scout", icon: Briefcase },
+  { to: "/app/scenarios", label: "Saved scenarios", icon: Waypoints },
+  { to: "/app/radar", label: "Opportunity Radar", icon: Radar },
   { to: "/app/data-sources", label: "Data & Sources", icon: Database },
+  { to: "/app/security", label: "Security status", icon: ShieldCheck },
 ];
 
 export function AppShell({

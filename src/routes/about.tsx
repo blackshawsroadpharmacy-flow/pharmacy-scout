@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Map, Briefcase, ShieldCheck, ArrowRight } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { DisclaimerFooter } from "@/components/disclaimer-footer";
+import { fetchPublicDataFreshness } from "@/lib/statewide-search";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
@@ -23,6 +25,13 @@ export const Route = createFileRoute("/about")({
 });
 
 function About() {
+  const freshnessQ = useQuery({
+    queryKey: ["public-data-freshness"],
+    queryFn: fetchPublicDataFreshness,
+    staleTime: 5 * 60 * 1000,
+  });
+  const freshness = freshnessQ.data;
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b border-border bg-card">
@@ -51,27 +60,26 @@ function About() {
             Map-first pharmacy intelligence for Victoria.
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground">
-            The Chemist Care Pharmacy Opportunity Scout starts with a live map of Victorian
-            pharmacy discovery records. You can pan, search and inspect records anonymously.
-            Sign in only when you want to save an acquisition target, place a candidate
-            greenfield site, analyse a relocation, add private financial notes, or upload
-            documents.
+            The Chemist Care Pharmacy Opportunity Scout starts with a live map of Victorian pharmacy
+            discovery records. You can pan, search and inspect records anonymously. Sign in only
+            when you want to save an acquisition target, place a candidate greenfield site, analyse
+            a relocation, add private financial notes, or upload documents.
           </p>
 
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             <Feature icon={Map} title="Explore">
               A full-screen map of pharmacy discovery points, clustered at low zoom and revealed
-              individually as you zoom in. Verification, source and confidence stay visible on
-              every record.
+              individually as you zoom in. Verification, source and confidence stay visible on every
+              record.
             </Feature>
             <Feature icon={Briefcase} title="Acquisition">
               Save pharmacies to a private pipeline. Track watchlist through offer and outcome.
               Financial analysis appears only when you enter private commercial data.
             </Feature>
             <Feature icon={ShieldCheck} title="Verified sources">
-              Every dataset shows its regulatory purpose, licence status, coverage and last
-              refresh. VPA and PBS status only appear once an admin imports a snapshot from the
-              authoritative register.
+              Every dataset shows its regulatory purpose, licence status, coverage and last refresh.
+              VPA and PBS status only appear once an admin imports a snapshot from the authoritative
+              register.
             </Feature>
           </div>
 
@@ -80,17 +88,93 @@ function About() {
             <ul className="mt-3 space-y-1 text-sm text-muted-foreground">
               <li>· No automated Pharmacy Location Rules evaluation.</li>
               <li>· No routing-distance measurement — straight-line only.</li>
-              <li>· No demographic, planning or foot-traffic data.</li>
+              <li>· No planning or foot-traffic data.</li>
               <li>· No financial modelling on public data.</li>
               <li>· No automatic classification of a pharmacy as underperforming.</li>
             </ul>
           </div>
+
+          <section className="mt-8 rounded-xl border border-border bg-card p-6">
+            <h2 className="text-lg font-semibold tracking-tight">Build information</h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Safe deployment identity and public-source freshness. No credentials are displayed.
+            </p>
+            <dl className="mt-4 grid gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+              <BuildFact
+                label="Git commit"
+                value={shortCommit(import.meta.env.VITE_BUILD_COMMIT_SHA)}
+              />
+              <BuildFact label="Build date" value={formatDate(import.meta.env.VITE_BUILD_DATE)} />
+              <BuildFact
+                label="Environment"
+                value={import.meta.env.VITE_BUILD_ENVIRONMENT || "unknown"}
+              />
+              <BuildFact
+                label="Supabase project"
+                value={import.meta.env.VITE_SUPABASE_PROJECT_ID || "unknown"}
+              />
+              <BuildFact
+                label="Latest pharmacy import"
+                value={formatDate(freshness?.latest_pharmacy_import)}
+              />
+              <BuildFact
+                label="Latest supermarket import"
+                value={formatDate(freshness?.latest_supermarket_import)}
+              />
+              <BuildFact
+                label="Latest medical-centre import"
+                value={formatDate(freshness?.latest_medical_centre_import)}
+              />
+              <BuildFact
+                label="ABS reference period"
+                value={freshness?.abs_reference_period ?? loadingValue(freshnessQ.isLoading)}
+              />
+              <BuildFact
+                label="Schema version"
+                value={freshness?.schema_version ?? loadingValue(freshnessQ.isLoading)}
+              />
+            </dl>
+            {freshnessQ.isError && (
+              <p className="mt-3 text-xs text-destructive">
+                Public data-freshness metadata is temporarily unavailable.
+              </p>
+            )}
+          </section>
         </section>
       </main>
 
       <DisclaimerFooter />
     </div>
   );
+}
+
+function BuildFact({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dd className="mt-0.5 break-all font-mono text-xs text-foreground">{value}</dd>
+    </div>
+  );
+}
+
+function shortCommit(value: string | undefined) {
+  if (!value || value === "unknown") return "unknown";
+  return value.slice(0, 12);
+}
+
+function formatDate(value: string | null | undefined) {
+  if (!value) return "No source coverage";
+  const date = new Date(value);
+  if (Number.isNaN(date.valueOf())) return "Unknown";
+  return new Intl.DateTimeFormat("en-AU", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "Australia/Melbourne",
+  }).format(date);
+}
+
+function loadingValue(loading: boolean) {
+  return loading ? "Loading…" : "No source coverage";
 }
 
 function Feature({

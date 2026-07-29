@@ -7,36 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
-  }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       candidate_sites: {
@@ -100,6 +70,266 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      commercial_audit_events: {
+        Row: {
+          action: string
+          actor_id: string | null
+          entity_id: string | null
+          entity_type: string
+          id: string
+          metadata: Json
+          occurred_at: string
+          organisation_id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          metadata?: Json
+          occurred_at?: string
+          organisation_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          metadata?: Json
+          occurred_at?: string
+          organisation_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commercial_audit_events_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dispensing_calibration_observations: {
+        Row: {
+          confidence: string
+          entered_at: string
+          entered_by: string | null
+          evidence_period_end: string
+          evidence_period_start: string
+          id: string
+          includes_daa_volume: boolean | null
+          includes_institutional_supply: boolean | null
+          includes_private_prescriptions: boolean | null
+          includes_under_copayment: boolean | null
+          observed_scripts_per_day: number
+          organisation_id: string
+          pharmacy_id: string
+          source: string
+          source_document_or_note: string | null
+          source_type: string
+          trading_days_per_week: number
+          updated_at: string
+        }
+        Insert: {
+          confidence: string
+          entered_at?: string
+          entered_by?: string | null
+          evidence_period_end: string
+          evidence_period_start: string
+          id?: string
+          includes_daa_volume?: boolean | null
+          includes_institutional_supply?: boolean | null
+          includes_private_prescriptions?: boolean | null
+          includes_under_copayment?: boolean | null
+          observed_scripts_per_day: number
+          organisation_id: string
+          pharmacy_id: string
+          source: string
+          source_document_or_note?: string | null
+          source_type: string
+          trading_days_per_week: number
+          updated_at?: string
+        }
+        Update: {
+          confidence?: string
+          entered_at?: string
+          entered_by?: string | null
+          evidence_period_end?: string
+          evidence_period_start?: string
+          id?: string
+          includes_daa_volume?: boolean | null
+          includes_institutional_supply?: boolean | null
+          includes_private_prescriptions?: boolean | null
+          includes_under_copayment?: boolean | null
+          observed_scripts_per_day?: number
+          organisation_id?: string
+          pharmacy_id?: string
+          source?: string
+          source_document_or_note?: string | null
+          source_type?: string
+          trading_days_per_week?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispensing_calibration_observations_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispensing_calibration_observations_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispensing_calibration_observations_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises_geo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dispensing_demographic_sources: {
+        Row: {
+          boundary_edition: string
+          created_at: string
+          dataset_name: string
+          exact_source: string
+          fetched_at: string
+          fields_used: string[]
+          geography_level: string
+          id: string
+          import_method: string
+          licence: string
+          reference_year: number
+          row_count: number | null
+          source_url: string
+        }
+        Insert: {
+          boundary_edition: string
+          created_at?: string
+          dataset_name: string
+          exact_source: string
+          fetched_at: string
+          fields_used: string[]
+          geography_level: string
+          id?: string
+          import_method: string
+          licence: string
+          reference_year: number
+          row_count?: number | null
+          source_url: string
+        }
+        Update: {
+          boundary_edition?: string
+          created_at?: string
+          dataset_name?: string
+          exact_source?: string
+          fetched_at?: string
+          fields_used?: string[]
+          geography_level?: string
+          id?: string
+          import_method?: string
+          licence?: string
+          reference_year?: number
+          row_count?: number | null
+          source_url?: string
+        }
+        Relationships: []
+      }
+      dispensing_population_areas: {
+        Row: {
+          annual_growth_count: number | null
+          annual_growth_percent: number | null
+          area_km2: number | null
+          boundary: unknown
+          imported_at: string
+          peer_group: string | null
+          population_2023: number | null
+          population_2024: number | null
+          population_density_2024: number | null
+          sa2_code_2021: string
+          sa2_name_2021: string
+          source_id: string
+        }
+        Insert: {
+          annual_growth_count?: number | null
+          annual_growth_percent?: number | null
+          area_km2?: number | null
+          boundary: unknown
+          imported_at?: string
+          peer_group?: string | null
+          population_2023?: number | null
+          population_2024?: number | null
+          population_density_2024?: number | null
+          sa2_code_2021: string
+          sa2_name_2021: string
+          source_id: string
+        }
+        Update: {
+          annual_growth_count?: number | null
+          annual_growth_percent?: number | null
+          area_km2?: number | null
+          boundary?: unknown
+          imported_at?: string
+          peer_group?: string | null
+          population_2023?: number | null
+          population_2024?: number | null
+          population_density_2024?: number | null
+          sa2_code_2021?: string
+          sa2_name_2021?: string
+          source_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispensing_population_areas_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "dispensing_demographic_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dispensing_potential_methods: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          label: string
+          minimum_calibration_observations: number
+          validation_requirements: Json
+          version: string
+          weights: Json
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          label: string
+          minimum_calibration_observations?: number
+          validation_requirements: Json
+          version: string
+          weights: Json
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          label?: string
+          minimum_calibration_observations?: number
+          validation_requirements?: Json
+          version?: string
+          weights?: Json
+        }
+        Relationships: []
       }
       external_entity_conflicts: {
         Row: {
@@ -394,6 +624,123 @@ export type Database = {
         }
         Relationships: []
       }
+      greenfield_assessments: {
+        Row: {
+          assessed_at: string
+          assessed_by: string | null
+          change_summary: Json
+          evidence_hash: string
+          evidence_snapshot: Json
+          id: string
+          organisation_id: string
+          scenario_id: string
+          sequence_number: number
+        }
+        Insert: {
+          assessed_at?: string
+          assessed_by?: string | null
+          change_summary?: Json
+          evidence_hash: string
+          evidence_snapshot: Json
+          id?: string
+          organisation_id: string
+          scenario_id: string
+          sequence_number: number
+        }
+        Update: {
+          assessed_at?: string
+          assessed_by?: string | null
+          change_summary?: Json
+          evidence_hash?: string
+          evidence_snapshot?: Json
+          id?: string
+          organisation_id?: string
+          scenario_id?: string
+          sequence_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "greenfield_assessments_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "greenfield_assessments_scenario_id_fkey"
+            columns: ["scenario_id"]
+            isOneToOne: false
+            referencedRelation: "greenfield_scenarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      greenfield_scenarios: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          created_by: string | null
+          duplicated_from: string | null
+          id: string
+          inputs: Json
+          name: string
+          notes: string | null
+          organisation_id: string
+          proposed_address: string | null
+          proposed_lat: number
+          proposed_lng: number
+          proposed_location: unknown
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          duplicated_from?: string | null
+          id?: string
+          inputs?: Json
+          name: string
+          notes?: string | null
+          organisation_id: string
+          proposed_address?: string | null
+          proposed_lat: number
+          proposed_lng: number
+          proposed_location: unknown
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          duplicated_from?: string | null
+          id?: string
+          inputs?: Json
+          name?: string
+          notes?: string | null
+          organisation_id?: string
+          proposed_address?: string | null
+          proposed_lat?: number
+          proposed_lng?: number
+          proposed_location?: unknown
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "greenfield_scenarios_duplicated_from_fkey"
+            columns: ["duplicated_from"]
+            isOneToOne: false
+            referencedRelation: "greenfield_scenarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "greenfield_scenarios_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       medical_centres: {
         Row: {
           address: string | null
@@ -580,6 +927,378 @@ export type Database = {
           },
         ]
       }
+      opportunity_checklist_items: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          label: string
+          opportunity_id: string
+          organisation_id: string
+          position: number
+          updated_at: string
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label: string
+          opportunity_id: string
+          organisation_id: string
+          position?: number
+          updated_at?: string
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label?: string
+          opportunity_id?: string
+          organisation_id?: string
+          position?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_checklist_items_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_checklist_items_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunity_commercial_figures: {
+        Row: {
+          amount: number
+          confidence: string
+          entered_at: string
+          entered_by: string | null
+          evidence_period_end: string | null
+          evidence_period_start: string | null
+          id: string
+          metric: string
+          opportunity_id: string
+          organisation_id: string
+          source: string
+          unit: string
+        }
+        Insert: {
+          amount: number
+          confidence?: string
+          entered_at?: string
+          entered_by?: string | null
+          evidence_period_end?: string | null
+          evidence_period_start?: string | null
+          id?: string
+          metric: string
+          opportunity_id: string
+          organisation_id: string
+          source: string
+          unit: string
+        }
+        Update: {
+          amount?: number
+          confidence?: string
+          entered_at?: string
+          entered_by?: string | null
+          evidence_period_end?: string | null
+          evidence_period_start?: string | null
+          id?: string
+          metric?: string
+          opportunity_id?: string
+          organisation_id?: string
+          source?: string
+          unit?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_commercial_figures_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_commercial_figures_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunity_documents: {
+        Row: {
+          file_name: string
+          id: string
+          mime_type: string | null
+          opportunity_id: string
+          organisation_id: string
+          size_bytes: number | null
+          storage_path: string
+          uploaded_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          file_name: string
+          id?: string
+          mime_type?: string | null
+          opportunity_id: string
+          organisation_id: string
+          size_bytes?: number | null
+          storage_path: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          file_name?: string
+          id?: string
+          mime_type?: string | null
+          opportunity_id?: string
+          organisation_id?: string
+          size_bytes?: number | null
+          storage_path?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_documents_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_documents_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunity_listing_history: {
+        Row: {
+          confidence: string
+          entered_by: string | null
+          evidence_period_end: string | null
+          evidence_period_start: string | null
+          id: string
+          listing_status: string
+          listing_url: string | null
+          opportunity_id: string
+          organisation_id: string
+          recorded_at: string
+          source: string
+        }
+        Insert: {
+          confidence?: string
+          entered_by?: string | null
+          evidence_period_end?: string | null
+          evidence_period_start?: string | null
+          id?: string
+          listing_status: string
+          listing_url?: string | null
+          opportunity_id: string
+          organisation_id: string
+          recorded_at?: string
+          source: string
+        }
+        Update: {
+          confidence?: string
+          entered_by?: string | null
+          evidence_period_end?: string | null
+          evidence_period_start?: string | null
+          id?: string
+          listing_status?: string
+          listing_url?: string | null
+          opportunity_id?: string
+          organisation_id?: string
+          recorded_at?: string
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_listing_history_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_listing_history_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunity_notes: {
+        Row: {
+          entered_at: string
+          entered_by: string | null
+          id: string
+          note_text: string
+          opportunity_id: string
+          organisation_id: string
+        }
+        Insert: {
+          entered_at?: string
+          entered_by?: string | null
+          id?: string
+          note_text: string
+          opportunity_id: string
+          organisation_id: string
+        }
+        Update: {
+          entered_at?: string
+          entered_by?: string | null
+          id?: string
+          note_text?: string
+          opportunity_id?: string
+          organisation_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_notes_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_notes_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunity_stage_history: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          from_stage: Database["public"]["Enums"]["pipeline_stage"] | null
+          id: string
+          opportunity_id: string
+          organisation_id: string
+          to_stage: Database["public"]["Enums"]["pipeline_stage"]
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          from_stage?: Database["public"]["Enums"]["pipeline_stage"] | null
+          id?: string
+          opportunity_id: string
+          organisation_id: string
+          to_stage: Database["public"]["Enums"]["pipeline_stage"]
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          from_stage?: Database["public"]["Enums"]["pipeline_stage"] | null
+          id?: string
+          opportunity_id?: string
+          organisation_id?: string
+          to_stage?: Database["public"]["Enums"]["pipeline_stage"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_stage_history_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_stage_history_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunity_tasks: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          due_date: string | null
+          id: string
+          opportunity_id: string
+          organisation_id: string
+          owner_name: string | null
+          owner_user_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          due_date?: string | null
+          id?: string
+          opportunity_id: string
+          organisation_id: string
+          owner_name?: string | null
+          owner_user_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          due_date?: string | null
+          id?: string
+          opportunity_id?: string
+          organisation_id?: string
+          owner_name?: string | null
+          owner_user_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_tasks_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_tasks_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organisation_members: {
         Row: {
           joined_at: string
@@ -702,46 +1421,94 @@ export type Database = {
       }
       pharmacy_businesses: {
         Row: {
+          annual_rent: number | null
           asking_price: number | null
+          broker_contact: string | null
+          broker_name: string | null
           broker_or_source: string | null
+          canonical_address_snapshot: string | null
+          canonical_name_snapshot: string | null
           created_at: string
           created_by: string | null
+          date_first_seen: string | null
+          earnings: number | null
+          gross_profit: number | null
           id: string
+          lease_expiry: string | null
+          lease_option_periods: string | null
+          listing_status: string
           listing_url: string | null
           opportunity_status: string | null
           organisation_id: string
           premises_id: string | null
           private_notes: string | null
+          scripts_per_day: number | null
+          stock_value: number | null
           trading_name: string
           updated_at: string
+          vendor_contact: string | null
+          vendor_name: string | null
+          wages: number | null
         }
         Insert: {
+          annual_rent?: number | null
           asking_price?: number | null
+          broker_contact?: string | null
+          broker_name?: string | null
           broker_or_source?: string | null
+          canonical_address_snapshot?: string | null
+          canonical_name_snapshot?: string | null
           created_at?: string
           created_by?: string | null
+          date_first_seen?: string | null
+          earnings?: number | null
+          gross_profit?: number | null
           id?: string
+          lease_expiry?: string | null
+          lease_option_periods?: string | null
+          listing_status?: string
           listing_url?: string | null
           opportunity_status?: string | null
           organisation_id: string
           premises_id?: string | null
           private_notes?: string | null
+          scripts_per_day?: number | null
+          stock_value?: number | null
           trading_name: string
           updated_at?: string
+          vendor_contact?: string | null
+          vendor_name?: string | null
+          wages?: number | null
         }
         Update: {
+          annual_rent?: number | null
           asking_price?: number | null
+          broker_contact?: string | null
+          broker_name?: string | null
           broker_or_source?: string | null
+          canonical_address_snapshot?: string | null
+          canonical_name_snapshot?: string | null
           created_at?: string
           created_by?: string | null
+          date_first_seen?: string | null
+          earnings?: number | null
+          gross_profit?: number | null
           id?: string
+          lease_expiry?: string | null
+          lease_option_periods?: string | null
+          listing_status?: string
           listing_url?: string | null
           opportunity_status?: string | null
           organisation_id?: string
           premises_id?: string | null
           private_notes?: string | null
+          scripts_per_day?: number | null
+          stock_value?: number | null
           trading_name?: string
           updated_at?: string
+          vendor_contact?: string | null
+          vendor_name?: string | null
+          wages?: number | null
         }
         Relationships: [
           {
@@ -767,12 +1534,98 @@ export type Database = {
           },
         ]
       }
+      pharmacy_dispensing_potential: {
+        Row: {
+          calculated_at: string
+          component_scores: Json
+          evidence_confidence: string
+          experimental_scripts_day_equivalent: number | null
+          explanation: Json
+          method_id: string
+          missing_inputs: string[]
+          peer_group: string | null
+          peer_percentile: number | null
+          pharmacy_id: string
+          raw_metrics: Json
+          relative_score: number | null
+          scripts_day_status: string
+          theoretical_scripts_day_high: number | null
+          theoretical_scripts_day_low: number | null
+          victorian_percentile: number | null
+          warnings: string[]
+        }
+        Insert: {
+          calculated_at?: string
+          component_scores: Json
+          evidence_confidence: string
+          experimental_scripts_day_equivalent?: number | null
+          explanation: Json
+          method_id: string
+          missing_inputs?: string[]
+          peer_group?: string | null
+          peer_percentile?: number | null
+          pharmacy_id: string
+          raw_metrics: Json
+          relative_score?: number | null
+          scripts_day_status?: string
+          theoretical_scripts_day_high?: number | null
+          theoretical_scripts_day_low?: number | null
+          victorian_percentile?: number | null
+          warnings?: string[]
+        }
+        Update: {
+          calculated_at?: string
+          component_scores?: Json
+          evidence_confidence?: string
+          experimental_scripts_day_equivalent?: number | null
+          explanation?: Json
+          method_id?: string
+          missing_inputs?: string[]
+          peer_group?: string | null
+          peer_percentile?: number | null
+          pharmacy_id?: string
+          raw_metrics?: Json
+          relative_score?: number | null
+          scripts_day_status?: string
+          theoretical_scripts_day_high?: number | null
+          theoretical_scripts_day_low?: number | null
+          victorian_percentile?: number | null
+          warnings?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_dispensing_potential_method_id_fkey"
+            columns: ["method_id"]
+            isOneToOne: false
+            referencedRelation: "dispensing_potential_methods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_dispensing_potential_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_dispensing_potential_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises_geo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pharmacy_im_attachments: {
         Row: {
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
           file_name: string
           id: string
           mime_type: string | null
+          organisation_id: string | null
+          orphaned_demo: boolean
           pharmacy_profile_id: string
           premises_id: string
           size_bytes: number | null
@@ -781,9 +1634,13 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           file_name: string
           id?: string
           mime_type?: string | null
+          organisation_id?: string | null
+          orphaned_demo?: boolean
           pharmacy_profile_id: string
           premises_id: string
           size_bytes?: number | null
@@ -792,9 +1649,13 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           file_name?: string
           id?: string
           mime_type?: string | null
+          organisation_id?: string | null
+          orphaned_demo?: boolean
           pharmacy_profile_id?: string
           premises_id?: string
           size_bytes?: number | null
@@ -802,6 +1663,13 @@ export type Database = {
           uploaded_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "pharmacy_im_attachments_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "pharmacy_im_attachments_pharmacy_profile_id_fkey"
             columns: ["pharmacy_profile_id"]
@@ -897,6 +1765,8 @@ export type Database = {
           created_by: string | null
           id: string
           note_text: string
+          organisation_id: string | null
+          orphaned_demo: boolean
           pharmacy_profile_id: string
           premises_id: string
         }
@@ -905,6 +1775,8 @@ export type Database = {
           created_by?: string | null
           id?: string
           note_text: string
+          organisation_id?: string | null
+          orphaned_demo?: boolean
           pharmacy_profile_id: string
           premises_id: string
         }
@@ -913,10 +1785,19 @@ export type Database = {
           created_by?: string | null
           id?: string
           note_text?: string
+          organisation_id?: string | null
+          orphaned_demo?: boolean
           pharmacy_profile_id?: string
           premises_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "pharmacy_note_entries_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "pharmacy_note_entries_pharmacy_profile_id_fkey"
             columns: ["pharmacy_profile_id"]
@@ -1045,6 +1926,8 @@ export type Database = {
           notes: string
           notes_updated_at: string | null
           notes_updated_by: string | null
+          organisation_id: string | null
+          orphaned_demo: boolean
           owner_licensee: string | null
           premises_id: string
           revenue: number | null
@@ -1060,6 +1943,8 @@ export type Database = {
           notes?: string
           notes_updated_at?: string | null
           notes_updated_by?: string | null
+          organisation_id?: string | null
+          orphaned_demo?: boolean
           owner_licensee?: string | null
           premises_id: string
           revenue?: number | null
@@ -1075,6 +1960,8 @@ export type Database = {
           notes?: string
           notes_updated_at?: string | null
           notes_updated_by?: string | null
+          organisation_id?: string | null
+          orphaned_demo?: boolean
           owner_licensee?: string | null
           premises_id?: string
           revenue?: number | null
@@ -1084,16 +1971,23 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "pharmacy_profiles_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "pharmacy_profiles_premises_id_fkey"
             columns: ["premises_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "pharmacy_premises"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "pharmacy_profiles_premises_id_fkey"
             columns: ["premises_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "pharmacy_premises_geo"
             referencedColumns: ["id"]
           },
@@ -1131,41 +2025,139 @@ export type Database = {
           },
         ]
       }
+      relocation_assessments: {
+        Row: {
+          assessed_at: string
+          assessed_by: string | null
+          change_summary: Json
+          comparison_snapshot: Json
+          destination_evidence_snapshot: Json
+          evidence_hash: string
+          id: string
+          organisation_id: string
+          origin_evidence_snapshot: Json
+          scenario_id: string
+          sequence_number: number
+        }
+        Insert: {
+          assessed_at?: string
+          assessed_by?: string | null
+          change_summary?: Json
+          comparison_snapshot: Json
+          destination_evidence_snapshot: Json
+          evidence_hash: string
+          id?: string
+          organisation_id: string
+          origin_evidence_snapshot: Json
+          scenario_id: string
+          sequence_number: number
+        }
+        Update: {
+          assessed_at?: string
+          assessed_by?: string | null
+          change_summary?: Json
+          comparison_snapshot?: Json
+          destination_evidence_snapshot?: Json
+          evidence_hash?: string
+          id?: string
+          organisation_id?: string
+          origin_evidence_snapshot?: Json
+          scenario_id?: string
+          sequence_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relocation_assessments_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relocation_assessments_scenario_id_fkey"
+            columns: ["scenario_id"]
+            isOneToOne: false
+            referencedRelation: "relocation_scenarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       relocation_scenarios: {
         Row: {
           actor_id: string | null
+          archived_at: string | null
           created_at: string
+          created_by: string | null
           destination_address: string | null
           destination_door_point: unknown
+          destination_lat: number | null
+          destination_lng: number | null
           destination_location: unknown
+          duplicated_from: string | null
           id: string
           inputs: Json
+          name: string
+          notes: string | null
+          organisation_id: string | null
           origin_pharmacy_id: string | null
+          orphaned_demo: boolean
           updated_at: string
         }
         Insert: {
           actor_id?: string | null
+          archived_at?: string | null
           created_at?: string
+          created_by?: string | null
           destination_address?: string | null
           destination_door_point?: unknown
+          destination_lat?: number | null
+          destination_lng?: number | null
           destination_location?: unknown
+          duplicated_from?: string | null
           id?: string
           inputs?: Json
+          name: string
+          notes?: string | null
+          organisation_id?: string | null
           origin_pharmacy_id?: string | null
+          orphaned_demo?: boolean
           updated_at?: string
         }
         Update: {
           actor_id?: string | null
+          archived_at?: string | null
           created_at?: string
+          created_by?: string | null
           destination_address?: string | null
           destination_door_point?: unknown
+          destination_lat?: number | null
+          destination_lng?: number | null
           destination_location?: unknown
+          duplicated_from?: string | null
           id?: string
           inputs?: Json
+          name?: string
+          notes?: string | null
+          organisation_id?: string | null
           origin_pharmacy_id?: string | null
+          orphaned_demo?: boolean
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "relocation_scenarios_duplicated_from_fkey"
+            columns: ["duplicated_from"]
+            isOneToOne: false
+            referencedRelation: "relocation_scenarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relocation_scenarios_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "relocation_scenarios_origin_pharmacy_id_fkey"
             columns: ["origin_pharmacy_id"]
@@ -1873,6 +2865,21 @@ export type Database = {
         Returns: unknown
       }
       _st_within: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      add_pharmacy_to_pipeline: {
+        Args: {
+          p_asking_price?: number
+          p_broker_or_source?: string
+          p_date_first_seen?: string
+          p_listing_url?: string
+          p_premises_id: string
+          p_stage?: Database["public"]["Enums"]["pipeline_stage"]
+        }
+        Returns: {
+          business_id: string
+          created: boolean
+          opportunity_id: string
+        }[]
+      }
       addauth: { Args: { "": string }; Returns: boolean }
       addgeometrycolumn:
         | {
@@ -1913,6 +2920,71 @@ export type Database = {
           }
       candidate_external_summary: {
         Args: { p_lat: number; p_lng: number }
+        Returns: Json
+      }
+      candidate_external_within_500m: {
+        Args: { p_category: string; p_lat: number; p_lng: number }
+        Returns: {
+          address: string
+          calculated_point_distance_m: number
+          category: string
+          coordinate_confidence: number
+          coordinate_method: string
+          evidence_fetched_at: string
+          id: string
+          lat: number
+          lng: number
+          name: string
+          source_name: string
+          source_url: string
+          unresolved_conflicts: number
+          verification_status: string
+          warnings: string[]
+        }[]
+      }
+      candidate_nearest_pharmacy: {
+        Args: {
+          p_confirmed_only?: boolean
+          p_lat: number
+          p_limit?: number
+          p_lng: number
+        }
+        Returns: {
+          address: string
+          calculated_point_distance_m: number
+          confirmation_basis: string
+          coordinate_quality: string
+          distance_usable: boolean
+          evidence_fetched_at: string
+          id: string
+          lat: number
+          lng: number
+          name: string
+          source_name: string
+          source_url: string
+          unresolved_duplicate_candidates: number
+          verification_status: string
+          warnings: string[]
+        }[]
+      }
+      candidate_pharmacies_within_radius: {
+        Args: { p_lat: number; p_lng: number; p_radius_m: number }
+        Returns: {
+          address: string
+          calculated_point_distance_m: number
+          coordinate_quality: string
+          evidence_fetched_at: string
+          id: string
+          lat: number
+          lng: number
+          name: string
+          source_name: string
+          source_url: string
+          verification_status: string
+        }[]
+      }
+      candidate_site_analysis: {
+        Args: { p_lat: number; p_lng: number; p_radius_m?: number }
         Returns: Json
       }
       disablelongtransactions: { Args: never; Returns: string }
@@ -1972,6 +3044,30 @@ export type Database = {
           name: string
           source_name: string
           source_url: string
+          verification_status: string
+        }[]
+      }
+      external_points_in_viewport_v2: {
+        Args: {
+          p_category: string
+          p_east: number
+          p_limit?: number
+          p_north: number
+          p_south: number
+          p_west: number
+        }
+        Returns: {
+          address: string
+          category: string
+          coordinate_confidence: number
+          fetched_at: string
+          id: string
+          lat: number
+          lng: number
+          name: string
+          source_name: string
+          source_url: string
+          total_count: number
           verification_status: string
         }[]
       }
@@ -2095,6 +3191,52 @@ export type Database = {
       }
       is_org_member: { Args: { _org: string }; Returns: boolean }
       longtransactionsenabled: { Args: never; Returns: boolean }
+      organisation_security_status: { Args: never; Returns: Json }
+      pharmacy_pipeline_status: {
+        Args: { p_premises_id: string }
+        Returns: {
+          business_id: string
+          listing_status: string
+          opportunity_id: string
+          pipeline_stage: Database["public"]["Enums"]["pipeline_stage"]
+        }[]
+      }
+      pharmacy_pipeline_statuses: {
+        Args: { p_premises_ids: string[] }
+        Returns: {
+          business_id: string
+          listing_status: string
+          opportunity_id: string
+          pipeline_stage: Database["public"]["Enums"]["pipeline_stage"]
+          premises_id: string
+        }[]
+      }
+      pharmacy_points_in_viewport: {
+        Args: {
+          p_east: number
+          p_limit?: number
+          p_metro_only?: boolean
+          p_missing_data?: boolean
+          p_north: number
+          p_south: number
+          p_west: number
+        }
+        Returns: {
+          address: string
+          geocode_method: string
+          id: string
+          lat: number
+          lng: number
+          locality_name: string
+          name: string
+          postcode: string
+          premises_source: Database["public"]["Enums"]["premises_source_type"]
+          source_confidence: string
+          suburb: string
+          total_count: number
+          vpa_registration_status: Database["public"]["Enums"]["verification_status"]
+        }[]
+      }
       populate_geometry_columns:
         | { Args: { tbl_oid: unknown; use_typmod?: boolean }; Returns: number }
         | { Args: { use_typmod?: boolean }; Returns: string }
@@ -2135,6 +3277,25 @@ export type Database = {
       }
       postgis_version: { Args: never; Returns: string }
       postgis_wagyu_version: { Args: never; Returns: string }
+      public_data_freshness: { Args: never; Returns: Json }
+      refresh_dispensing_potential_v1: { Args: never; Returns: number }
+      scenario_evidence_at_point: {
+        Args: { p_lat: number; p_lng: number; p_radius_m: number }
+        Returns: Json
+      }
+      scenario_origin_pharmacy: {
+        Args: { p_pharmacy_id: string }
+        Returns: {
+          address: string
+          coordinate_quality: string
+          id: string
+          lat: number
+          lng: number
+          name: string
+          source_confidence: string
+          unresolved_conflicts: number
+        }[]
+      }
       set_premises_door: {
         Args: { _lat: number; _lng: number; _premises_id: string }
         Returns: undefined
@@ -2720,6 +3881,22 @@ export type Database = {
         Args: { geom: unknown; move: number; wrap: number }
         Returns: unknown
       }
+      statewide_location_search: {
+        Args: { p_limit?: number; p_query: string }
+        Returns: {
+          is_private: boolean
+          lat: number
+          lng: number
+          relevance: number
+          result_address: string
+          result_id: string
+          result_name: string
+          result_postcode: string
+          result_suburb: string
+          result_type: string
+          source_confidence: string
+        }[]
+      }
       unlockrows: { Args: { "": string }; Returns: number }
       updategeometrysrid: {
         Args: {
@@ -2903,9 +4080,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       app_role: ["admin", "member"],

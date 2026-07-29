@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run test
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+
+  supabase-migrations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: supabase start
+      - run: supabase db reset
+      - run: >-
+          supabase test db
+          supabase/tests/pbs_approvals_rls.test.sql
+          supabase/tests/viewport_queries.test.sql
+          supabase/tests/candidate_site_analysis.test.sql
+          supabase/tests/statewide_search.test.sql
+          supabase/tests/commercial_security.test.sql
+          supabase/tests/pharmacy_pipeline.test.sql
+          supabase/tests/opportunity_workspace.test.sql
+          supabase/tests/saved_scenarios.test.sql
+          supabase/tests/dispensing_potential.test.sql
+      - run: npm run check:supabase-schema
+      - run: supabase db lint --local --level error

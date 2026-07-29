@@ -52,7 +52,9 @@ export function EvidenceBadge({
     info: "bg-accent text-accent-foreground",
   }[kind];
   return (
-    <span className={cn("inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium", styles)}>
+    <span
+      className={cn("inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium", styles)}
+    >
       {children}
     </span>
   );
