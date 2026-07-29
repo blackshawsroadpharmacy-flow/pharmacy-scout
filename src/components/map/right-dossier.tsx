@@ -738,13 +738,22 @@ function PrivateWorkspace({ authed, premisesId }: { authed: boolean; premisesId:
           .upload(storagePath, file, { upsert: false });
         if (upload.error) throw upload.error;
 
-        await registerImAttachment({
-          premises_id: premisesId,
-          storage_path: storagePath,
-          file_name: file.name,
-          mime_type: file.type || null,
-          size_bytes: file.size,
-        });
+        // If the metadata row fails (RLS check, expired token, network) the
+        // object is already stored. Without this compensation it becomes an
+        // orphaned confidential document: invisible to the UI and to the audit
+        // trail, but still readable by any organisation member.
+        try {
+          await registerImAttachment({
+            premises_id: premisesId,
+            storage_path: storagePath,
+            file_name: file.name,
+            mime_type: file.type || null,
+            size_bytes: file.size,
+          });
+        } catch (registrationError) {
+          await supabase.storage.from("information-memorandums").remove([storagePath]);
+          throw registrationError;
+        }
       }
       toast.success("Attachment uploaded");
       await loadProfile();
