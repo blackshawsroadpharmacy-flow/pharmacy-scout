@@ -96,5 +96,6 @@ jobs:
           supabase/tests/dispensing_potential_v1_1.test.sql
           supabase/tests/location_rules_boundaries.test.sql
           supabase/tests/anon_privileges.test.sql
+          supabase/tests/vpa_refresh.test.sql
       - run: npm run check:supabase-schema
       - run: supabase db lint --local --level error

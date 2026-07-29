@@ -2345,12 +2345,15 @@ export type Database = {
           notes: string | null
           phone: string | null
           postcode: string | null
+          proprietor_names: string[] | null
           premises_source: Database["public"]["Enums"]["premises_source_type"]
           public_door_location: unknown
           source_confidence: string | null
           source_id: string | null
           suburb: string | null
           updated_at: string
+          vpa_last_synced_at: string | null
+          vpa_record_key: string | null
           vpa_registration_checked_at: string | null
           vpa_registration_status: Database["public"]["Enums"]["verification_status"]
           vpa_source_id: string | null
@@ -2371,12 +2374,15 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           postcode?: string | null
+          proprietor_names?: string[] | null
           premises_source: Database["public"]["Enums"]["premises_source_type"]
           public_door_location?: unknown
           source_confidence?: string | null
           source_id?: string | null
           suburb?: string | null
           updated_at?: string
+          vpa_last_synced_at?: string | null
+          vpa_record_key?: string | null
           vpa_registration_checked_at?: string | null
           vpa_registration_status?: Database["public"]["Enums"]["verification_status"]
           vpa_source_id?: string | null
@@ -2397,12 +2403,15 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           postcode?: string | null
+          proprietor_names?: string[] | null
           premises_source?: Database["public"]["Enums"]["premises_source_type"]
           public_door_location?: unknown
           source_confidence?: string | null
           source_id?: string | null
           suburb?: string | null
           updated_at?: string
+          vpa_last_synced_at?: string | null
+          vpa_record_key?: string | null
           vpa_registration_checked_at?: string | null
           vpa_registration_status?: Database["public"]["Enums"]["verification_status"]
           vpa_source_id?: string | null
@@ -2424,6 +2433,127 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pharmacy_premises_licensees: {
+        Row: {
+          conditions: string | null
+          id: string
+          last_seen_at: string
+          license_status: string | null
+          licensee_name: string
+          licensed_until: string | null
+          premises_id: string
+          source_id: string | null
+          vpa_postcode: string | null
+          vpa_premises_name: string
+          vpa_record_key: string
+          vpa_source_id: string | null
+          vpa_street: string | null
+          vpa_suburb: string | null
+        }
+        Insert: {
+          conditions?: string | null
+          id?: string
+          last_seen_at?: string
+          license_status?: string | null
+          licensee_name: string
+          licensed_until?: string | null
+          premises_id: string
+          source_id?: string | null
+          vpa_postcode?: string | null
+          vpa_premises_name: string
+          vpa_record_key: string
+          vpa_source_id?: string | null
+          vpa_street?: string | null
+          vpa_suburb?: string | null
+        }
+        Update: {
+          conditions?: string | null
+          id?: string
+          last_seen_at?: string
+          license_status?: string | null
+          licensee_name?: string
+          licensed_until?: string | null
+          premises_id?: string
+          source_id?: string | null
+          vpa_postcode?: string | null
+          vpa_premises_name?: string
+          vpa_record_key?: string
+          vpa_source_id?: string | null
+          vpa_street?: string | null
+          vpa_suburb?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_premises_licensees_premises_id_fkey"
+            columns: ["premises_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_premises_licensees_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "source_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_premises_licensees_vpa_source_id_fkey"
+            columns: ["vpa_source_id"]
+            isOneToOne: false
+            referencedRelation: "source_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pharmacy_vpa_runs: {
+        Row: {
+          duration_ms: number | null
+          error_message: string | null
+          finished_at: string | null
+          id: string
+          licensees_upserted: number
+          postcodes_queried: number
+          postcodes_with_cap_warning: number
+          premises_added: number
+          premises_removed: number
+          premises_updated: number
+          started_at: string
+          status: string
+          triggered_by: string | null
+        }
+        Insert: {
+          duration_ms?: number | null
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          licensees_upserted?: number
+          postcodes_queried?: number
+          postcodes_with_cap_warning?: number
+          premises_added?: number
+          premises_removed?: number
+          premises_updated?: number
+          started_at?: string
+          status?: string
+          triggered_by?: string | null
+        }
+        Update: {
+          duration_ms?: number | null
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          licensees_upserted?: number
+          postcodes_queried?: number
+          postcodes_with_cap_warning?: number
+          premises_added?: number
+          premises_removed?: number
+          premises_updated?: number
+          started_at?: string
+          status?: string
+          triggered_by?: string | null
+        }
+        Relationships: []
       }
       pharmacy_profiles: {
         Row: {
@@ -2936,6 +3066,7 @@ export type Database = {
           notes: string | null
           regulatory_purpose: string | null
           row_count: number | null
+          source_key: string | null
           source_kind: Database["public"]["Enums"]["premises_source_type"]
           source_name: string
           source_url: string | null
@@ -2954,6 +3085,7 @@ export type Database = {
           notes?: string | null
           regulatory_purpose?: string | null
           row_count?: number | null
+          source_key?: string | null
           source_kind: Database["public"]["Enums"]["premises_source_type"]
           source_name: string
           source_url?: string | null
@@ -2972,6 +3104,7 @@ export type Database = {
           notes?: string | null
           regulatory_purpose?: string | null
           row_count?: number | null
+          source_key?: string | null
           source_kind?: Database["public"]["Enums"]["premises_source_type"]
           source_name?: string
           source_url?: string | null
