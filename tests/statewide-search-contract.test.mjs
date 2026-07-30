@@ -40,7 +40,11 @@ test("search results are grouped and explicit result selection owns navigation",
   assert.match(mapScreen, /setSelectedExternal\(\{ category, id: result\.result_id \}\)/);
   assert.match(mapScreen, /navigate\(\{ to: "\/app\/acquisitions" \}\)/);
   assert.match(mapScreen, /onSelect=\{openPremises\}/);
-  assert.doesNotMatch(mapScreen, /function openPremises[\s\S]{0,180}setFlyTo/);
+  const openPremises = mapScreen.match(
+    /function openPremises\(id: string\) \{(?<body>[\s\S]*?)\n  \}/,
+  )?.groups?.body;
+  assert.ok(openPremises);
+  assert.doesNotMatch(openPremises, /setFlyTo/);
 });
 
 test("build identity exposes safe deployment fields without keys", () => {

@@ -126,7 +126,10 @@ export function RightDossier({
             </section>
 
             <OfficialRegistration dossier={dossier} />
-            <RegisteredLicensees licensees={dossier.registered_licensees} />
+            <RegisteredLicensees
+              licensees={dossier.registered_licensees}
+              state={dossier.registered_licensees_state}
+            />
 
             <section className="mt-5">
               <SectionLabel>Contact &amp; provenance</SectionLabel>
@@ -256,15 +259,19 @@ function OfficialRegistration({ dossier }: { dossier: Awaited<ReturnType<typeof 
 
 function RegisteredLicensees({
   licensees,
+  state,
 }: {
   licensees: NonNullable<Awaited<ReturnType<typeof fetchDossier>>>["registered_licensees"];
+  state: NonNullable<Awaited<ReturnType<typeof fetchDossier>>>["registered_licensees_state"];
 }) {
   const current = licensees.filter((licensee) => licensee.currently_observed);
   return (
     <section className="mt-5" data-testid="registered-licensees">
       <SectionLabel>Registered licensees</SectionLabel>
-      {current.length === 0 ? (
-        <p className="mt-2 text-xs text-muted-foreground">{registeredLicenseeSummary(0)}</p>
+      {state !== "loaded" || current.length === 0 ? (
+        <p className="mt-2 text-xs text-muted-foreground">
+          {registeredLicenseeSummary(current.length, state)}
+        </p>
       ) : (
         <div className="mt-2 space-y-2">
           <p className="text-xs text-muted-foreground">

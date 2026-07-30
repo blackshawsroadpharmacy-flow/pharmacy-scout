@@ -44,6 +44,7 @@ export interface PremisesDossier extends PremisesMapPoint {
   vpa_review_status: string;
   vpa_pbs_match_state: string;
   vpa_geocode_status: string;
+  registered_licensees_state: "loaded" | "sign_in_required" | "unavailable";
   registered_licensees: Array<{
     id: string;
     licensee_name: string;
@@ -166,9 +167,6 @@ export async function fetchDossier(
   ]);
   if (premisesRes.error) throw new Error(premisesRes.error.message);
   if (approvalsRes.error) throw new Error(approvalsRes.error.message);
-  if (licenseesRes.error && licenseesRes.error.code !== "42501") {
-    throw new Error(licenseesRes.error.message);
-  }
   if (!premisesRes.data) return null;
 
   const premises = premisesRes.data as unknown as PremisesDossierRow;
@@ -209,6 +207,11 @@ export async function fetchDossier(
     vpa_review_status: premises.vpa_review_status,
     vpa_pbs_match_state: premises.vpa_pbs_match_state,
     vpa_geocode_status: premises.vpa_geocode_status,
+    registered_licensees_state: licenseesRes.error
+      ? licenseesRes.error.code === "42501"
+        ? "sign_in_required"
+        : "unavailable"
+      : "loaded",
     registered_licensees: (licenseesRes.data ?? []).map((licensee) => ({
       ...licensee,
       other_active_premises_count: null,

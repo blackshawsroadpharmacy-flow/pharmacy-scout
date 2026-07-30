@@ -3,6 +3,7 @@ import { Search, Layers, Bookmark, User, MapPin, LockKeyhole } from "lucide-reac
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import {
+  hasVerifiedSearchCoordinates,
   searchStatewideLocations,
   type StatewideSearchResult,
   type StatewideSearchType,
@@ -199,7 +200,16 @@ export function TopBar({
                           {formatSearchAddress(result)}
                         </span>
                         <span className="block text-[10px] text-muted-foreground">
-                          {typeLabel(result.result_type)} · {result.source_confidence}
+                          {typeLabel(result.result_type)}
+                          {result.source_confidence
+                            ? ` · ${result.source_confidence} confidence`
+                            : ""}
+                          {result.registration_source_status
+                            ? ` · VPA source ${result.registration_source_status.replaceAll("_", " ")}`
+                            : ""}
+                          {!hasVerifiedSearchCoordinates(result)
+                            ? " · Location not yet verified"
+                            : ""}
                         </span>
                       </span>
                     </button>

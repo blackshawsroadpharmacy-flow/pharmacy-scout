@@ -14,8 +14,8 @@ SELECT policies_are(
 );
 SELECT policies_are(
   'public', 'vpa_private_alerts',
-  ARRAY['vpa_private_alerts_org_members'],
-  'alerts are organisation isolated'
+  ARRAY['vpa_private_alerts_org_acknowledge', 'vpa_private_alerts_org_select'],
+  'alerts have separate organisation-isolated read and acknowledgement policies'
 );
 SELECT policies_are(
   'public', 'vpa_gdp_staging_comparisons',

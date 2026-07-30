@@ -101,5 +101,10 @@ jobs:
           supabase/tests/vpa_lifecycle_geocoding.test.sql
           supabase/tests/vpa_licensee_networks.test.sql
           supabase/tests/vpa_change_alerts.test.sql
+          supabase/tests/vpa_alert_security_hardening.test.sql
+          supabase/tests/vpa_lifecycle_integrity_hardening.test.sql
+          supabase/tests/vpa_geocode_integrity.test.sql
+          supabase/tests/vpa_licensee_rename_integrity.test.sql
+          supabase/tests/vpa_registry_search_behavior.test.sql
       - run: npm run check:supabase-schema
       - run: supabase db lint --local --level error

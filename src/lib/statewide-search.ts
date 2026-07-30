@@ -18,12 +18,62 @@ export interface StatewideSearchResult {
   result_postcode: string | null;
   lat: number | null;
   lng: number | null;
-  source_confidence: string;
+  source_confidence: string | null;
+  registration_source_status?: string | null;
   is_private: boolean;
   relevance: number;
 }
 
 export const STATEWIDE_SEARCH_LIMIT = 24;
+
+export function hasVerifiedSearchCoordinates(
+  result: Pick<StatewideSearchResult, "lat" | "lng">,
+): result is Pick<StatewideSearchResult, "lat" | "lng"> & { lat: number; lng: number } {
+  return (
+    typeof result.lat === "number" &&
+    Number.isFinite(result.lat) &&
+    result.lat >= -40 &&
+    result.lat <= -33 &&
+    typeof result.lng === "number" &&
+    Number.isFinite(result.lng) &&
+    result.lng >= 140 &&
+    result.lng <= 150
+  );
+}
+
+function resultKey(result: StatewideSearchResult): string {
+  return ["pharmacy", "vpa_pharmacy"].includes(result.result_type)
+    ? `pharmacy:${result.result_id}`
+    : `${result.result_type}:${result.result_id}`;
+}
+
+function richness(result: StatewideSearchResult): number {
+  return (
+    (result.result_type === "vpa_pharmacy" ? 8 : 0) +
+    (result.registration_source_status ? 4 : 0) +
+    (result.result_address ? 2 : 0) +
+    (hasVerifiedSearchCoordinates(result) ? 1 : 0)
+  );
+}
+
+export function deduplicateStatewideResults(
+  results: StatewideSearchResult[],
+): StatewideSearchResult[] {
+  const deduplicated = new Map<string, StatewideSearchResult>();
+  for (const result of results) {
+    const key = resultKey(result);
+    const existing = deduplicated.get(key);
+    if (!existing || richness(result) > richness(existing)) {
+      deduplicated.set(key, {
+        ...result,
+        source_confidence: result.source_confidence ?? existing?.source_confidence ?? null,
+        registration_source_status:
+          result.registration_source_status ?? existing?.registration_source_status ?? null,
+      });
+    }
+  }
+  return [...deduplicated.values()];
+}
 
 export async function searchStatewideLocations(
   query: string,
@@ -62,11 +112,7 @@ export async function searchStatewideLocations(
       is_private: false,
     })),
   ];
-  return [
-    ...new Map(
-      combined.map((result) => [`${result.result_type}:${result.result_id}`, result]),
-    ).values(),
-  ]
+  return deduplicateStatewideResults(combined)
     .sort((left, right) => right.relevance - left.relevance)
     .slice(0, STATEWIDE_SEARCH_LIMIT);
 }

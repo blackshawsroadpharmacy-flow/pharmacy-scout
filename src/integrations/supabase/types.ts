@@ -2829,6 +2829,7 @@ export type Database = {
           latitude: number | null
           longitude: number | null
           normalised_address: string
+          premises_id: string | null
           provider: string
           provider_result_id: string | null
           queried_address: string
@@ -2841,6 +2842,7 @@ export type Database = {
           reviewer_status: string
           run_id: string
           staged_premises_id: string
+          supersedes_result_id: string | null
           validation_reasons: string[]
           validation_state: string
         }
@@ -2852,6 +2854,7 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           normalised_address: string
+          premises_id?: string | null
           provider: string
           provider_result_id?: string | null
           queried_address: string
@@ -2864,6 +2867,7 @@ export type Database = {
           reviewer_status?: string
           run_id: string
           staged_premises_id: string
+          supersedes_result_id?: string | null
           validation_reasons?: string[]
           validation_state?: string
         }
@@ -2875,6 +2879,7 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           normalised_address?: string
+          premises_id?: string | null
           provider?: string
           provider_result_id?: string | null
           queried_address?: string
@@ -2887,10 +2892,32 @@ export type Database = {
           reviewer_status?: string
           run_id?: string
           staged_premises_id?: string
+          supersedes_result_id?: string | null
           validation_reasons?: string[]
           validation_state?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "pharmacy_vpa_geocode_results_premises_id_fkey"
+            columns: ["premises_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_vpa_geocode_results_premises_id_fkey"
+            columns: ["premises_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises_geo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_vpa_geocode_results_premises_id_fkey"
+            columns: ["premises_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_premises_vpa_lifecycle"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "pharmacy_vpa_geocode_results_run_id_fkey"
             columns: ["run_id"]
@@ -2903,6 +2930,13 @@ export type Database = {
             columns: ["staged_premises_id"]
             isOneToOne: false
             referencedRelation: "pharmacy_vpa_staged_premises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_vpa_geocode_results_supersedes_result_id_fkey"
+            columns: ["supersedes_result_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_vpa_geocode_results"
             referencedColumns: ["id"]
           },
         ]
@@ -4722,198 +4756,50 @@ export type Database = {
       pharmacy_premises_vpa_lifecycle: {
         Row: {
           address: string | null
-          created_at: string | null
-          door_confidence: string | null
-          door_source: Database["public"]["Enums"]["door_source"] | null
-          door_verified_at: string | null
-          door_verified_by: string | null
-          geocode_method: string | null
           id: string | null
           included_in_active_commercial_competition: boolean | null
           included_in_default_active_map: boolean | null
           locality_name: string | null
           location: unknown
           name: string | null
-          notes: string | null
-          phone: string | null
           postcode: string | null
-          premises_source:
-            | Database["public"]["Enums"]["premises_source_type"]
-            | null
-          proprietor_names: string[] | null
-          public_door_location: unknown
-          published_licensee_names: string[] | null
-          source_confidence: string | null
-          source_id: string | null
           suburb: string | null
-          updated_at: string | null
           vpa_closed_first_observed_at: string | null
-          vpa_currently_observed: boolean | null
-          vpa_first_observed_at: string | null
-          vpa_geocode_status: string | null
-          vpa_last_observed_at: string | null
-          vpa_last_successful_run_id: string | null
-          vpa_last_synced_at: string | null
-          vpa_match_confidence: number | null
-          vpa_match_method: string | null
-          vpa_match_status: string | null
-          vpa_official_full_address: string | null
-          vpa_official_name: string | null
           vpa_pbs_match_state: string | null
-          vpa_premises_conditions_raw: string | null
-          vpa_record_key: string | null
-          vpa_registered_until: string | null
-          vpa_registration_checked_at: string | null
-          vpa_registration_status:
-            | Database["public"]["Enums"]["verification_status"]
-            | null
           vpa_registration_status_normalised: string | null
-          vpa_registration_status_raw: string | null
           vpa_reopened_last_observed_at: string | null
-          vpa_review_status: string | null
-          vpa_snapshot_reference_date: string | null
-          vpa_source_id: string | null
-          vpa_source_row_fingerprint: string | null
-          vpa_source_verification_status: string | null
-          website: string | null
         }
         Insert: {
           address?: string | null
-          created_at?: string | null
-          door_confidence?: string | null
-          door_source?: Database["public"]["Enums"]["door_source"] | null
-          door_verified_at?: string | null
-          door_verified_by?: string | null
-          geocode_method?: string | null
           id?: string | null
           included_in_active_commercial_competition?: never
           included_in_default_active_map?: never
           locality_name?: string | null
           location?: unknown
           name?: string | null
-          notes?: string | null
-          phone?: string | null
           postcode?: string | null
-          premises_source?:
-            | Database["public"]["Enums"]["premises_source_type"]
-            | null
-          proprietor_names?: string[] | null
-          public_door_location?: unknown
-          published_licensee_names?: string[] | null
-          source_confidence?: string | null
-          source_id?: string | null
           suburb?: string | null
-          updated_at?: string | null
           vpa_closed_first_observed_at?: string | null
-          vpa_currently_observed?: boolean | null
-          vpa_first_observed_at?: string | null
-          vpa_geocode_status?: string | null
-          vpa_last_observed_at?: string | null
-          vpa_last_successful_run_id?: string | null
-          vpa_last_synced_at?: string | null
-          vpa_match_confidence?: number | null
-          vpa_match_method?: string | null
-          vpa_match_status?: string | null
-          vpa_official_full_address?: string | null
-          vpa_official_name?: string | null
           vpa_pbs_match_state?: string | null
-          vpa_premises_conditions_raw?: string | null
-          vpa_record_key?: string | null
-          vpa_registered_until?: string | null
-          vpa_registration_checked_at?: string | null
-          vpa_registration_status?:
-            | Database["public"]["Enums"]["verification_status"]
-            | null
           vpa_registration_status_normalised?: string | null
-          vpa_registration_status_raw?: string | null
           vpa_reopened_last_observed_at?: string | null
-          vpa_review_status?: string | null
-          vpa_snapshot_reference_date?: string | null
-          vpa_source_id?: string | null
-          vpa_source_row_fingerprint?: string | null
-          vpa_source_verification_status?: string | null
-          website?: string | null
         }
         Update: {
           address?: string | null
-          created_at?: string | null
-          door_confidence?: string | null
-          door_source?: Database["public"]["Enums"]["door_source"] | null
-          door_verified_at?: string | null
-          door_verified_by?: string | null
-          geocode_method?: string | null
           id?: string | null
           included_in_active_commercial_competition?: never
           included_in_default_active_map?: never
           locality_name?: string | null
           location?: unknown
           name?: string | null
-          notes?: string | null
-          phone?: string | null
           postcode?: string | null
-          premises_source?:
-            | Database["public"]["Enums"]["premises_source_type"]
-            | null
-          proprietor_names?: string[] | null
-          public_door_location?: unknown
-          published_licensee_names?: string[] | null
-          source_confidence?: string | null
-          source_id?: string | null
           suburb?: string | null
-          updated_at?: string | null
           vpa_closed_first_observed_at?: string | null
-          vpa_currently_observed?: boolean | null
-          vpa_first_observed_at?: string | null
-          vpa_geocode_status?: string | null
-          vpa_last_observed_at?: string | null
-          vpa_last_successful_run_id?: string | null
-          vpa_last_synced_at?: string | null
-          vpa_match_confidence?: number | null
-          vpa_match_method?: string | null
-          vpa_match_status?: string | null
-          vpa_official_full_address?: string | null
-          vpa_official_name?: string | null
           vpa_pbs_match_state?: string | null
-          vpa_premises_conditions_raw?: string | null
-          vpa_record_key?: string | null
-          vpa_registered_until?: string | null
-          vpa_registration_checked_at?: string | null
-          vpa_registration_status?:
-            | Database["public"]["Enums"]["verification_status"]
-            | null
           vpa_registration_status_normalised?: string | null
-          vpa_registration_status_raw?: string | null
           vpa_reopened_last_observed_at?: string | null
-          vpa_review_status?: string | null
-          vpa_snapshot_reference_date?: string | null
-          vpa_source_id?: string | null
-          vpa_source_row_fingerprint?: string | null
-          vpa_source_verification_status?: string | null
-          website?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "pharmacy_premises_source_id_fkey"
-            columns: ["source_id"]
-            isOneToOne: false
-            referencedRelation: "source_records"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pharmacy_premises_vpa_last_successful_run_fkey"
-            columns: ["vpa_last_successful_run_id"]
-            isOneToOne: false
-            referencedRelation: "pharmacy_vpa_runs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pharmacy_premises_vpa_source_id_fkey"
-            columns: ["vpa_source_id"]
-            isOneToOne: false
-            referencedRelation: "source_records"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       vpa_published_licensee_networks: {
         Row: {
@@ -5081,6 +4967,10 @@ export type Database = {
             }
             Returns: string
           }
+      assert_vpa_validated_geocode: {
+        Args: { p_premises_id: string }
+        Returns: undefined
+      }
       calibration_observation_warnings: {
         Args: { target_organisation_id: string }
         Returns: {
@@ -6177,11 +6067,20 @@ export type Database = {
         Returns: string
       }
       vpa_has_prior_baseline: { Args: { p_run_id: string }; Returns: boolean }
+      vpa_in_default_active_map: {
+        Args: {
+          p_closed_first_observed_at: string
+          p_reopened_last_observed_at: string
+          p_status: string
+        }
+        Returns: boolean
+      }
       vpa_registry_search: {
         Args: { p_limit?: number; p_offset?: number; p_query: string }
         Returns: {
           lat: number
           lng: number
+          registration_source_status: string
           relevance: number
           result_address: string
           result_id: string
@@ -6189,7 +6088,6 @@ export type Database = {
           result_postcode: string
           result_suburb: string
           result_type: string
-          source_confidence: string
         }[]
       }
     }

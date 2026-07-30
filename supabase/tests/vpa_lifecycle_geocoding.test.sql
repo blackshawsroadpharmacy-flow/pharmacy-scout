@@ -13,7 +13,10 @@ SELECT has_table('public', 'pharmacy_vpa_geocode_results',
   'geocode evidence is retained');
 SELECT policies_are(
   'public', 'pharmacy_vpa_geocode_results',
-  ARRAY['pharmacy_vpa_geocode_results_admin'],
+  ARRAY[
+    'pharmacy_vpa_geocode_results_admin_insert',
+    'pharmacy_vpa_geocode_results_admin_read_insert'
+  ],
   'geocode evidence is restricted to administrators'
 );
 SELECT has_view('public', 'pharmacy_premises_vpa_lifecycle',
