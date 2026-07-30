@@ -3,6 +3,7 @@ import { Search, Layers, Bookmark, User, MapPin, LockKeyhole } from "lucide-reac
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import {
+  hasVerifiedSearchCoordinates,
   searchStatewideLocations,
   type StatewideSearchResult,
   type StatewideSearchType,
@@ -45,7 +46,7 @@ export function TopBar({
   const inputRef = useRef<HTMLInputElement>(null);
   const searchQ = useQuery({
     queryKey: ["statewide-location-search", debouncedQ],
-    queryFn: ({ signal }) => searchStatewideLocations(debouncedQ, signal),
+    queryFn: ({ signal }) => searchStatewideLocations(debouncedQ, signal, authed),
     enabled: debouncedQ.length >= 2,
     staleTime: 60_000,
   });
@@ -199,7 +200,16 @@ export function TopBar({
                           {formatSearchAddress(result)}
                         </span>
                         <span className="block text-[10px] text-muted-foreground">
-                          {typeLabel(result.result_type)} · {result.source_confidence}
+                          {typeLabel(result.result_type)}
+                          {result.source_confidence
+                            ? ` · ${result.source_confidence} confidence`
+                            : ""}
+                          {result.registration_source_status
+                            ? ` · VPA source ${result.registration_source_status.replaceAll("_", " ")}`
+                            : ""}
+                          {!hasVerifiedSearchCoordinates(result)
+                            ? " · Location not yet verified"
+                            : ""}
                         </span>
                       </span>
                     </button>
@@ -281,7 +291,7 @@ export function TopBar({
 }
 
 const SEARCH_GROUPS: Array<{ label: string; types: StatewideSearchType[] }> = [
-  { label: "Pharmacies", types: ["pharmacy"] },
+  { label: "Pharmacies", types: ["pharmacy", "vpa_pharmacy"] },
   { label: "Supermarkets", types: ["supermarket"] },
   { label: "Medical centres", types: ["medical_centre"] },
   { label: "Residential aged care", types: ["aged_care"] },

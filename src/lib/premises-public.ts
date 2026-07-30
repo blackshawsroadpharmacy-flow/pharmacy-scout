@@ -29,7 +29,38 @@ export interface PremisesDossier extends PremisesMapPoint {
   source_url: string | null;
   source_fetched_at: string | null;
   pbs_approvals: Array<{ approval_number: string; approval_status: string }>;
+  vpa_official_name: string | null;
+  vpa_official_full_address: string | null;
+  vpa_registration_status_raw: string | null;
+  vpa_registration_status_normalised: string;
+  vpa_registered_until: string | null;
+  vpa_premises_conditions_raw: string | null;
+  vpa_source_verification_status: string;
+  vpa_first_observed_at: string | null;
+  vpa_last_observed_at: string | null;
+  vpa_snapshot_reference_date: string | null;
+  vpa_match_status: string;
+  vpa_match_confidence: number | null;
+  vpa_review_status: string;
+  vpa_pbs_match_state: string;
+  vpa_geocode_status: string;
+  registered_licensees_state: "loaded" | "sign_in_required" | "unavailable";
+  registered_licensees: Array<{
+    id: string;
+    licensee_name: string;
+    license_status: string | null;
+    licensed_until: string | null;
+    conditions: string | null;
+    first_observed_at: string | null;
+    last_seen_at: string;
+    currently_observed: boolean;
+    other_active_premises_count: number | null;
+  }>;
 }
+type PremisesDossierRow = Omit<PremisesDossier, "pbs_approvals" | "registered_licensees"> & {
+  door_lat: number | null;
+  door_lng: number | null;
+};
 
 export interface PharmacyViewportFilters {
   missingData: boolean;
@@ -110,12 +141,7 @@ export async function fetchDossier(
 ): Promise<PremisesDossier | null> {
   // abortSignal must be applied to the filter builder, before the terminal
   // .maybeSingle() narrows it to a PostgrestBuilder.
-  const premisesQuery = supabase
-    .from("pharmacy_premises_geo")
-    .select(
-      "id, name, address, suburb, postcode, locality_name, lat, lng, vpa_registration_status, premises_source, source_confidence, source_id, geocode_method, door_lat, door_lng, phone, website",
-    )
-    .eq("id", id);
+  const premisesQuery = supabase.from("pharmacy_premises_geo").select("*").eq("id", id);
   const premisesRequest = (
     signal ? premisesQuery.abortSignal(signal) : premisesQuery
   ).maybeSingle();
@@ -124,13 +150,26 @@ export async function fetchDossier(
     .select("approval_number, approval_status")
     .eq("premises_id", id);
   const approvalsRequest = signal ? approvalsQuery.abortSignal(signal) : approvalsQuery;
+  const licenseesQuery = supabase
+    .from("pharmacy_premises_licensees")
+    .select(
+      "id,licensee_name,license_status,licensed_until,conditions,first_observed_at,last_seen_at,currently_observed",
+    )
+    .eq("premises_id", id)
+    .order("currently_observed", { ascending: false })
+    .order("licensee_name");
+  const licenseesRequest = signal ? licenseesQuery.abortSignal(signal) : licenseesQuery;
 
-  const [premisesRes, approvalsRes] = await Promise.all([premisesRequest, approvalsRequest]);
+  const [premisesRes, approvalsRes, licenseesRes] = await Promise.all([
+    premisesRequest,
+    approvalsRequest,
+    licenseesRequest,
+  ]);
   if (premisesRes.error) throw new Error(premisesRes.error.message);
   if (approvalsRes.error) throw new Error(approvalsRes.error.message);
   if (!premisesRes.data) return null;
 
-  const premises = premisesRes.data;
+  const premises = premisesRes.data as unknown as PremisesDossierRow;
   const sourceQuery = premises.source_id
     ? supabase
         .from("source_records")
@@ -153,5 +192,29 @@ export async function fetchDossier(
     source_url: sourceRes.data?.source_url ?? null,
     source_fetched_at: sourceRes.data?.fetched_at ?? null,
     pbs_approvals: (approvalsRes.data ?? []) as PremisesDossier["pbs_approvals"],
+    vpa_official_name: premises.vpa_official_name,
+    vpa_official_full_address: premises.vpa_official_full_address,
+    vpa_registration_status_raw: premises.vpa_registration_status_raw,
+    vpa_registration_status_normalised: premises.vpa_registration_status_normalised,
+    vpa_registered_until: premises.vpa_registered_until,
+    vpa_premises_conditions_raw: premises.vpa_premises_conditions_raw,
+    vpa_source_verification_status: premises.vpa_source_verification_status,
+    vpa_first_observed_at: premises.vpa_first_observed_at,
+    vpa_last_observed_at: premises.vpa_last_observed_at,
+    vpa_snapshot_reference_date: premises.vpa_snapshot_reference_date,
+    vpa_match_status: premises.vpa_match_status,
+    vpa_match_confidence: premises.vpa_match_confidence,
+    vpa_review_status: premises.vpa_review_status,
+    vpa_pbs_match_state: premises.vpa_pbs_match_state,
+    vpa_geocode_status: premises.vpa_geocode_status,
+    registered_licensees_state: licenseesRes.error
+      ? licenseesRes.error.code === "42501"
+        ? "sign_in_required"
+        : "unavailable"
+      : "loaded",
+    registered_licensees: (licenseesRes.data ?? []).map((licensee) => ({
+      ...licensee,
+      other_active_premises_count: null,
+    })) as PremisesDossier["registered_licensees"],
   };
 }

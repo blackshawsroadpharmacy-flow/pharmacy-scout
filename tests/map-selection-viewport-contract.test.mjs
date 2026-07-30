@@ -31,7 +31,7 @@ test("only explicit show-on-map and candidate navigation set pharmacy fly target
   );
   assert.match(
     source,
-    /if \(result\.result_type === "pharmacy"\) \{\s*showPremisesOnMap\(result\.result_id, result\.lat, result\.lng\)/,
+    /if \(result\.result_type === "pharmacy" \|\| result\.result_type === "vpa_pharmacy"\) \{[\s\S]*?hasVerifiedSearchCoordinates\(result\)[\s\S]*?showPremisesOnMap\(result\.result_id, result\.lat, result\.lng\)[\s\S]*?openPremises\(result\.result_id\)/,
   );
   assert.doesNotMatch(source, /openPremises\(id,\s*hit\?\.(?:lat|lng)/);
 });

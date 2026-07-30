@@ -29,7 +29,7 @@ import {
   searchVictorianAddress,
   type CandidatePoint,
 } from "@/lib/candidate-analysis";
-import type { StatewideSearchResult } from "@/lib/statewide-search";
+import { hasVerifiedSearchCoordinates, type StatewideSearchResult } from "@/lib/statewide-search";
 import { fetchPharmacyPipelineStatuses, type PipelineStage } from "@/lib/pharmacy-pipeline";
 import {
   fetchMapDispensingPotentials,
@@ -269,13 +269,13 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
     setSelectedId(id);
   }
 
-  function closePremises() {
-    setSelectedId(null);
-  }
-
   function showPremisesOnMap(id: string, lat: number, lng: number) {
     openPremises(id);
     setFlyTo({ lat, lng, zoom: 15 });
+  }
+
+  function closePremises() {
+    setSelectedId(null);
   }
 
   function openExternal(point: ExternalMapPoint) {
@@ -326,7 +326,7 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
       return;
     }
     if (result.result_type === "candidate_site") {
-      if (result.lat != null && result.lng != null) {
+      if (hasVerifiedSearchCoordinates(result)) {
         setMode("greenfield");
         setCandidate({
           lat: result.lat,
@@ -336,14 +336,18 @@ export function MapScreen({ selectedPremisesId = null, publicMapState }: MapScre
       }
       return;
     }
-    if (result.lat == null || result.lng == null) return;
+    if (result.result_type === "pharmacy" || result.result_type === "vpa_pharmacy") {
+      if (hasVerifiedSearchCoordinates(result)) {
+        showPremisesOnMap(result.result_id, result.lat, result.lng);
+      } else {
+        openPremises(result.result_id);
+      }
+      return;
+    }
+    if (!hasVerifiedSearchCoordinates(result)) return;
     if (result.result_type === "aged_care") {
       setLayers((current) => ({ ...current, agedCare: true }));
       setFlyTo({ lat: result.lat, lng: result.lng, zoom: 15 });
-      return;
-    }
-    if (result.result_type === "pharmacy") {
-      showPremisesOnMap(result.result_id, result.lat, result.lng);
       return;
     }
     const category = result.result_type === "supermarket" ? "supermarkets" : "medical_centres";

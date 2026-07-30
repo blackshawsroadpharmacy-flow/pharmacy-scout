@@ -31,6 +31,11 @@ import {
 } from "@/lib/dispensing-potential";
 import { fetchPharmacyDemographics } from "@/lib/demographic-intelligence";
 import { fetchHealthcareDemand } from "@/lib/healthcare-anchors";
+import {
+  registeredLicenseeSummary,
+  vpaDisplayDate,
+  vpaRegistrationDueWording,
+} from "@/lib/vpa-profile-presentation";
 
 const STATUS_OPTIONS: Array<{ value: PharmacyStatus; label: string }> = [
   { value: "active", label: "Active" },
@@ -120,6 +125,12 @@ export function RightDossier({
               </div>
             </section>
 
+            <OfficialRegistration dossier={dossier} />
+            <RegisteredLicensees
+              licensees={dossier.registered_licensees}
+              state={dossier.registered_licensees_state}
+            />
+
             <section className="mt-5">
               <SectionLabel>Contact &amp; provenance</SectionLabel>
               <div className="mt-2 space-y-1.5 text-xs text-muted-foreground">
@@ -186,6 +197,108 @@ export function RightDossier({
         </div>
       </div>
     </aside>
+  );
+}
+
+function OfficialRegistration({ dossier }: { dossier: Awaited<ReturnType<typeof fetchDossier>> }) {
+  if (!dossier?.vpa_official_name && !dossier?.vpa_registration_status_raw) {
+    return (
+      <section className="mt-5">
+        <SectionLabel>Official registration</SectionLabel>
+        <p className="mt-2 text-xs text-muted-foreground">
+          No matched VPA registration is available. PBS approval and VPA registration are separate
+          source states.
+        </p>
+      </section>
+    );
+  }
+  const due = vpaRegistrationDueWording(dossier.vpa_registered_until);
+  return (
+    <section className="mt-5" data-testid="official-registration">
+      <SectionLabel>Official registration</SectionLabel>
+      <dl className="mt-2 grid grid-cols-[8.5rem_1fr] gap-x-3 gap-y-1.5 text-xs">
+        <dt className="text-muted-foreground">Official VPA name</dt>
+        <dd>{dossier.vpa_official_name ?? "Not published"}</dd>
+        <dt className="text-muted-foreground">Official address</dt>
+        <dd>{dossier.vpa_official_full_address ?? "Not published"}</dd>
+        <dt className="text-muted-foreground">Source status</dt>
+        <dd>{dossier.vpa_registration_status_raw ?? "Not published"}</dd>
+        <dt className="text-muted-foreground">Normalised state</dt>
+        <dd>{dossier.vpa_registration_status_normalised.replaceAll("_", " ")}</dd>
+        <dt className="text-muted-foreground">Registered until</dt>
+        <dd>{vpaDisplayDate(dossier.vpa_registered_until)}</dd>
+        <dt className="text-muted-foreground">Conditions</dt>
+        <dd className="break-words">{dossier.vpa_premises_conditions_raw ?? "None published"}</dd>
+        <dt className="text-muted-foreground">Observed</dt>
+        <dd>
+          {dossier.vpa_first_observed_at
+            ? new Date(dossier.vpa_first_observed_at).toLocaleDateString("en-AU")
+            : "Unknown"}{" "}
+          –{" "}
+          {dossier.vpa_last_observed_at
+            ? new Date(dossier.vpa_last_observed_at).toLocaleDateString("en-AU")
+            : "Unknown"}
+        </dd>
+        <dt className="text-muted-foreground">VPA / PBS</dt>
+        <dd>{dossier.vpa_pbs_match_state.replaceAll("_", " ")}</dd>
+        <dt className="text-muted-foreground">Match review</dt>
+        <dd>
+          {dossier.vpa_match_status.replaceAll("_", " ")}
+          {dossier.vpa_match_confidence != null
+            ? ` · ${Math.round(dossier.vpa_match_confidence * 100)}%`
+            : ""}
+          {` · ${dossier.vpa_review_status.replaceAll("_", " ")}`}
+        </dd>
+        <dt className="text-muted-foreground">Geocoding</dt>
+        <dd>{dossier.vpa_geocode_status.replaceAll("_", " ")}</dd>
+      </dl>
+      {due && <p className="mt-2 rounded-md bg-amber/10 p-2 text-xs text-amber">{due}</p>}
+    </section>
+  );
+}
+
+function RegisteredLicensees({
+  licensees,
+  state,
+}: {
+  licensees: NonNullable<Awaited<ReturnType<typeof fetchDossier>>>["registered_licensees"];
+  state: NonNullable<Awaited<ReturnType<typeof fetchDossier>>>["registered_licensees_state"];
+}) {
+  const current = licensees.filter((licensee) => licensee.currently_observed);
+  return (
+    <section className="mt-5" data-testid="registered-licensees">
+      <SectionLabel>Registered licensees</SectionLabel>
+      {state !== "loaded" || current.length === 0 ? (
+        <p className="mt-2 text-xs text-muted-foreground">
+          {registeredLicenseeSummary(current.length, state)}
+        </p>
+      ) : (
+        <div className="mt-2 space-y-2">
+          <p className="text-xs text-muted-foreground">
+            {registeredLicenseeSummary(current.length)}
+          </p>
+          {current.map((licensee) => (
+            <article key={licensee.id} className="rounded-md border border-border p-2 text-xs">
+              <div className="font-medium break-words">{licensee.licensee_name}</div>
+              <div className="mt-1 text-muted-foreground">
+                {licensee.license_status ?? "Status not published"} · licensed until{" "}
+                {vpaDisplayDate(licensee.licensed_until)}
+              </div>
+              {licensee.conditions && (
+                <div className="mt-1 break-words text-muted-foreground">{licensee.conditions}</div>
+              )}
+              <div className="mt-1 text-[11px] text-muted-foreground">
+                First observed{" "}
+                {licensee.first_observed_at
+                  ? new Date(licensee.first_observed_at).toLocaleDateString("en-AU")
+                  : "unknown"}
+                . Actual ownership or supply relationships are not established by this register.
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
 
