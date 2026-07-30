@@ -9,8 +9,13 @@ SELECT has_table('public', 'vpa_gdp_staging_comparisons',
   'GDP comparison stays in an approval-gated staging table');
 SELECT policies_are(
   'public', 'vpa_alert_watches',
-  ARRAY['vpa_alert_watches_org_members'],
-  'watch records are organisation isolated'
+  ARRAY[
+    'vpa_alert_watches_personal_delete',
+    'vpa_alert_watches_personal_insert',
+    'vpa_alert_watches_personal_select',
+    'vpa_alert_watches_personal_update'
+  ],
+  'watch records are personal and organisation scoped'
 );
 SELECT policies_are(
   'public', 'vpa_private_alerts',
