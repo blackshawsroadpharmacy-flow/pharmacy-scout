@@ -45,7 +45,7 @@ export function TopBar({
   const inputRef = useRef<HTMLInputElement>(null);
   const searchQ = useQuery({
     queryKey: ["statewide-location-search", debouncedQ],
-    queryFn: ({ signal }) => searchStatewideLocations(debouncedQ, signal),
+    queryFn: ({ signal }) => searchStatewideLocations(debouncedQ, signal, authed),
     enabled: debouncedQ.length >= 2,
     staleTime: 60_000,
   });
@@ -281,7 +281,7 @@ export function TopBar({
 }
 
 const SEARCH_GROUPS: Array<{ label: string; types: StatewideSearchType[] }> = [
-  { label: "Pharmacies", types: ["pharmacy"] },
+  { label: "Pharmacies", types: ["pharmacy", "vpa_pharmacy"] },
   { label: "Supermarkets", types: ["supermarket"] },
   { label: "Medical centres", types: ["medical_centre"] },
   { label: "Residential aged care", types: ["aged_care"] },
