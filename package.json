@@ -17,6 +17,7 @@
     "scrape:vpa": "node scripts/scrape-vpa-register.mjs",
     "refresh:vpa": "node scripts/scrape-vpa-register.mjs",
     "refresh:vpa:from-cache": "node scripts/rebuild-vpa-csv-from-cache.mjs",
+    "import:vpa-register": "node scripts/import-vpa-register.mjs",
     "lint": "npm run clean:sidecars && npm run check:sidecars && eslint .",
     "typecheck": "tsc --noEmit",
     "verify:production": "node scripts/verify-production.mjs",
