@@ -34,8 +34,8 @@ test("dossier loading is selected-record scoped", async () => {
     readFile(new URL("../src/lib/premises-public.ts", import.meta.url), "utf8"),
     readFile(new URL("../src/components/map/right-dossier.tsx", import.meta.url), "utf8"),
   ]);
-  assert.match(source, /\.eq\("id", id\)/);
-  assert.match(source, /\.maybeSingle\(\)/);
+  assert.match(source, /\.rpc\("public_pharmacy_dossier", \{\s*p_premises_id: id/);
+  assert.match(source, /const premises = premisesRows\[0\]/);
   assert.match(dossier, /queryKey: \["pharmacy-dossier", premisesId\]/);
   assert.doesNotMatch(dossier, /allPremises/);
   assert.doesNotMatch(source, /haversine/i);

@@ -241,16 +241,6 @@ function OfficialRegistration({ dossier }: { dossier: Awaited<ReturnType<typeof 
         </dd>
         <dt className="text-muted-foreground">VPA / PBS</dt>
         <dd>{dossier.vpa_pbs_match_state.replaceAll("_", " ")}</dd>
-        <dt className="text-muted-foreground">Match review</dt>
-        <dd>
-          {dossier.vpa_match_status.replaceAll("_", " ")}
-          {dossier.vpa_match_confidence != null
-            ? ` · ${Math.round(dossier.vpa_match_confidence * 100)}%`
-            : ""}
-          {` · ${dossier.vpa_review_status.replaceAll("_", " ")}`}
-        </dd>
-        <dt className="text-muted-foreground">Geocoding</dt>
-        <dd>{dossier.vpa_geocode_status.replaceAll("_", " ")}</dd>
       </dl>
       {due && <p className="mt-2 rounded-md bg-amber/10 p-2 text-xs text-amber">{due}</p>}
     </section>

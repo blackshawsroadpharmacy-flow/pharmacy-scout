@@ -5417,6 +5417,42 @@ export type Database = {
       postgis_wagyu_version: { Args: never; Returns: string }
       promote_vpa_import_run: { Args: { p_run_id: string }; Returns: Json }
       public_data_freshness: { Args: never; Returns: Json }
+      public_pharmacy_dossier: {
+        Args: { p_premises_id: string }
+        Returns: {
+          address: string
+          door_lat: number
+          door_lng: number
+          geocode_method: string
+          id: string
+          lat: number
+          lng: number
+          locality_name: string
+          name: string
+          pbs_approvals: Json
+          phone: string
+          postcode: string
+          premises_source: Database["public"]["Enums"]["premises_source_type"]
+          source_confidence: string
+          source_fetched_at: string
+          source_name: string
+          source_url: string
+          suburb: string
+          vpa_first_observed_at: string
+          vpa_last_observed_at: string
+          vpa_official_full_address: string
+          vpa_official_name: string
+          vpa_pbs_match_state: string
+          vpa_premises_conditions_raw: string
+          vpa_registered_until: string
+          vpa_registration_status: Database["public"]["Enums"]["verification_status"]
+          vpa_registration_status_normalised: string
+          vpa_registration_status_raw: string
+          vpa_snapshot_reference_date: string
+          vpa_source_verification_status: string
+          website: string
+        }
+      }
       refresh_dispensing_potential_v1: { Args: never; Returns: number }
       refresh_dispensing_potential_v1_1: { Args: never; Returns: number }
       refresh_dispensing_potential_v1_2: { Args: never; Returns: number }
