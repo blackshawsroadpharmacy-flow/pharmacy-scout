@@ -1,4 +1,4 @@
-﻿BEGIN;
+BEGIN;
 SELECT plan(7);
 
 -- catchment_population is non-negative and returns a real apportioned

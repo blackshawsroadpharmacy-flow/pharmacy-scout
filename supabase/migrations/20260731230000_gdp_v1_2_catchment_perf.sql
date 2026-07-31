@@ -1,4 +1,4 @@
-﻿-- GDP v1.2 catchment performance: index-prefiltered area apportionment.
+-- GDP v1.2 catchment performance: index-prefiltered area apportionment.
 --
 -- PROBLEM: refresh_dispensing_potential_v1_2() times out (>2 min, the Supabase
 -- pooler statement_timeout cap which even SET LOCAL cannot raise) on the
